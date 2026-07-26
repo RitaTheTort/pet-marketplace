@@ -5,10 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pet Marketplace - ตลาดกลางสัตว์เลี้ยง</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Supabase Official JS SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen">
 
+  <!-- Header -->
   <header class="bg-slate-900 text-white shadow-md sticky top-0 z-40">
     <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
       <div class="flex items-center space-x-2">
@@ -26,11 +28,13 @@
     </div>
   </header>
 
+  <!-- Hero Banner & Search Bar -->
   <section class="bg-gradient-to-r from-slate-900 to-slate-800 text-white py-12 px-4">
     <div class="max-w-4xl mx-auto text-center">
       <h1 class="text-3xl md:text-4xl font-extrabold mb-3">ตลาดกลางซื้อขายสัตว์เลี้ยงที่ปลอดภัย 100%</h1>
       <p class="text-slate-300 text-sm md:text-base mb-6">มีระบบยืนยันตัวตนผู้ขาย (KYC) ระบบคนกลางพักเงิน (Escrow) และการบันทึกประวัติสายเลือด/สุขภาพ</p>
       
+      <!-- Search Form -->
       <form id="search-form" class="inline-flex rounded-md shadow-sm w-full max-w-md">
         <input type="text" id="search-input" placeholder="ค้นหาสายพันธุ์, มอร์ฟ (เช่น Amel Zulu, เต่า)..." class="w-full px-4 py-2.5 text-slate-900 rounded-l-lg focus:outline-none text-sm">
         <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-r-lg font-medium text-sm whitespace-nowrap">ค้นหา</button>
@@ -38,8 +42,10 @@
     </div>
   </section>
 
+  <!-- Main Content -->
   <main class="max-w-6xl mx-auto px-4 py-8">
     
+    <!-- Navigation Tabs -->
     <div class="flex border-b border-slate-200 mb-6">
       <button id="tab-all-pets" onclick="switchMainView('ALL')" class="py-2.5 px-4 font-bold text-sm border-b-2 border-blue-600 text-blue-600 transition">
         ตลาดสัตว์เลี้ยงทั้งหมด
@@ -49,6 +55,7 @@
       </button>
     </div>
 
+    <!-- Category Filter Tabs -->
     <div id="category-filter-container" class="mb-6 overflow-x-auto pb-2">
       <div class="flex space-x-2 min-w-max" id="category-tabs">
         <button onclick="filterCategory('ALL')" class="cat-tab bg-blue-600 text-white px-4 py-1.5 rounded-full text-xs font-bold transition shadow-sm">ทั้งหมด</button>
@@ -65,6 +72,7 @@
       <span class="text-xs text-slate-500" id="item-count">กำลังโหลดข้อมูล...</span>
     </div>
 
+    <!-- Pet Grid Container -->
     <div id="pet-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
       <div class="col-span-full text-center py-12 text-slate-400 text-sm">
         กำลังเชื่อมต่อฐานข้อมูล...
@@ -72,6 +80,7 @@
     </div>
   </main>
 
+  <!-- Modal 1: เข้าสู่ระบบ / สมัครสมาชิก -->
   <div id="auth-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4 overflow-y-auto">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden my-8">
       <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center">
@@ -105,6 +114,7 @@
     </div>
   </div>
 
+  <!-- Modal 2: ลงประกาศ / แก้ไขประกาศสัตว์เลี้ยง -->
   <div id="add-pet-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4 overflow-y-auto">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden my-8">
       <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center">
@@ -166,6 +176,7 @@
     </div>
   </div>
 
+  <!-- Modal 3: แสดงรายละเอียดสัตว์เลี้ยง -->
   <div id="detail-pet-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4 overflow-y-auto">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden my-8">
       <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center">
@@ -213,7 +224,7 @@
     let allPetsData = [];
     let filteredPetsData = [];
     let currentCategory = 'ALL';
-    let currentMainView = 'ALL'; // 'ALL' = หน้าหลัก, 'MY' = ประกาศของฉัน
+    let currentMainView = 'ALL';
 
     const authModal = document.getElementById('auth-modal');
     const authForm = document.getElementById('auth-form');
@@ -256,7 +267,6 @@
           addModal.classList.remove('hidden'); addModal.classList.add('flex');
         });
 
-        // แสดง Tab "ประกาศของฉัน"
         tabMyPets.classList.remove('hidden');
       } else {
         container.innerHTML = `
@@ -268,7 +278,6 @@
           authModal.classList.remove('hidden'); authModal.classList.add('flex');
         });
 
-        // ซ่อน Tab "ประกาศของฉัน"
         tabMyPets.classList.add('hidden');
         currentMainView = 'ALL';
       }
@@ -276,7 +285,6 @@
       applyFilters();
     }
 
-    // สลับ View ระหว่าง ตลาดทั้งหมด vs ประกาศของฉัน
     window.switchMainView = function(view) {
       currentMainView = view;
       if (view === 'ALL') {
@@ -429,7 +437,9 @@
 
       petGrid.innerHTML = pets.map((pet, idx) => {
         const hasImage = pet.images && pet.images.length > 0 && pet.images[0];
-        const isOwner = currentUser && (currentUser.id === pet.seller_id || !pet.seller_id);
+        
+        // Strict Checking: เป็นเจ้าของเฉพาะเมื่อ seller_id ตรงกันเป๊ะเท่านั้น
+        const isOwner = currentUser && pet.seller_id && (currentUser.id === pet.seller_id);
 
         return `
           <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-md transition flex flex-col justify-between">
@@ -469,18 +479,17 @@
     function applyFilters() {
       const query = searchInput.value.trim().toLowerCase();
 
-      // อัปเดตจำนวนประกาศของฉันที่ Badge
+      // Strict Counting: นับเฉพาะรายการที่มี seller_id ตรงกับ User จริงๆ
       if (currentUser) {
-        const myPetsCount = allPetsData.filter(p => p.seller_id === currentUser.id || !p.seller_id).length;
+        const myPetsCount = allPetsData.filter(p => p.seller_id && p.seller_id === currentUser.id).length;
         document.getElementById('my-count-badge').innerText = myPetsCount;
       }
 
       filteredPetsData = allPetsData.filter(pet => {
-        // กรองตาม View (ทั้งหมด หรือ ของฉัน)
+        // กรองตาม View (ถ้าเป็น MY ต้องตรงกับ User ID เท่านั้น)
         if (currentMainView === 'MY') {
           if (!currentUser) return false;
-          const isMyPet = (pet.seller_id === currentUser.id) || !pet.seller_id;
-          if (!isMyPet) return false;
+          if (!pet.seller_id || pet.seller_id !== currentUser.id) return false;
         }
 
         // กรองตามหมวดหมู่ (เฉพาะหน้าหลัก)
@@ -566,7 +575,7 @@
             .eq('id', editId);
           error = res.error;
         } else {
-          payload.seller_id = currentUser.id;
+          payload.seller_id = currentUser.id; // บังคับผูก seller_id เสมอ
           const res = await supabaseClient
             .from('pets')
             .insert([payload]);
