@@ -334,7 +334,7 @@
     const tabMyPets = document.getElementById('tab-my-pets');
     const categoryFilterContainer = document.getElementById('category-filter-container');
 
-    // ฟังก์ชันส่งอีเมลลืมรหัสผ่าน
+    // ฟังก์ชันส่งอีเมลลืมรหัสผ่าน (แก้ไขให้ redirectTo วิ่งไปที่ index.html เพื่อป้องกัน 404)
     async function handleForgotPassword() {
       const emailInput = document.getElementById('auth-email').value.trim();
       if (!emailInput) {
@@ -344,7 +344,7 @@
 
       try {
         const { data, error } = await supabaseClient.auth.resetPasswordForEmail(emailInput, {
-          redirectTo: window.location.origin,
+          redirectTo: 'https://ritathetort.github.io/index.html',
         });
         if (error) throw error;
         alert('ระบบได้ส่งลิงก์สำหรับรีเซ็ตรหัสผ่านไปยังอีเมลของคุณแล้ว กรุณาตรวจสอบกล่องข้อความ');
@@ -1021,13 +1021,29 @@
         updateAuthUI(null);
       }
 
+      // ดักจับสถานะ Password Recovery เมื่อผู้ใช้คลิกลิงก์จากอีเมล
+      supabaseClient.auth.onAuthStateChange(async (event, session) => {
+        if (event === 'PASSWORD_RECOVERY') {
+          const newPassword = prompt('กรุณากรอกรหัสผ่านใหม่ของคุณ (อย่างน้อย 6 ตัวอักษร):');
+          if (newPassword && newPassword.length >= 6) {
+            const { data, error } = await supabaseClient.auth.updateUser({ password: newPassword });
+            if (error) {
+              alert(`เปลี่ยนรหัสผ่านไม่สำเร็จ: ${error.message}`);
+            } else {
+              alert('เปลี่ยนรหัสผ่านเรียบร้อยแล้ว! สามารถเข้าสู่ระบบด้วยรหัสผ่านใหม่ได้เลยครับ');
+            }
+          } else {
+            alert('รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษรครับ');
+          }
+        }
+      });
+
       supabaseClient.auth.onAuthStateChange((_event, session) => {
-        updateAuthUI(session ? session.user : null);
+        if (_event !== 'PASSWORD_RECOVERY') {
+          updateAuthUI(session ? session.user : null);
+        }
       });
     });
   </script>
 </body>
 </html>
-
-
-
