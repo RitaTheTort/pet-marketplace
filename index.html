@@ -18,7 +18,6 @@
         <span class="text-xs bg-blue-900 text-blue-200 px-2 py-1 rounded">Beta</span>
       </div>
       <div class="flex items-center space-x-2" id="auth-buttons-container">
-        <!-- ปุ่ม Auth จะถูกควบคุมด้วย JavaScript ตาม Auth State -->
         <button id="open-add-modal-btn" class="hidden bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-3 py-2 rounded-lg text-xs md:text-sm transition shadow whitespace-nowrap">
           + ลงประกาศ
         </button>
@@ -105,15 +104,17 @@
     </div>
   </div>
 
-  <!-- Modal 2: ลงประกาศสัตว์เลี้ยง -->
+  <!-- Modal 2: ลงประกาศ / แก้ไขประกาศสัตว์เลี้ยง -->
   <div id="add-pet-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4 overflow-y-auto">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden my-8">
       <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center">
-        <h3 class="font-bold text-lg">ลงประกาศขายสัตว์เลี้ยง</h3>
+        <h3 id="form-modal-title" class="font-bold text-lg">ลงประกาศขายสัตว์เลี้ยง</h3>
         <button id="close-modal-btn" class="text-slate-400 hover:text-white text-xl font-bold">&times;</button>
       </div>
       
       <form id="add-pet-form" class="p-6 space-y-4">
+        <input type="hidden" id="edit-pet-id" value="">
+
         <div>
           <label class="block text-xs font-bold text-slate-700 mb-1">ชื่อหัวข้อประกาศ *</label>
           <input type="text" id="title" required placeholder="เช่น African Fat-tailed Gecko สายพันธุ์แท้" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
@@ -217,13 +218,10 @@
 
     // DOM References
     const authModal = document.getElementById('auth-modal');
-    const openAuthModalBtn = document.getElementById('open-auth-modal-btn');
-    const closeAuthBtn = document.getElementById('close-auth-btn');
     const authForm = document.getElementById('auth-form');
     const toggleAuthBtn = document.getElementById('toggle-auth-btn');
 
     const addModal = document.getElementById('add-pet-modal');
-    const openAddModalBtn = document.getElementById('open-add-modal-btn');
     const closeModalBtn = document.getElementById('close-modal-btn');
     const cancelBtn = document.getElementById('cancel-btn');
     const addPetForm = document.getElementById('add-pet-form');
@@ -250,8 +248,10 @@
             <button onclick="handleSignOut()" class="text-xs text-red-400 hover:text-red-300 font-bold ml-1">ออก</button>
           </div>
         `;
-        // Bind Add Modal event again
         document.getElementById('open-add-modal-btn').addEventListener('click', () => {
+          document.getElementById('form-modal-title').innerText = 'ลงประกาศขายสัตว์เลี้ยง';
+          document.getElementById('edit-pet-id').value = '';
+          addPetForm.reset();
           addModal.classList.remove('hidden'); addModal.classList.add('flex');
         });
       } else {
@@ -264,9 +264,12 @@
           authModal.classList.remove('hidden'); authModal.classList.add('flex');
         });
       }
+
+      // Re-render grid to update edit/delete buttons visibility
+      applyFilters();
     }
 
-    // Toggle Sign In / Sign Up Mode
+    // Toggle Auth Mode
     toggleAuthBtn.addEventListener('click', () => {
       isSignUpMode = !isSignUpMode;
       document.getElementById('auth-modal-title').innerText = isSignUpMode ? 'สมัครสมาชิก' : 'เข้าสู่ระบบ';
@@ -274,8 +277,6 @@
       document.getElementById('toggle-auth-mode-text').innerHTML = isSignUpMode 
         ? 'มีบัญชีสมาชิกอยู่แล้ว? <button type="button" id="toggle-auth-btn" class="text-blue-600 font-bold hover:underline">เข้าสู่ระบบที่นี่</button>'
         : 'ยังไม่มีบัญชีสมาชิก? <button type="button" id="toggle-auth-btn" class="text-blue-600 font-bold hover:underline">สมัครสมาชิกที่นี่</button>';
-      
-      // Re-bind event
       document.getElementById('toggle-auth-btn').addEventListener('click', () => toggleAuthBtn.click());
     });
 
@@ -293,7 +294,7 @@
         if (isSignUpMode) {
           const { data, error } = await supabaseClient.auth.signUp({ email, password });
           if (error) throw error;
-          alert('ลงทะเบียนสำเร็จ! กรุณาตรวจสอบอีเมลเพื่อยืนยันตัวตน (หรือเข้าสู่ระบบได้ทันทีหากปิดการยืนยันอีเมล)');
+          alert('ลงทะเบียนสำเร็จ! เข้าสู่ระบบได้เลยครับ');
         } else {
           const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
           if (error) throw error;
@@ -315,13 +316,10 @@
       updateAuthUI(null);
     };
 
-    // Close Auth Modal
-    closeAuthBtn.addEventListener('click', () => {
-      authModal.classList.add('hidden'); authModal.classList.remove('flex');
-      authForm.reset();
+    document.getElementById('close-auth-btn').addEventListener('click', () => {
+      authModal.classList.add('hidden'); authModal.classList.remove('flex'); authForm.reset();
     });
 
-    // Add & Detail Modals Control
     const closeAddModal = () => { addModal.classList.add('hidden'); addModal.classList.remove('flex'); addPetForm.reset(); };
     closeModalBtn.addEventListener('click', closeAddModal);
     cancelBtn.addEventListener('click', closeAddModal);
@@ -357,7 +355,47 @@
       detailModal.classList.add('flex');
     };
 
-    // Render Grid Cards
+    // Delete Pet Function (สำหรับเจ้าของ)
+    window.deletePet = async function(petId) {
+      if (!confirm('คุณแน่ใจหรือไม่ว่าต้องการลบประกาศนี้?')) return;
+
+      try {
+        const { error } = await supabaseClient
+          .from('pets')
+          .delete()
+          .eq('id', petId);
+
+        if (error) {
+          alert(`ไม่สามารถลบได้: ${error.message}`);
+        } else {
+          alert('ลบประกาศเรียบร้อยแล้วครับ');
+          fetchPets();
+        }
+      } catch (err) {
+        alert(`เกิดข้อผิดพลาด: ${err.message}`);
+      }
+    };
+
+    // Edit Pet Function (สำหรับเจ้าของ)
+    window.openEditModal = function(index) {
+      const pet = filteredPetsData[index];
+      if (!pet) return;
+
+      document.getElementById('form-modal-title').innerText = 'แก้ไขประกาศสัตว์เลี้ยง';
+      document.getElementById('edit-pet-id').value = pet.id;
+      document.getElementById('title').value = pet.title || '';
+      document.getElementById('species').value = pet.species || 'Other';
+      document.getElementById('price').value = pet.price || '';
+      document.getElementById('morph').value = pet.morph || '';
+      document.getElementById('health_status').value = pet.health_status || 'สมบูรณ์แข็งแรง';
+      document.getElementById('image_url').value = (pet.images && pet.images[0]) ? pet.images[0] : '';
+      document.getElementById('description').value = pet.description || '';
+
+      addModal.classList.remove('hidden');
+      addModal.classList.add('flex');
+    };
+
+    // Render Grid Cards with Ownership Action Buttons
     function renderPetGrid(pets) {
       document.getElementById('item-count').innerText = `พบ ${pets.length} รายการ`;
 
@@ -373,6 +411,8 @@
 
       petGrid.innerHTML = pets.map((pet, idx) => {
         const hasImage = pet.images && pet.images.length > 0 && pet.images[0];
+        const isOwner = currentUser && (currentUser.id === pet.seller_id);
+
         return `
           <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-md transition flex flex-col justify-between">
             <div>
@@ -394,7 +434,13 @@
             <div class="p-4 pt-0">
               <div class="flex justify-between items-center pt-2 border-t border-slate-100">
                 <span class="text-lg font-extrabold text-blue-600">฿${pet.price ? Number(pet.price).toLocaleString() : '0'}</span>
-                <button onclick="showPetDetail(${idx})" class="text-xs bg-slate-900 hover:bg-slate-800 text-white px-3 py-1.5 rounded-lg transition">รายละเอียด</button>
+                <div class="flex space-x-1">
+                  ${isOwner ? `
+                    <button onclick="openEditModal(${idx})" class="text-xs bg-amber-500 hover:bg-amber-600 text-white px-2.5 py-1.5 rounded-lg transition">แก้</button>
+                    <button onclick="deletePet('${pet.id}')" class="text-xs bg-red-500 hover:bg-red-600 text-white px-2.5 py-1.5 rounded-lg transition">ลบ</button>
+                  ` : ''}
+                  <button onclick="showPetDetail(${idx})" class="text-xs bg-slate-900 hover:bg-slate-800 text-white px-3 py-1.5 rounded-lg transition">รายละเอียด</button>
+                </div>
               </div>
             </div>
           </div>
@@ -402,7 +448,7 @@
       }).join('');
     }
 
-    // Filter Logic Combining Search Keyword & Category Tab
+    // Filter Logic
     function applyFilters() {
       const query = searchInput.value.trim().toLowerCase();
 
@@ -454,7 +500,7 @@
       }
     }
 
-    // Submit Add Pet Form (ผูกกับ seller_id ของคนที่ล็อกอิน)
+    // Submit Form (ทั้ง Insert ใหม่ และ Update ประกาศเดิม)
     addPetForm.addEventListener('submit', async (e) => {
       e.preventDefault();
 
@@ -467,6 +513,7 @@
       submitBtn.disabled = true;
       submitBtn.innerText = 'กำลังบันทึก...';
 
+      const editId = document.getElementById('edit-pet-id').value;
       const imageUrl = document.getElementById('image_url').value.trim();
       
       const payload = {
@@ -476,17 +523,30 @@
         morph: document.getElementById('morph').value.trim() || null,
         health_status: document.getElementById('health_status').value.trim() || 'สมบูรณ์แข็งแรง',
         description: document.getElementById('description').value.trim() || null,
-        images: imageUrl ? [imageUrl] : [],
-        seller_id: currentUser.id // ผูก User ID เจ้าของประกาศ
+        images: imageUrl ? [imageUrl] : []
       };
 
       try {
-        const { error } = await supabaseClient
-          .from('pets')
-          .insert([payload]);
+        let error = null;
+
+        if (editId) {
+          // คำสั่ง Update
+          const res = await supabaseClient
+            .from('pets')
+            .update(payload)
+            .eq('id', editId);
+          error = res.error;
+        } else {
+          // คำสั่ง Insert ใหม่ (แนบ seller_id)
+          payload.seller_id = currentUser.id;
+          const res = await supabaseClient
+            .from('pets')
+            .insert([payload]);
+          error = res.error;
+        }
 
         if (error) {
-          alert(`เกิดข้อผิดพลาดในการบันทึก: ${error.message}`);
+          alert(`เกิดข้อผิดพลาด: ${error.message}`);
         } else {
           closeAddModal();
           fetchPets();
@@ -510,7 +570,6 @@
         updateAuthUI(null);
       }
 
-      // Listen for auth state changes
       supabaseClient.auth.onAuthStateChange((_event, session) => {
         updateAuthUI(session ? session.user : null);
       });
