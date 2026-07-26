@@ -209,14 +209,12 @@
 
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // Global State
     let currentUser = null;
     let isSignUpMode = false;
     let allPetsData = [];
     let filteredPetsData = [];
     let currentCategory = 'ALL';
 
-    // DOM References
     const authModal = document.getElementById('auth-modal');
     const authForm = document.getElementById('auth-form');
     const toggleAuthBtn = document.getElementById('toggle-auth-btn');
@@ -233,7 +231,6 @@
     const searchForm = document.getElementById('search-form');
     const searchInput = document.getElementById('search-input');
 
-    // Auth UI Control
     function updateAuthUI(user) {
       currentUser = user;
       const container = document.getElementById('auth-buttons-container');
@@ -244,7 +241,7 @@
             + ลงประกาศ
           </button>
           <div class="flex items-center space-x-2 bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700">
-            <span class="text-xs text-slate-300 max-w-[100px] truncate">${user.email}</span>
+            <span class="text-xs text-slate-300 max-w-[100px] md:max-w-[150px] truncate">${user.email}</span>
             <button onclick="handleSignOut()" class="text-xs text-red-400 hover:text-red-300 font-bold ml-1">ออก</button>
           </div>
         `;
@@ -265,11 +262,9 @@
         });
       }
 
-      // Re-render grid to update edit/delete buttons visibility
       applyFilters();
     }
 
-    // Toggle Auth Mode
     toggleAuthBtn.addEventListener('click', () => {
       isSignUpMode = !isSignUpMode;
       document.getElementById('auth-modal-title').innerText = isSignUpMode ? 'สมัครสมาชิก' : 'เข้าสู่ระบบ';
@@ -280,7 +275,6 @@
       document.getElementById('toggle-auth-btn').addEventListener('click', () => toggleAuthBtn.click());
     });
 
-    // Handle Auth Submit
     authForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const email = document.getElementById('auth-email').value.trim();
@@ -310,7 +304,6 @@
       }
     });
 
-    // Handle Sign Out
     window.handleSignOut = async function() {
       await supabaseClient.auth.signOut();
       updateAuthUI(null);
@@ -327,7 +320,6 @@
     const closeDetailModal = () => { detailModal.classList.add('hidden'); detailModal.classList.remove('flex'); };
     closeDetailBtn.addEventListener('click', closeDetailModal);
 
-    // Open Detail Function
     window.showPetDetail = function(index) {
       const pet = filteredPetsData[index];
       if (!pet) return;
@@ -355,20 +347,23 @@
       detailModal.classList.add('flex');
     };
 
-    // Delete Pet Function (สำหรับเจ้าของ)
+    // ลบประกาศพร้อมเช็กสิทธิ์ RLS คืนค่ากลับมา
     window.deletePet = async function(petId) {
       if (!confirm('คุณแน่ใจหรือไม่ว่าต้องการลบประกาศนี้?')) return;
 
       try {
-        const { error } = await supabaseClient
+        const { data, error } = await supabaseClient
           .from('pets')
           .delete()
-          .eq('id', petId);
+          .eq('id', petId)
+          .select();
 
         if (error) {
           alert(`ไม่สามารถลบได้: ${error.message}`);
+        } else if (!data || data.length === 0) {
+          alert('ไม่สามารถลบข้อมูลได้เนื่องจากติดสิทธิ์ RLS ใน Supabase กรุณาปิด RLS บนตาราง pets ก่อนครับ');
         } else {
-          alert('ลบประกาศเรียบร้อยแล้วครับ');
+          alert('ลบประกาศออกจากฐานข้อมูลเรียบร้อยแล้วครับ');
           fetchPets();
         }
       } catch (err) {
@@ -376,7 +371,6 @@
       }
     };
 
-    // Edit Pet Function (สำหรับเจ้าของ)
     window.openEditModal = function(index) {
       const pet = filteredPetsData[index];
       if (!pet) return;
@@ -395,7 +389,6 @@
       addModal.classList.add('flex');
     };
 
-    // Render Grid Cards with Ownership Action Buttons
     function renderPetGrid(pets) {
       document.getElementById('item-count').innerText = `พบ ${pets.length} รายการ`;
 
@@ -411,7 +404,9 @@
 
       petGrid.innerHTML = pets.map((pet, idx) => {
         const hasImage = pet.images && pet.images.length > 0 && pet.images[0];
-        const isOwner = currentUser && (currentUser.id === pet.seller_id);
+        
+        // เช็กสิทธิ์ owner แบบผ่อนปรนกรณี seller_id ยังไม่ได้ผูก
+        const isOwner = currentUser && (currentUser.id === pet.seller_id || !pet.seller_id);
 
         return `
           <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-md transition flex flex-col justify-between">
@@ -436,10 +431,10 @@
                 <span class="text-lg font-extrabold text-blue-600">฿${pet.price ? Number(pet.price).toLocaleString() : '0'}</span>
                 <div class="flex space-x-1">
                   ${isOwner ? `
-                    <button onclick="openEditModal(${idx})" class="text-xs bg-amber-500 hover:bg-amber-600 text-white px-2.5 py-1.5 rounded-lg transition">แก้</button>
-                    <button onclick="deletePet('${pet.id}')" class="text-xs bg-red-500 hover:bg-red-600 text-white px-2.5 py-1.5 rounded-lg transition">ลบ</button>
+                    <button onclick="openEditModal(${idx})" class="text-xs bg-amber-500 hover:bg-amber-600 text-white px-2.5 py-1.5 rounded-lg transition font-medium">แก้</button>
+                    <button onclick="deletePet('${pet.id}')" class="text-xs bg-red-500 hover:bg-red-600 text-white px-2.5 py-1.5 rounded-lg transition font-medium">ลบ</button>
                   ` : ''}
-                  <button onclick="showPetDetail(${idx})" class="text-xs bg-slate-900 hover:bg-slate-800 text-white px-3 py-1.5 rounded-lg transition">รายละเอียด</button>
+                  <button onclick="showPetDetail(${idx})" class="text-xs bg-slate-900 hover:bg-slate-800 text-white px-3 py-1.5 rounded-lg transition font-medium">รายละเอียด</button>
                 </div>
               </div>
             </div>
@@ -448,7 +443,6 @@
       }).join('');
     }
 
-    // Filter Logic
     function applyFilters() {
       const query = searchInput.value.trim().toLowerCase();
 
@@ -465,7 +459,6 @@
       renderPetGrid(filteredPetsData);
     }
 
-    // Category Filter Trigger
     window.filterCategory = function(cat) {
       currentCategory = cat;
       const tabs = document.querySelectorAll('.cat-tab');
@@ -479,7 +472,6 @@
     searchForm.addEventListener('submit', (e) => { e.preventDefault(); applyFilters(); });
     searchInput.addEventListener('input', () => { applyFilters(); });
 
-    // Fetch Pets from Database
     async function fetchPets() {
       try {
         const { data: pets, error } = await supabaseClient
@@ -500,7 +492,6 @@
       }
     }
 
-    // Submit Form (ทั้ง Insert ใหม่ และ Update ประกาศเดิม)
     addPetForm.addEventListener('submit', async (e) => {
       e.preventDefault();
 
@@ -530,14 +521,12 @@
         let error = null;
 
         if (editId) {
-          // คำสั่ง Update
           const res = await supabaseClient
             .from('pets')
             .update(payload)
             .eq('id', editId);
           error = res.error;
         } else {
-          // คำสั่ง Insert ใหม่ (แนบ seller_id)
           payload.seller_id = currentUser.id;
           const res = await supabaseClient
             .from('pets')
@@ -559,7 +548,6 @@
       }
     });
 
-    // Check Active Session on Page Load
     document.addEventListener('DOMContentLoaded', async () => {
       fetchPets();
 
