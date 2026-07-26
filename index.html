@@ -319,7 +319,7 @@
     const categoryFilterContainer = document.getElementById('category-filter-container');
 
     // ฟังก์ชันส่งอีเมลลืมรหัสผ่าน
-    async function handleForgotPassword() {
+        async function handleForgotPassword() {
       const emailInput = document.getElementById('auth-email').value.trim();
       if (!emailInput) {
         alert('กรุณากรอกอีเมลของคุณในช่องอีเมลด้านบนก่อนกดลืมรหัสผ่านครับ');
@@ -327,8 +327,9 @@
       }
 
       try {
+        // บังคับระบุ redirectTo แบบเจาะจง Subpath โดยตรง
         const { data, error } = await supabaseClient.auth.resetPasswordForEmail(emailInput, {
-          redirectTo: 'https://ritathetort.github.io/',
+          redirectTo: 'https://ritathetort.github.io/pet-marketplace/index.html',
         });
         if (error) throw error;
         alert('ระบบได้ส่งลิงก์สำหรับรีเซ็ตรหัสผ่านไปยังอีเมลของคุณแล้ว กรุณาตรวจสอบกล่องข้อความ');
@@ -336,6 +337,7 @@
         alert(`ไม่สามารถส่งอีเมลรีเซ็ตได้: ${err.message}`);
       }
     }
+
 
     // ฟังก์ชันเช็กจำนวนข้อความที่ยังไม่ได้อ่าน
     async function checkUnreadMessages() {
