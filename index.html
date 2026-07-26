@@ -295,6 +295,7 @@
     // Chat state variables
     let currentActivePet = null;
     let chatRealtimeChannel = null;
+    let globalNotificationChannel = null;
     let targetChatUserId = null;
 
     const authModal = document.getElementById('auth-modal');
@@ -338,11 +339,11 @@
         .from('messages')
         .select('*', { count: 'exact', head: true })
         .eq('receiver_id', currentUser.id)
-        .eq('is_read', false);
+        .or('is_read.is.null,is_read.eq.false');
 
       const badge = document.getElementById('unread-badge');
       if (badge) {
-        if (!error && count > 0) {
+        if (!error && count && count > 0) {
           badge.innerText = count > 99 ? '99+' : count;
           badge.classList.remove('hidden');
         } else {
@@ -351,10 +352,15 @@
       }
     }
 
-    // ฟังข้อความใหม่ระดับ Global เพื่อแจ้งเตือนจุดแดงทันที
+    // ฟังข้อความใหม่ระดับ Global เพื่อแจ้งเตือนจุดแดงทันที (ป้องกันการซ้ำซ้อน Channel)
     function subscribeGlobalNotification() {
       if (!currentUser) return;
-      supabaseClient
+
+      if (globalNotificationChannel) {
+        supabaseClient.removeChannel(globalNotificationChannel);
+      }
+
+      globalNotificationChannel = supabaseClient
         .channel('global-messages-notification')
         .on(
           'postgres_changes',
@@ -410,6 +416,76 @@
 
       applyFilters();
     }
+
+    // ฟังก์ชันแสดง Inbox รวมกล่องข้อความ
+    window.openInboxModal = async function() {
+      if (!currentUser) return;
+
+      inboxModal.classList.remove('hidden');
+      inboxModal.classList.add('flex');
+      inboxListContainer.innerHTML = '<div class="text-center text-xs text-slate-400 py-8">กำลังโหลดรายการข้อความ...</div>';
+
+      const { data: messages, error } = await supabaseClient
+        .from('messages')
+        .select('*')
+        .or(`sender_id.eq.${currentUser.id},receiver_id.eq.${currentUser.id}`)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        inboxListContainer.innerHTML = `<div class="text-center text-xs text-red-500 py-4">เกิดข้อผิดพลาด: ${error.message}</div>`;
+        return;
+      }
+
+      if (!messages || messages.length === 0) {
+        inboxListContainer.innerHTML = `<div class="text-center text-xs text-slate-400 py-8">ยังไม่มีกล่องข้อความการสนทนา</div>`;
+        return;
+      }
+
+      const chatGroups = {};
+      messages.forEach(msg => {
+        const otherUserId = (msg.sender_id === currentUser.id) ? msg.receiver_id : msg.sender_id;
+        const key = `${msg.pet_id}_${otherUserId}`;
+        if (!chatGroups[key]) {
+          const isUnread = (msg.receiver_id === currentUser.id) && (msg.is_read === false || msg.is_read === null);
+          chatGroups[key] = {
+            pet_id: msg.pet_id,
+            otherUserId: otherUserId,
+            otherUserName: (msg.sender_id === currentUser.id) ? 'ผู้ขาย/คู่สนทนา' : (msg.sender_name || 'ผู้ซื้อ'),
+            lastMessage: msg.content,
+            lastTime: msg.created_at,
+            hasUnread: isUnread
+          };
+        }
+      });
+
+      const groupList = Object.values(chatGroups);
+      
+      inboxListContainer.innerHTML = groupList.map((item) => {
+        const pet = allPetsData.find(p => p.id === item.pet_id);
+        const petTitle = pet ? pet.title : 'สัตว์เลี้ยงในประกาศ';
+        const timeStr = new Date(item.lastTime).toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+        return `
+          <div onclick="selectChatFromInbox('${item.pet_id}', '${item.otherUserId}', '${item.otherUserName}', '${petTitle}')" class="p-3.5 hover:bg-slate-100 cursor-pointer rounded-xl transition flex justify-between items-center ${item.hasUnread ? 'bg-blue-50 border-l-4 border-blue-600' : ''}">
+            <div class="flex items-center space-x-3">
+              <div class="relative w-10 h-10 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-sm">
+                ${item.otherUserName.charAt(0).toUpperCase()}
+                ${item.hasUnread ? '<span class="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-500 rounded-full border-2 border-white animate-ping"></span>' : ''}
+              </div>
+              <div>
+                <p class="font-bold text-slate-800 text-sm flex items-center gap-1.5">
+                  ${item.otherUserName}
+                  ${item.hasUnread ? '<span class="text-[10px] bg-red-500 text-white font-bold px-1.5 py-0.2 rounded-full shadow">ข้อความใหม่</span>' : ''}
+                </p>
+                <p class="text-xs text-blue-600 font-semibold truncate max-w-[180px]">${petTitle}</p>
+                <p class="text-xs ${item.hasUnread ? 'text-slate-900 font-extrabold' : 'text-slate-500'} truncate max-w-[200px]">${item.lastMessage}</p>
+              </div>
+            </div>
+            <span class="text-[10px] text-slate-400">${timeStr}</span>
+          </div>
+        `;
+      }).join('');
+    };
 
     window.switchMainView = function(view) {
       currentMainView = view;
@@ -544,75 +620,6 @@
       openChatModal(currentActivePet, currentActivePet.seller_id, currentActivePet.seller_name);
     });
 
-    // เปิด Inbox รวมกล่องแชต
-    window.openInboxModal = async function() {
-      if (!currentUser) return;
-
-      inboxModal.classList.remove('hidden');
-      inboxModal.classList.add('flex');
-      inboxListContainer.innerHTML = '<div class="text-center text-xs text-slate-400 py-8">กำลังโหลดรายการข้อความ...</div>';
-
-      const { data: messages, error } = await supabaseClient
-        .from('messages')
-        .select('*')
-        .or(`sender_id.eq.${currentUser.id},receiver_id.eq.${currentUser.id}`)
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        inboxListContainer.innerHTML = `<div class="text-center text-xs text-red-500 py-4">เกิดข้อผิดพลาด: ${error.message}</div>`;
-        return;
-      }
-
-      if (!messages || messages.length === 0) {
-        inboxListContainer.innerHTML = `<div class="text-center text-xs text-slate-400 py-8">ยังไม่มีกล่องข้อความการสนทนา</div>`;
-        return;
-      }
-
-      const chatGroups = {};
-      messages.forEach(msg => {
-        const otherUserId = (msg.sender_id === currentUser.id) ? msg.receiver_id : msg.sender_id;
-        const key = `${msg.pet_id}_${otherUserId}`;
-        if (!chatGroups[key]) {
-          chatGroups[key] = {
-            pet_id: msg.pet_id,
-            otherUserId: otherUserId,
-            otherUserName: (msg.sender_id === currentUser.id) ? 'ผู้ขาย/คู่สนทนา' : (msg.sender_name || 'ผู้ซื้อ'),
-            lastMessage: msg.content,
-            lastTime: msg.created_at,
-            hasUnread: (msg.receiver_id === currentUser.id && msg.is_read === false)
-          };
-        }
-      });
-
-      const groupList = Object.values(chatGroups);
-      
-      inboxListContainer.innerHTML = groupList.map((item) => {
-        const pet = allPetsData.find(p => p.id === item.pet_id);
-        const petTitle = pet ? pet.title : 'สัตว์เลี้ยงในประกาศ';
-        const timeStr = new Date(item.lastTime).toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-
-        return `
-          <div onclick="selectChatFromInbox('${item.pet_id}', '${item.otherUserId}', '${item.otherUserName}', '${petTitle}')" class="p-3.5 hover:bg-slate-50 cursor-pointer rounded-xl transition flex justify-between items-center ${item.hasUnread ? 'bg-blue-50/60' : ''}">
-            <div class="flex items-center space-x-3">
-              <div class="relative w-10 h-10 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-sm">
-                ${item.otherUserName.charAt(0).toUpperCase()}
-                ${item.hasUnread ? '<span class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white"></span>' : ''}
-              </div>
-              <div>
-                <p class="font-bold text-slate-800 text-sm flex items-center gap-1.5">
-                  ${item.otherUserName}
-                  ${item.hasUnread ? '<span class="text-[9px] bg-red-500 text-white font-bold px-1.5 py-0.2 rounded-full">ใหม่</span>' : ''}
-                </p>
-                <p class="text-xs text-blue-600 font-semibold truncate max-w-[180px]">${petTitle}</p>
-                <p class="text-xs ${item.hasUnread ? 'text-slate-900 font-bold' : 'text-slate-500'} truncate max-w-[200px]">${item.lastMessage}</p>
-              </div>
-            </div>
-            <span class="text-[10px] text-slate-400">${timeStr}</span>
-          </div>
-        `;
-      }).join('');
-    };
-
     closeInboxBtn.addEventListener('click', () => {
       inboxModal.classList.add('hidden'); inboxModal.classList.remove('flex');
     });
@@ -672,14 +679,13 @@
         return;
       }
 
-      // Mark as Read ข้อความทั้งหมดที่ส่งถึงเราในแชตนี้
       if (currentUser) {
         await supabaseClient
           .from('messages')
           .update({ is_read: true })
           .eq('pet_id', petId)
           .eq('receiver_id', currentUser.id)
-          .eq('is_read', false);
+          .or('is_read.is.null,is_read.eq.false');
           
         checkUnreadMessages();
       }
@@ -985,8 +991,6 @@
     });
   </script>
 </body>
-</html>
-
 </html>
 
 
