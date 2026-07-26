@@ -17,12 +17,13 @@
         <span class="text-2xl font-bold text-blue-400">PetMarket</span>
         <span class="text-xs bg-blue-900 text-blue-200 px-2 py-1 rounded">Beta</span>
       </div>
-      <div class="flex items-center space-x-2">
-        <button id="open-modal-btn" class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-3 py-2 rounded-lg text-xs md:text-sm transition shadow whitespace-nowrap">
+      <div class="flex items-center space-x-2" id="auth-buttons-container">
+        <!-- ปุ่ม Auth จะถูกควบคุมด้วย JavaScript ตาม Auth State -->
+        <button id="open-add-modal-btn" class="hidden bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-3 py-2 rounded-lg text-xs md:text-sm transition shadow whitespace-nowrap">
           + ลงประกาศ
         </button>
-        <button class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-3 py-2 rounded-lg text-xs md:text-sm transition whitespace-nowrap">
-          เข้าสู่ระบบ
+        <button id="open-auth-modal-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-3 py-2 rounded-lg text-xs md:text-sm transition whitespace-nowrap">
+          เข้าสู่ระบบ / สมัครสมาชิก
         </button>
       </div>
     </div>
@@ -70,7 +71,41 @@
     </div>
   </main>
 
-  <!-- Modal 1: ลงประกาศสัตว์เลี้ยง -->
+  <!-- Modal 1: เข้าสู่ระบบ / สมัครสมาชิก -->
+  <div id="auth-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden my-8">
+      <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center">
+        <h3 id="auth-modal-title" class="font-bold text-lg">เข้าสู่ระบบ</h3>
+        <button id="close-auth-btn" class="text-slate-400 hover:text-white text-xl font-bold">&times;</button>
+      </div>
+      
+      <form id="auth-form" class="p-6 space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">อีเมล (Email) *</label>
+          <input type="email" id="auth-email" required placeholder="example@email.com" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">รหัสผ่าน (Password) *</label>
+          <input type="password" id="auth-password" required placeholder="อย่างน้อย 6 ตัวอักษร" minlength="6" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+        </div>
+
+        <div class="pt-2">
+          <button type="submit" id="auth-submit-btn" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-bold shadow transition">
+            เข้าสู่ระบบ
+          </button>
+        </div>
+
+        <div class="text-center pt-2 border-t border-slate-100">
+          <p id="toggle-auth-mode-text" class="text-xs text-slate-500">
+            ยังไม่มีบัญชีสมาชิก? <button type="button" id="toggle-auth-btn" class="text-blue-600 font-bold hover:underline">สมัครสมาชิกที่นี่</button>
+          </p>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 2: ลงประกาศสัตว์เลี้ยง -->
   <div id="add-pet-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4 overflow-y-auto">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden my-8">
       <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center">
@@ -130,7 +165,7 @@
     </div>
   </div>
 
-  <!-- Modal 2: แสดงรายละเอียดสัตว์เลี้ยง -->
+  <!-- Modal 3: แสดงรายละเอียดสัตว์เลี้ยง -->
   <div id="detail-pet-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4 overflow-y-auto">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden my-8">
       <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center">
@@ -173,9 +208,22 @@
 
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // Modal References
+    // Global State
+    let currentUser = null;
+    let isSignUpMode = false;
+    let allPetsData = [];
+    let filteredPetsData = [];
+    let currentCategory = 'ALL';
+
+    // DOM References
+    const authModal = document.getElementById('auth-modal');
+    const openAuthModalBtn = document.getElementById('open-auth-modal-btn');
+    const closeAuthBtn = document.getElementById('close-auth-btn');
+    const authForm = document.getElementById('auth-form');
+    const toggleAuthBtn = document.getElementById('toggle-auth-btn');
+
     const addModal = document.getElementById('add-pet-modal');
-    const openModalBtn = document.getElementById('open-modal-btn');
+    const openAddModalBtn = document.getElementById('open-add-modal-btn');
     const closeModalBtn = document.getElementById('close-modal-btn');
     const cancelBtn = document.getElementById('cancel-btn');
     const addPetForm = document.getElementById('add-pet-form');
@@ -187,12 +235,93 @@
     const searchForm = document.getElementById('search-form');
     const searchInput = document.getElementById('search-input');
 
-    let allPetsData = [];      // เก็บ Data ทั้งหมดจาก Database
-    let filteredPetsData = []; // เก็บ Data ที่ผ่านการกรอง/ค้นหา
-    let currentCategory = 'ALL';
+    // Auth UI Control
+    function updateAuthUI(user) {
+      currentUser = user;
+      const container = document.getElementById('auth-buttons-container');
 
-    // Open/Close Modals
-    openModalBtn.addEventListener('click', () => { addModal.classList.remove('hidden'); addModal.classList.add('flex'); });
+      if (user) {
+        container.innerHTML = `
+          <button id="open-add-modal-btn" class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-3 py-2 rounded-lg text-xs md:text-sm transition shadow whitespace-nowrap">
+            + ลงประกาศ
+          </button>
+          <div class="flex items-center space-x-2 bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700">
+            <span class="text-xs text-slate-300 max-w-[100px] truncate">${user.email}</span>
+            <button onclick="handleSignOut()" class="text-xs text-red-400 hover:text-red-300 font-bold ml-1">ออก</button>
+          </div>
+        `;
+        // Bind Add Modal event again
+        document.getElementById('open-add-modal-btn').addEventListener('click', () => {
+          addModal.classList.remove('hidden'); addModal.classList.add('flex');
+        });
+      } else {
+        container.innerHTML = `
+          <button id="open-auth-modal-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-3 py-2 rounded-lg text-xs md:text-sm transition whitespace-nowrap">
+            เข้าสู่ระบบ / สมัครสมาชิก
+          </button>
+        `;
+        document.getElementById('open-auth-modal-btn').addEventListener('click', () => {
+          authModal.classList.remove('hidden'); authModal.classList.add('flex');
+        });
+      }
+    }
+
+    // Toggle Sign In / Sign Up Mode
+    toggleAuthBtn.addEventListener('click', () => {
+      isSignUpMode = !isSignUpMode;
+      document.getElementById('auth-modal-title').innerText = isSignUpMode ? 'สมัครสมาชิก' : 'เข้าสู่ระบบ';
+      document.getElementById('auth-submit-btn').innerText = isSignUpMode ? 'ยืนยันลงทะเบียน' : 'เข้าสู่ระบบ';
+      document.getElementById('toggle-auth-mode-text').innerHTML = isSignUpMode 
+        ? 'มีบัญชีสมาชิกอยู่แล้ว? <button type="button" id="toggle-auth-btn" class="text-blue-600 font-bold hover:underline">เข้าสู่ระบบที่นี่</button>'
+        : 'ยังไม่มีบัญชีสมาชิก? <button type="button" id="toggle-auth-btn" class="text-blue-600 font-bold hover:underline">สมัครสมาชิกที่นี่</button>';
+      
+      // Re-bind event
+      document.getElementById('toggle-auth-btn').addEventListener('click', () => toggleAuthBtn.click());
+    });
+
+    // Handle Auth Submit
+    authForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('auth-email').value.trim();
+      const password = document.getElementById('auth-password').value;
+      const submitBtn = document.getElementById('auth-submit-btn');
+
+      submitBtn.disabled = true;
+      submitBtn.innerText = 'กำลังดำเนินการ...';
+
+      try {
+        if (isSignUpMode) {
+          const { data, error } = await supabaseClient.auth.signUp({ email, password });
+          if (error) throw error;
+          alert('ลงทะเบียนสำเร็จ! กรุณาตรวจสอบอีเมลเพื่อยืนยันตัวตน (หรือเข้าสู่ระบบได้ทันทีหากปิดการยืนยันอีเมล)');
+        } else {
+          const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+          if (error) throw error;
+          updateAuthUI(data.user);
+        }
+        authModal.classList.add('hidden'); authModal.classList.remove('flex');
+        authForm.reset();
+      } catch (err) {
+        alert(`ข้อผิดพลาดระบบสมาชิก: ${err.message}`);
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerText = isSignUpMode ? 'ยืนยันลงทะเบียน' : 'เข้าสู่ระบบ';
+      }
+    });
+
+    // Handle Sign Out
+    window.handleSignOut = async function() {
+      await supabaseClient.auth.signOut();
+      updateAuthUI(null);
+    };
+
+    // Close Auth Modal
+    closeAuthBtn.addEventListener('click', () => {
+      authModal.classList.add('hidden'); authModal.classList.remove('flex');
+      authForm.reset();
+    });
+
+    // Add & Detail Modals Control
     const closeAddModal = () => { addModal.classList.add('hidden'); addModal.classList.remove('flex'); addPetForm.reset(); };
     closeModalBtn.addEventListener('click', closeAddModal);
     cancelBtn.addEventListener('click', closeAddModal);
@@ -278,18 +407,13 @@
       const query = searchInput.value.trim().toLowerCase();
 
       filteredPetsData = allPetsData.filter(pet => {
-        // 1. Check Category Filter
         const matchesCategory = (currentCategory === 'ALL') || (pet.species === currentCategory);
-
-        // 2. Check Text Search Keyword (Title, Morph, Species, Description)
         const titleMatch = (pet.title || '').toLowerCase().includes(query);
         const morphMatch = (pet.morph || '').toLowerCase().includes(query);
         const speciesMatch = (pet.species || '').toLowerCase().includes(query);
         const descMatch = (pet.description || '').toLowerCase().includes(query);
 
-        const matchesQuery = titleMatch || morphMatch || speciesMatch || descMatch;
-
-        return matchesCategory && matchesQuery;
+        return matchesCategory && (titleMatch || morphMatch || speciesMatch || descMatch);
       });
 
       renderPetGrid(filteredPetsData);
@@ -298,27 +422,16 @@
     // Category Filter Trigger
     window.filterCategory = function(cat) {
       currentCategory = cat;
-
-      // Update Active Tab UI
       const tabs = document.querySelectorAll('.cat-tab');
       tabs.forEach(tab => {
         tab.className = 'cat-tab bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 px-4 py-1.5 rounded-full text-xs font-bold transition';
       });
-
       event.target.className = 'cat-tab bg-blue-600 text-white px-4 py-1.5 rounded-full text-xs font-bold transition shadow-sm';
-
       applyFilters();
     };
 
-    // Search Event Listeners
-    searchForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      applyFilters();
-    });
-
-    searchInput.addEventListener('input', () => {
-      applyFilters();
-    });
+    searchForm.addEventListener('submit', (e) => { e.preventDefault(); applyFilters(); });
+    searchInput.addEventListener('input', () => { applyFilters(); });
 
     // Fetch Pets from Database
     async function fetchPets() {
@@ -341,9 +454,15 @@
       }
     }
 
-    // Submit Add Pet Form
+    // Submit Add Pet Form (ผูกกับ seller_id ของคนที่ล็อกอิน)
     addPetForm.addEventListener('submit', async (e) => {
       e.preventDefault();
+
+      if (!currentUser) {
+        alert('กรุณาเข้าสู่ระบบก่อนลงประกาศขายสัตว์เลี้ยงครับ');
+        return;
+      }
+
       const submitBtn = document.getElementById('submit-btn');
       submitBtn.disabled = true;
       submitBtn.innerText = 'กำลังบันทึก...';
@@ -357,7 +476,8 @@
         morph: document.getElementById('morph').value.trim() || null,
         health_status: document.getElementById('health_status').value.trim() || 'สมบูรณ์แข็งแรง',
         description: document.getElementById('description').value.trim() || null,
-        images: imageUrl ? [imageUrl] : []
+        images: imageUrl ? [imageUrl] : [],
+        seller_id: currentUser.id // ผูก User ID เจ้าของประกาศ
       };
 
       try {
@@ -379,7 +499,22 @@
       }
     });
 
-    document.addEventListener('DOMContentLoaded', fetchPets);
+    // Check Active Session on Page Load
+    document.addEventListener('DOMContentLoaded', async () => {
+      fetchPets();
+
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      if (session) {
+        updateAuthUI(session.user);
+      } else {
+        updateAuthUI(null);
+      }
+
+      // Listen for auth state changes
+      supabaseClient.auth.onAuthStateChange((_event, session) => {
+        updateAuthUI(session ? session.user : null);
+      });
+    });
   </script>
 </body>
 </html>
