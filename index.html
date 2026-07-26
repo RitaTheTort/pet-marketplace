@@ -89,6 +89,12 @@
       </div>
       
       <form id="auth-form" class="p-6 space-y-4">
+        <!-- ช่องระบุชื่อผู้ใช้ (ซ่อนไว้สำหรับหน้าเข้าสู่ระบบ และโชว์เมื่อสมัครสมาชิก) -->
+        <div id="name-input-group" class="hidden">
+          <label class="block text-xs font-bold text-slate-700 mb-1">ชื่อผู้ใช้ / ชื่อร้านค้า *</label>
+          <input type="text" id="auth-name" placeholder="เช่น Yui หรือ Garadia Reptiles" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+        </div>
+
         <div>
           <label class="block text-xs font-bold text-slate-700 mb-1">อีเมล (Email) *</label>
           <input type="email" id="auth-email" required placeholder="example@email.com" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
@@ -200,6 +206,18 @@
           <p class="text-xs text-slate-400 mb-1">รายละเอียดเพิ่มเติม</p>
           <div id="detail-desc" class="text-sm text-slate-600 bg-slate-50 p-3 rounded-lg min-h-[60px] whitespace-pre-wrap">ไม่มีรายละเอียดเพิ่มเติม</div>
         </div>
+
+        <!-- บล็อกข้อมูลผู้ขาย (Seller Profile Block) -->
+        <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 flex justify-between items-center">
+          <div>
+            <p class="text-xs text-slate-400 mb-0.5">ผู้ลงประกาศขาย</p>
+            <p id="detail-seller-name" class="text-sm font-bold text-slate-800">กำลังโหลด...</p>
+          </div>
+          <span class="text-xs bg-blue-100 text-blue-700 font-bold px-2.5 py-1 rounded-full flex items-center gap-1">
+            ✓ ผู้ขายยืนยันตัวตน
+          </span>
+        </div>
+
         <div class="pt-4 border-t border-slate-100 flex justify-between items-center">
           <div>
             <p class="text-xs text-slate-400">ราคาขาย</p>
@@ -229,6 +247,7 @@
     const authModal = document.getElementById('auth-modal');
     const authForm = document.getElementById('auth-form');
     const toggleAuthBtn = document.getElementById('toggle-auth-btn');
+    const nameInputGroup = document.getElementById('name-input-group');
 
     const addModal = document.getElementById('add-pet-modal');
     const closeModalBtn = document.getElementById('close-modal-btn');
@@ -251,12 +270,15 @@
       const container = document.getElementById('auth-buttons-container');
 
       if (user) {
+        // ดึงชื่อผู้ใช้จาก metadata ถ้าไม่มีให้ตัดจาก email
+        const displayName = user.user_metadata?.full_name || user.email.split('@')[0];
+
         container.innerHTML = `
           <button id="open-add-modal-btn" class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-3 py-2 rounded-lg text-xs md:text-sm transition shadow whitespace-nowrap">
             + ลงประกาศ
           </button>
           <div class="flex items-center space-x-2 bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700">
-            <span class="text-xs text-slate-300 max-w-[100px] md:max-w-[150px] truncate">${user.email}</span>
+            <span class="text-xs font-bold text-slate-200 max-w-[100px] md:max-w-[150px] truncate">คุณ ${displayName}</span>
             <button onclick="handleSignOut()" class="text-xs text-red-400 hover:text-red-300 font-bold ml-1">ออก</button>
           </div>
         `;
@@ -305,6 +327,16 @@
       isSignUpMode = !isSignUpMode;
       document.getElementById('auth-modal-title').innerText = isSignUpMode ? 'สมัครสมาชิก' : 'เข้าสู่ระบบ';
       document.getElementById('auth-submit-btn').innerText = isSignUpMode ? 'ยืนยันลงทะเบียน' : 'เข้าสู่ระบบ';
+      
+      // แสดง/ซ่อน ช่องกรอกชื่อ
+      if (isSignUpMode) {
+        nameInputGroup.classList.remove('hidden');
+        document.getElementById('auth-name').setAttribute('required', 'true');
+      } else {
+        nameInputGroup.classList.add('hidden');
+        document.getElementById('auth-name').removeAttribute('required');
+      }
+
       document.getElementById('toggle-auth-mode-text').innerHTML = isSignUpMode 
         ? 'มีบัญชีสมาชิกอยู่แล้ว? <button type="button" id="toggle-auth-btn" class="text-blue-600 font-bold hover:underline">เข้าสู่ระบบที่นี่</button>'
         : 'ยังไม่มีบัญชีสมาชิก? <button type="button" id="toggle-auth-btn" class="text-blue-600 font-bold hover:underline">สมัครสมาชิกที่นี่</button>';
@@ -315,6 +347,7 @@
       e.preventDefault();
       const email = document.getElementById('auth-email').value.trim();
       const password = document.getElementById('auth-password').value;
+      const fullName = document.getElementById('auth-name').value.trim();
       const submitBtn = document.getElementById('auth-submit-btn');
 
       submitBtn.disabled = true;
@@ -322,8 +355,16 @@
 
       try {
         if (isSignUpMode) {
-          const { data, error } = await supabaseClient.auth.signUp({ email, password });
+          // ส่ง options.data บันทึกชื่อเข้า auth.users metadata
+          const { data, error } = await supabaseClient.auth.signUp({ 
+            email, 
+            password,
+            options: {
+              data: { full_name: fullName }
+            }
+          });
           if (error) throw error;
+
           alert('ลงทะเบียนสำเร็จ! เข้าสู่ระบบได้เลยครับ');
         } else {
           const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
@@ -356,7 +397,7 @@
     const closeDetailModal = () => { detailModal.classList.add('hidden'); detailModal.classList.remove('flex'); };
     closeDetailBtn.addEventListener('click', closeDetailModal);
 
-    window.showPetDetail = function(index) {
+    window.showPetDetail = async function(index) {
       const pet = filteredPetsData[index];
       if (!pet) return;
 
@@ -366,6 +407,7 @@
       document.getElementById('detail-morph').innerText = pet.morph || 'ไม่ระบุมอร์ฟ';
       document.getElementById('detail-desc').innerText = pet.description || 'ไม่มีรายละเอียดเพิ่มเติม';
       document.getElementById('detail-price').innerText = '฿' + (pet.price ? Number(pet.price).toLocaleString() : '0');
+      document.getElementById('detail-seller-name').innerText = pet.seller_name || 'ผู้ขายทั่วไป (ไม่ระบุชื่อ)';
 
       const imgEl = document.getElementById('detail-image');
       const noImgEl = document.getElementById('detail-no-image');
@@ -437,8 +479,6 @@
 
       petGrid.innerHTML = pets.map((pet, idx) => {
         const hasImage = pet.images && pet.images.length > 0 && pet.images[0];
-        
-        // Strict Checking: เป็นเจ้าของเฉพาะเมื่อ seller_id ตรงกันเป๊ะเท่านั้น
         const isOwner = currentUser && pet.seller_id && (currentUser.id === pet.seller_id);
 
         return `
@@ -456,7 +496,8 @@
                   <span class="text-xs text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded font-medium">${pet.health_status || 'ปกติ'}</span>
                 </div>
                 <h3 class="font-bold text-slate-900 text-base mb-1 line-clamp-1">${pet.title || 'ไม่มีชื่อหัวข้อ'}</h3>
-                <p class="text-xs text-slate-500 mb-3">${pet.morph ? 'Morph: ' + pet.morph : 'ไม่มีระบุมอร์ฟ'}</p>
+                <p class="text-xs text-slate-500 mb-2">${pet.morph ? 'Morph: ' + pet.morph : 'ไม่มีระบุมอร์ฟ'}</p>
+                <p class="text-[11px] text-slate-400">โดย: <span class="font-semibold text-slate-600">${pet.seller_name || 'ผู้ขายทั่วไป'}</span></p>
               </div>
             </div>
             <div class="p-4 pt-0">
@@ -479,23 +520,19 @@
     function applyFilters() {
       const query = searchInput.value.trim().toLowerCase();
 
-      // Strict Counting: นับเฉพาะรายการที่มี seller_id ตรงกับ User จริงๆ
       if (currentUser) {
         const myPetsCount = allPetsData.filter(p => p.seller_id && p.seller_id === currentUser.id).length;
         document.getElementById('my-count-badge').innerText = myPetsCount;
       }
 
       filteredPetsData = allPetsData.filter(pet => {
-        // กรองตาม View (ถ้าเป็น MY ต้องตรงกับ User ID เท่านั้น)
         if (currentMainView === 'MY') {
           if (!currentUser) return false;
           if (!pet.seller_id || pet.seller_id !== currentUser.id) return false;
         }
 
-        // กรองตามหมวดหมู่ (เฉพาะหน้าหลัก)
         const matchesCategory = (currentMainView === 'MY') || (currentCategory === 'ALL') || (pet.species === currentCategory);
         
-        // กรองตามการค้นหา
         const titleMatch = (pet.title || '').toLowerCase().includes(query);
         const morphMatch = (pet.morph || '').toLowerCase().includes(query);
         const speciesMatch = (pet.species || '').toLowerCase().includes(query);
@@ -554,6 +591,7 @@
 
       const editId = document.getElementById('edit-pet-id').value;
       const imageUrl = document.getElementById('image_url').value.trim();
+      const currentUserName = currentUser.user_metadata?.full_name || currentUser.email.split('@')[0];
       
       const payload = {
         title: document.getElementById('title').value.trim(),
@@ -562,7 +600,8 @@
         morph: document.getElementById('morph').value.trim() || null,
         health_status: document.getElementById('health_status').value.trim() || 'สมบูรณ์แข็งแรง',
         description: document.getElementById('description').value.trim() || null,
-        images: imageUrl ? [imageUrl] : []
+        images: imageUrl ? [imageUrl] : [],
+        seller_name: currentUserName // แนบชื่อผู้ลงประกาศ
       };
 
       try {
@@ -575,7 +614,7 @@
             .eq('id', editId);
           error = res.error;
         } else {
-          payload.seller_id = currentUser.id; // บังคับผูก seller_id เสมอ
+          payload.seller_id = currentUser.id;
           const res = await supabaseClient
             .from('pets')
             .insert([payload]);
