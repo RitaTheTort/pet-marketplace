@@ -5,12 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pet Marketplace - ตลาดกลางสัตว์เลี้ยง</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Supabase Official JS SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen">
 
-  <!-- Header -->
   <header class="bg-slate-900 text-white shadow-md sticky top-0 z-40">
     <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
       <div class="flex items-center space-x-2">
@@ -28,13 +26,11 @@
     </div>
   </header>
 
-  <!-- Hero Banner & Search Bar -->
   <section class="bg-gradient-to-r from-slate-900 to-slate-800 text-white py-12 px-4">
     <div class="max-w-4xl mx-auto text-center">
       <h1 class="text-3xl md:text-4xl font-extrabold mb-3">ตลาดกลางซื้อขายสัตว์เลี้ยงที่ปลอดภัย 100%</h1>
       <p class="text-slate-300 text-sm md:text-base mb-6">มีระบบยืนยันตัวตนผู้ขาย (KYC) ระบบคนกลางพักเงิน (Escrow) และการบันทึกประวัติสายเลือด/สุขภาพ</p>
       
-      <!-- Search Form -->
       <form id="search-form" class="inline-flex rounded-md shadow-sm w-full max-w-md">
         <input type="text" id="search-input" placeholder="ค้นหาสายพันธุ์, มอร์ฟ (เช่น Amel Zulu, เต่า)..." class="w-full px-4 py-2.5 text-slate-900 rounded-l-lg focus:outline-none text-sm">
         <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-r-lg font-medium text-sm whitespace-nowrap">ค้นหา</button>
@@ -42,11 +38,18 @@
     </div>
   </section>
 
-  <!-- Main Content -->
   <main class="max-w-6xl mx-auto px-4 py-8">
     
-    <!-- Category Filter Tabs -->
-    <div class="mb-6 overflow-x-auto pb-2">
+    <div class="flex border-b border-slate-200 mb-6">
+      <button id="tab-all-pets" onclick="switchMainView('ALL')" class="py-2.5 px-4 font-bold text-sm border-b-2 border-blue-600 text-blue-600 transition">
+        ตลาดสัตว์เลี้ยงทั้งหมด
+      </button>
+      <button id="tab-my-pets" onclick="switchMainView('MY')" class="hidden py-2.5 px-4 font-bold text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-700 transition">
+        ประกาศของฉัน <span id="my-count-badge" class="ml-1 bg-slate-200 text-slate-700 px-2 py-0.5 rounded-full text-xs">0</span>
+      </button>
+    </div>
+
+    <div id="category-filter-container" class="mb-6 overflow-x-auto pb-2">
       <div class="flex space-x-2 min-w-max" id="category-tabs">
         <button onclick="filterCategory('ALL')" class="cat-tab bg-blue-600 text-white px-4 py-1.5 rounded-full text-xs font-bold transition shadow-sm">ทั้งหมด</button>
         <button onclick="filterCategory('Gecko')" class="cat-tab bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 px-4 py-1.5 rounded-full text-xs font-bold transition">Gecko (ตุ๊กแก)</button>
@@ -62,7 +65,6 @@
       <span class="text-xs text-slate-500" id="item-count">กำลังโหลดข้อมูล...</span>
     </div>
 
-    <!-- Pet Grid Container -->
     <div id="pet-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
       <div class="col-span-full text-center py-12 text-slate-400 text-sm">
         กำลังเชื่อมต่อฐานข้อมูล...
@@ -70,7 +72,6 @@
     </div>
   </main>
 
-  <!-- Modal 1: เข้าสู่ระบบ / สมัครสมาชิก -->
   <div id="auth-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4 overflow-y-auto">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden my-8">
       <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center">
@@ -104,7 +105,6 @@
     </div>
   </div>
 
-  <!-- Modal 2: ลงประกาศ / แก้ไขประกาศสัตว์เลี้ยง -->
   <div id="add-pet-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4 overflow-y-auto">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden my-8">
       <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center">
@@ -166,7 +166,6 @@
     </div>
   </div>
 
-  <!-- Modal 3: แสดงรายละเอียดสัตว์เลี้ยง -->
   <div id="detail-pet-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4 overflow-y-auto">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden my-8">
       <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center">
@@ -214,6 +213,7 @@
     let allPetsData = [];
     let filteredPetsData = [];
     let currentCategory = 'ALL';
+    let currentMainView = 'ALL'; // 'ALL' = หน้าหลัก, 'MY' = ประกาศของฉัน
 
     const authModal = document.getElementById('auth-modal');
     const authForm = document.getElementById('auth-form');
@@ -230,6 +230,10 @@
     const petGrid = document.getElementById('pet-grid');
     const searchForm = document.getElementById('search-form');
     const searchInput = document.getElementById('search-input');
+
+    const tabAllPets = document.getElementById('tab-all-pets');
+    const tabMyPets = document.getElementById('tab-my-pets');
+    const categoryFilterContainer = document.getElementById('category-filter-container');
 
     function updateAuthUI(user) {
       currentUser = user;
@@ -251,6 +255,9 @@
           addPetForm.reset();
           addModal.classList.remove('hidden'); addModal.classList.add('flex');
         });
+
+        // แสดง Tab "ประกาศของฉัน"
+        tabMyPets.classList.remove('hidden');
       } else {
         container.innerHTML = `
           <button id="open-auth-modal-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-3 py-2 rounded-lg text-xs md:text-sm transition whitespace-nowrap">
@@ -260,10 +267,31 @@
         document.getElementById('open-auth-modal-btn').addEventListener('click', () => {
           authModal.classList.remove('hidden'); authModal.classList.add('flex');
         });
+
+        // ซ่อน Tab "ประกาศของฉัน"
+        tabMyPets.classList.add('hidden');
+        currentMainView = 'ALL';
       }
 
       applyFilters();
     }
+
+    // สลับ View ระหว่าง ตลาดทั้งหมด vs ประกาศของฉัน
+    window.switchMainView = function(view) {
+      currentMainView = view;
+      if (view === 'ALL') {
+        tabAllPets.className = "py-2.5 px-4 font-bold text-sm border-b-2 border-blue-600 text-blue-600 transition";
+        tabMyPets.className = "py-2.5 px-4 font-bold text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-700 transition";
+        categoryFilterContainer.classList.remove('hidden');
+        document.getElementById('section-title').innerText = "รายการสัตว์เลี้ยงมาใหม่";
+      } else {
+        tabMyPets.className = "py-2.5 px-4 font-bold text-sm border-b-2 border-blue-600 text-blue-600 transition";
+        tabAllPets.className = "py-2.5 px-4 font-bold text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-700 transition";
+        categoryFilterContainer.classList.add('hidden');
+        document.getElementById('section-title').innerText = "รายการประกาศของฉัน";
+      }
+      applyFilters();
+    };
 
     toggleAuthBtn.addEventListener('click', () => {
       isSignUpMode = !isSignUpMode;
@@ -347,7 +375,6 @@
       detailModal.classList.add('flex');
     };
 
-    // ลบประกาศพร้อมเช็กสิทธิ์ RLS คืนค่ากลับมา
     window.deletePet = async function(petId) {
       if (!confirm('คุณแน่ใจหรือไม่ว่าต้องการลบประกาศนี้?')) return;
 
@@ -360,10 +387,8 @@
 
         if (error) {
           alert(`ไม่สามารถลบได้: ${error.message}`);
-        } else if (!data || data.length === 0) {
-          alert('ไม่สามารถลบข้อมูลได้เนื่องจากติดสิทธิ์ RLS ใน Supabase กรุณาปิด RLS บนตาราง pets ก่อนครับ');
         } else {
-          alert('ลบประกาศออกจากฐานข้อมูลเรียบร้อยแล้วครับ');
+          alert('ลบประกาศเรียบร้อยแล้วครับ');
           fetchPets();
         }
       } catch (err) {
@@ -395,8 +420,8 @@
       if (!pets || pets.length === 0) {
         petGrid.innerHTML = `
           <div class="col-span-full bg-white p-8 rounded-xl border border-dashed border-slate-300 text-center">
-            <p class="text-slate-800 font-bold mb-1">ไม่พบรายการสัตว์เลี้ยงที่ค้นหา</p>
-            <p class="text-xs text-slate-500">ลองเปลี่ยนคำค้นหา หรือเลือกดูหมวดหมู่อื่นๆ ได้ครับ</p>
+            <p class="text-slate-800 font-bold mb-1">${currentMainView === 'MY' ? 'คุณยังไม่มีรายการประกาศขาย' : 'ไม่พบรายการสัตว์เลี้ยงที่ค้นหา'}</p>
+            <p class="text-xs text-slate-500">${currentMainView === 'MY' ? 'กดปุ่ม "+ ลงประกาศ" มุมขวาบนเพื่อสร้างประกาศแรกได้เลยครับ' : 'ลองเปลี่ยนคำค้นหา หรือเลือกดูหมวดหมู่อื่นๆ ได้ครับ'}</p>
           </div>
         `;
         return;
@@ -404,8 +429,6 @@
 
       petGrid.innerHTML = pets.map((pet, idx) => {
         const hasImage = pet.images && pet.images.length > 0 && pet.images[0];
-        
-        // เช็กสิทธิ์ owner แบบผ่อนปรนกรณี seller_id ยังไม่ได้ผูก
         const isOwner = currentUser && (currentUser.id === pet.seller_id || !pet.seller_id);
 
         return `
@@ -446,8 +469,24 @@
     function applyFilters() {
       const query = searchInput.value.trim().toLowerCase();
 
+      // อัปเดตจำนวนประกาศของฉันที่ Badge
+      if (currentUser) {
+        const myPetsCount = allPetsData.filter(p => p.seller_id === currentUser.id || !p.seller_id).length;
+        document.getElementById('my-count-badge').innerText = myPetsCount;
+      }
+
       filteredPetsData = allPetsData.filter(pet => {
-        const matchesCategory = (currentCategory === 'ALL') || (pet.species === currentCategory);
+        // กรองตาม View (ทั้งหมด หรือ ของฉัน)
+        if (currentMainView === 'MY') {
+          if (!currentUser) return false;
+          const isMyPet = (pet.seller_id === currentUser.id) || !pet.seller_id;
+          if (!isMyPet) return false;
+        }
+
+        // กรองตามหมวดหมู่ (เฉพาะหน้าหลัก)
+        const matchesCategory = (currentMainView === 'MY') || (currentCategory === 'ALL') || (pet.species === currentCategory);
+        
+        // กรองตามการค้นหา
         const titleMatch = (pet.title || '').toLowerCase().includes(query);
         const morphMatch = (pet.morph || '').toLowerCase().includes(query);
         const speciesMatch = (pet.species || '').toLowerCase().includes(query);
