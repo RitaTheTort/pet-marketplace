@@ -5,12 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pet Marketplace - ตลาดกลางสัตว์เลี้ยง</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Supabase Official JS SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen">
 
-  <!-- Header -->
   <header class="bg-slate-900 text-white shadow-md sticky top-0 z-40">
     <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
       <div class="flex items-center space-x-2">
@@ -28,13 +26,11 @@
     </div>
   </header>
 
-  <!-- Hero Banner & Search Bar -->
   <section class="bg-gradient-to-r from-slate-900 to-slate-800 text-white py-12 px-4">
     <div class="max-w-4xl mx-auto text-center">
       <h1 class="text-3xl md:text-4xl font-extrabold mb-3">ตลาดกลางซื้อขายสัตว์เลี้ยงที่ปลอดภัย 100%</h1>
       <p class="text-slate-300 text-sm md:text-base mb-6">มีระบบยืนยันตัวตนผู้ขาย (KYC) ระบบคนกลางพักเงิน (Escrow) และการบันทึกประวัติสายเลือด/สุขภาพ</p>
       
-      <!-- Search Form -->
       <form id="search-form" class="inline-flex rounded-md shadow-sm w-full max-w-md">
         <input type="text" id="search-input" placeholder="ค้นหาสายพันธุ์, มอร์ฟ (เช่น Amel Zulu, เต่า)..." class="w-full px-4 py-2.5 text-slate-900 rounded-l-lg focus:outline-none text-sm">
         <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-r-lg font-medium text-sm whitespace-nowrap">ค้นหา</button>
@@ -42,10 +38,8 @@
     </div>
   </section>
 
-  <!-- Main Content -->
   <main class="max-w-6xl mx-auto px-4 py-8">
     
-    <!-- Navigation Tabs -->
     <div class="flex border-b border-slate-200 mb-6">
       <button id="tab-all-pets" onclick="switchMainView('ALL')" class="py-2.5 px-4 font-bold text-sm border-b-2 border-blue-600 text-blue-600 transition">
         ตลาดสัตว์เลี้ยงทั้งหมด
@@ -55,7 +49,6 @@
       </button>
     </div>
 
-    <!-- Category Filter Tabs -->
     <div id="category-filter-container" class="mb-6 overflow-x-auto pb-2">
       <div class="flex space-x-2 min-w-max" id="category-tabs">
         <button onclick="filterCategory('ALL')" class="cat-tab bg-blue-600 text-white px-4 py-1.5 rounded-full text-xs font-bold transition shadow-sm">ทั้งหมด</button>
@@ -72,7 +65,6 @@
       <span class="text-xs text-slate-500" id="item-count">กำลังโหลดข้อมูล...</span>
     </div>
 
-    <!-- Pet Grid Container -->
     <div id="pet-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
       <div class="col-span-full text-center py-12 text-slate-400 text-sm">
         กำลังเชื่อมต่อฐานข้อมูล...
@@ -80,7 +72,6 @@
     </div>
   </main>
 
-  <!-- Modal 1: เข้าสู่ระบบ / สมัครสมาชิก -->
   <div id="auth-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4 overflow-y-auto">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden my-8">
       <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center">
@@ -89,7 +80,6 @@
       </div>
       
       <form id="auth-form" class="p-6 space-y-4">
-        <!-- ช่องระบุชื่อผู้ใช้ (ซ่อนไว้สำหรับหน้าเข้าสู่ระบบ และโชว์เมื่อสมัครสมาชิก) -->
         <div id="name-input-group" class="hidden">
           <label class="block text-xs font-bold text-slate-700 mb-1">ชื่อผู้ใช้ / ชื่อร้านค้า *</label>
           <input type="text" id="auth-name" placeholder="เช่น Yui หรือ Garadia Reptiles" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
@@ -120,7 +110,6 @@
     </div>
   </div>
 
-  <!-- Modal 2: ลงประกาศ / แก้ไขประกาศสัตว์เลี้ยง -->
   <div id="add-pet-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4 overflow-y-auto">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden my-8">
       <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center">
@@ -182,7 +171,6 @@
     </div>
   </div>
 
-  <!-- Modal 3: แสดงรายละเอียดสัตว์เลี้ยง -->
   <div id="detail-pet-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4 overflow-y-auto">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden my-8">
       <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center">
@@ -207,7 +195,6 @@
           <div id="detail-desc" class="text-sm text-slate-600 bg-slate-50 p-3 rounded-lg min-h-[60px] whitespace-pre-wrap">ไม่มีรายละเอียดเพิ่มเติม</div>
         </div>
 
-        <!-- บล็อกข้อมูลผู้ขาย (Seller Profile Block) -->
         <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 flex justify-between items-center">
           <div>
             <p class="text-xs text-slate-400 mb-0.5">ผู้ลงประกาศขาย</p>
@@ -223,11 +210,39 @@
             <p class="text-xs text-slate-400">ราคาขาย</p>
             <p id="detail-price" class="text-2xl font-extrabold text-blue-600">฿0</p>
           </div>
-          <button onclick="alert('ระบบแชต/ติดต่อผู้ขายกำลังอยู่ระหว่างการพัฒนาครับ')" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow transition">
+          <button id="contact-seller-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow transition">
             ติดต่อผู้ขาย
           </button>
         </div>
       </div>
+    </div>
+  </div>
+
+  <div id="chat-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg h-[550px] flex flex-col overflow-hidden">
+      <div class="bg-slate-900 text-white px-5 py-3.5 flex justify-between items-center border-b border-slate-800">
+        <div class="flex items-center space-x-3">
+          <div class="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center font-bold text-sm text-white" id="chat-seller-avatar">
+            S
+          </div>
+          <div>
+            <h4 id="chat-seller-name" class="font-bold text-sm leading-tight">ชื่อผู้ขาย</h4>
+            <p id="chat-pet-title" class="text-[11px] text-blue-300 truncate max-w-[200px]">เกี่ยวกับ: สัตว์เลี้ยง</p>
+          </div>
+        </div>
+        <button id="close-chat-btn" class="text-slate-400 hover:text-white text-xl font-bold">&times;</button>
+      </div>
+
+      <div id="chat-messages-container" class="flex-1 p-4 overflow-y-auto space-y-3 bg-slate-50 text-sm">
+        <div class="text-center text-xs text-slate-400 py-4">กำลังโหลดประวัติการสนทนา...</div>
+      </div>
+
+      <form id="chat-form" class="p-3 bg-white border-t border-slate-200 flex items-center space-x-2">
+        <input type="text" id="chat-input" required placeholder="พิมพ์ข้อความสอบถามผู้ขาย..." class="flex-1 px-4 py-2 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <button type="submit" id="send-msg-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-bold transition whitespace-nowrap">
+          ส่ง
+        </button>
+      </form>
     </div>
   </div>
 
@@ -243,6 +258,10 @@
     let filteredPetsData = [];
     let currentCategory = 'ALL';
     let currentMainView = 'ALL';
+    
+    // Chat state variables
+    let currentActivePet = null;
+    let chatRealtimeChannel = null;
 
     const authModal = document.getElementById('auth-modal');
     const authForm = document.getElementById('auth-form');
@@ -256,6 +275,13 @@
 
     const detailModal = document.getElementById('detail-pet-modal');
     const closeDetailBtn = document.getElementById('close-detail-btn');
+    const contactSellerBtn = document.getElementById('contact-seller-btn');
+
+    const chatModal = document.getElementById('chat-modal');
+    const closeChatBtn = document.getElementById('close-chat-btn');
+    const chatForm = document.getElementById('chat-form');
+    const chatInput = document.getElementById('chat-input');
+    const chatMessagesContainer = document.getElementById('chat-messages-container');
 
     const petGrid = document.getElementById('pet-grid');
     const searchForm = document.getElementById('search-form');
@@ -270,7 +296,6 @@
       const container = document.getElementById('auth-buttons-container');
 
       if (user) {
-        // ดึงชื่อผู้ใช้จาก metadata ถ้าไม่มีให้ตัดจาก email
         const displayName = user.user_metadata?.full_name || user.email.split('@')[0];
 
         container.innerHTML = `
@@ -328,7 +353,6 @@
       document.getElementById('auth-modal-title').innerText = isSignUpMode ? 'สมัครสมาชิก' : 'เข้าสู่ระบบ';
       document.getElementById('auth-submit-btn').innerText = isSignUpMode ? 'ยืนยันลงทะเบียน' : 'เข้าสู่ระบบ';
       
-      // แสดง/ซ่อน ช่องกรอกชื่อ
       if (isSignUpMode) {
         nameInputGroup.classList.remove('hidden');
         document.getElementById('auth-name').setAttribute('required', 'true');
@@ -355,16 +379,12 @@
 
       try {
         if (isSignUpMode) {
-          // ส่ง options.data บันทึกชื่อเข้า auth.users metadata
           const { data, error } = await supabaseClient.auth.signUp({ 
             email, 
             password,
-            options: {
-              data: { full_name: fullName }
-            }
+            options: { data: { full_name: fullName } }
           });
           if (error) throw error;
-
           alert('ลงทะเบียนสำเร็จ! เข้าสู่ระบบได้เลยครับ');
         } else {
           const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
@@ -401,6 +421,8 @@
       const pet = filteredPetsData[index];
       if (!pet) return;
 
+      currentActivePet = pet;
+
       document.getElementById('detail-title').innerText = pet.title || 'ไม่มีชื่อหัวข้อ';
       document.getElementById('detail-species').innerText = pet.species || 'ไม่ระบุ';
       document.getElementById('detail-health').innerText = pet.health_status || 'ปกติ';
@@ -424,6 +446,136 @@
       detailModal.classList.remove('hidden');
       detailModal.classList.add('flex');
     };
+
+    // ปุ่มติดต่อผู้ขาย -> เปิดระบบแชต Realtime
+    contactSellerBtn.addEventListener('click', () => {
+      if (!currentUser) {
+        alert('กรุณาเข้าสู่ระบบก่อนส่งข้อความติดต่อผู้ขายครับ');
+        detailModal.classList.add('hidden'); detailModal.classList.remove('flex');
+        authModal.classList.remove('hidden'); authModal.classList.add('flex');
+        return;
+      }
+
+      if (currentActivePet && currentActivePet.seller_id === currentUser.id) {
+        alert('คุณเป็นเจ้าของประกาศนี้ ไม่สามารถส่งข้อความหาตัวเองได้ครับ');
+        return;
+      }
+
+      closeDetailModal();
+      openChatModal(currentActivePet);
+    });
+
+    // Function เปิดกล่องแชต
+    async function openChatModal(pet) {
+      if (!pet) return;
+
+      document.getElementById('chat-seller-name').innerText = pet.seller_name || 'ผู้ขาย';
+      document.getElementById('chat-seller-avatar').innerText = (pet.seller_name || 'S').charAt(0).toUpperCase();
+      document.getElementById('chat-pet-title').innerText = `ประกาศ: ${pet.title || 'สัตว์เลี้ยง'}`;
+
+      chatModal.classList.remove('hidden');
+      chatModal.classList.add('flex');
+
+      await fetchChatMessages(pet.id);
+      subscribeToRealtimeChat(pet.id);
+    }
+
+    closeChatBtn.addEventListener('click', () => {
+      chatModal.classList.add('hidden');
+      chatModal.classList.remove('flex');
+      if (chatRealtimeChannel) {
+        supabaseClient.removeChannel(chatRealtimeChannel);
+      }
+    });
+
+    // ดึงข้อความแชตเก่า
+    async function fetchChatMessages(petId) {
+      chatMessagesContainer.innerHTML = '<div class="text-center text-xs text-slate-400 py-4">กำลังโหลดข้อความ...</div>';
+
+      const { data: messages, error } = await supabaseClient
+        .from('messages')
+        .select('*')
+        .eq('pet_id', petId)
+        .order('created_at', { ascending: true });
+
+      if (error) {
+        chatMessagesContainer.innerHTML = `<div class="text-center text-xs text-red-500 py-4">โหลดแชตไม่สำเร็จ: ${error.message}</div>`;
+        return;
+      }
+
+      renderChatMessages(messages || []);
+    }
+
+    function renderChatMessages(messages) {
+      if (messages.length === 0) {
+        chatMessagesContainer.innerHTML = `
+          <div class="text-center text-xs text-slate-400 py-8">
+            ยังไม่มีข้อความสนทนา พิมพ์ข้อความด้านล่างเพื่อเริ่มทักทายผู้ขายได้เลยครับ!
+          </div>
+        `;
+        return;
+      }
+
+      chatMessagesContainer.innerHTML = messages.map(msg => {
+        const isMe = currentUser && (msg.sender_id === currentUser.id);
+        const timeStr = new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+        return `
+          <div class="flex flex-col ${isMe ? 'items-end' : 'items-start'}">
+            <span class="text-[10px] text-slate-400 mb-0.5 px-1">${isMe ? 'คุณ' : (msg.sender_name || 'ผู้ขาย')}</span>
+            <div class="max-w-[75%] px-3.5 py-2 rounded-2xl text-xs ${isMe ? 'bg-blue-600 text-white rounded-br-none' : 'bg-white text-slate-800 border border-slate-200 rounded-bl-none shadow-sm'}">
+              ${msg.content}
+            </div>
+            <span class="text-[9px] text-slate-400 mt-0.5 px-1">${timeStr}</span>
+          </div>
+        `;
+      }).join('');
+
+      chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
+    }
+
+    // ฟังข้อความใหม่แบบ Realtime
+    function subscribeToRealtimeChat(petId) {
+      if (chatRealtimeChannel) {
+        supabaseClient.removeChannel(chatRealtimeChannel);
+      }
+
+      chatRealtimeChannel = supabaseClient
+        .channel(`chat-pet-${petId}`)
+        .on(
+          'postgres_changes',
+          { event: 'INSERT', schema: 'public', table: 'messages', filter: `pet_id=eq.${petId}` },
+          (payload) => {
+            fetchChatMessages(petId);
+          }
+        )
+        .subscribe();
+    }
+
+    // ส่งข้อความ
+    chatForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const content = chatInput.value.trim();
+      if (!content || !currentActivePet || !currentUser) return;
+
+      const myName = currentUser.user_metadata?.full_name || currentUser.email.split('@')[0];
+
+      chatInput.value = '';
+
+      const { error } = await supabaseClient
+        .from('messages')
+        .insert([{
+          pet_id: currentActivePet.id,
+          sender_id: currentUser.id,
+          receiver_id: currentActivePet.seller_id || currentUser.id,
+          sender_name: myName,
+          content: content
+        }]);
+
+      if (error) {
+        alert(`ส่งข้อความไม่สำเร็จ: ${error.message}`);
+      }
+    });
 
     window.deletePet = async function(petId) {
       if (!confirm('คุณแน่ใจหรือไม่ว่าต้องการลบประกาศนี้?')) return;
@@ -601,7 +753,7 @@
         health_status: document.getElementById('health_status').value.trim() || 'สมบูรณ์แข็งแรง',
         description: document.getElementById('description').value.trim() || null,
         images: imageUrl ? [imageUrl] : [],
-        seller_name: currentUserName // แนบชื่อผู้ลงประกาศ
+        seller_name: currentUserName
       };
 
       try {
@@ -652,6 +804,5 @@
   </script>
 </body>
 </html>
-
 
 
