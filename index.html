@@ -28,23 +28,38 @@
     </div>
   </header>
 
-  <!-- Hero Banner -->
+  <!-- Hero Banner & Search Bar -->
   <section class="bg-gradient-to-r from-slate-900 to-slate-800 text-white py-12 px-4">
     <div class="max-w-4xl mx-auto text-center">
       <h1 class="text-3xl md:text-4xl font-extrabold mb-3">ตลาดกลางซื้อขายสัตว์เลี้ยงที่ปลอดภัย 100%</h1>
       <p class="text-slate-300 text-sm md:text-base mb-6">มีระบบยืนยันตัวตนผู้ขาย (KYC) ระบบคนกลางพักเงิน (Escrow) และการบันทึกประวัติสายเลือด/สุขภาพ</p>
-      <div class="inline-flex rounded-md shadow-sm">
-        <input type="text" placeholder="ค้นหาสายพันธุ์, มอร์ฟ (เช่น Amel Zulu, Sulcata)..." class="w-64 md:w-80 px-4 py-2 text-slate-900 rounded-l-lg focus:outline-none text-sm">
-        <button class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-r-lg font-medium text-sm">ค้นหา</button>
-      </div>
+      
+      <!-- Search Form -->
+      <form id="search-form" class="inline-flex rounded-md shadow-sm w-full max-w-md">
+        <input type="text" id="search-input" placeholder="ค้นหาสายพันธุ์, มอร์ฟ (เช่น Amel Zulu, เต่า)..." class="w-full px-4 py-2.5 text-slate-900 rounded-l-lg focus:outline-none text-sm">
+        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-r-lg font-medium text-sm whitespace-nowrap">ค้นหา</button>
+      </form>
     </div>
   </section>
 
   <!-- Main Content -->
   <main class="max-w-6xl mx-auto px-4 py-8">
+    
+    <!-- Category Filter Tabs -->
+    <div class="mb-6 overflow-x-auto pb-2">
+      <div class="flex space-x-2 min-w-max" id="category-tabs">
+        <button onclick="filterCategory('ALL')" class="cat-tab bg-blue-600 text-white px-4 py-1.5 rounded-full text-xs font-bold transition shadow-sm">ทั้งหมด</button>
+        <button onclick="filterCategory('Gecko')" class="cat-tab bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 px-4 py-1.5 rounded-full text-xs font-bold transition">Gecko (ตุ๊กแก)</button>
+        <button onclick="filterCategory('Tortoise')" class="cat-tab bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 px-4 py-1.5 rounded-full text-xs font-bold transition">Tortoise (เต่าบก)</button>
+        <button onclick="filterCategory('Frog')" class="cat-tab bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 px-4 py-1.5 rounded-full text-xs font-bold transition">Frog (กบ)</button>
+        <button onclick="filterCategory('Cat')" class="cat-tab bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 px-4 py-1.5 rounded-full text-xs font-bold transition">Cat (แมว)</button>
+        <button onclick="filterCategory('Other')" class="cat-tab bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 px-4 py-1.5 rounded-full text-xs font-bold transition">อื่นๆ</button>
+      </div>
+    </div>
+
     <div class="flex justify-between items-center mb-6">
-      <h2 class="text-xl font-bold text-slate-900">รายการสัตว์เลี้ยงมาใหม่</h2>
-      <span class="text-xs text-slate-500">เชื่อมต่อระบบฐานข้อมูล Supabase Live Data</span>
+      <h2 class="text-xl font-bold text-slate-900" id="section-title">รายการสัตว์เลี้ยงมาใหม่</h2>
+      <span class="text-xs text-slate-500" id="item-count">กำลังโหลดข้อมูล...</span>
     </div>
 
     <!-- Pet Grid Container -->
@@ -169,7 +184,12 @@
     const closeDetailBtn = document.getElementById('close-detail-btn');
 
     const petGrid = document.getElementById('pet-grid');
-    let petsData = []; // เก็บ Data ไว้สำหรับเปิด Detail
+    const searchForm = document.getElementById('search-form');
+    const searchInput = document.getElementById('search-input');
+
+    let allPetsData = [];      // เก็บ Data ทั้งหมดจาก Database
+    let filteredPetsData = []; // เก็บ Data ที่ผ่านการกรอง/ค้นหา
+    let currentCategory = 'ALL';
 
     // Open/Close Modals
     openModalBtn.addEventListener('click', () => { addModal.classList.remove('hidden'); addModal.classList.add('flex'); });
@@ -182,7 +202,7 @@
 
     // Open Detail Function
     window.showPetDetail = function(index) {
-      const pet = petsData[index];
+      const pet = filteredPetsData[index];
       if (!pet) return;
 
       document.getElementById('detail-title').innerText = pet.title || 'ไม่มีชื่อหัวข้อ';
@@ -208,7 +228,99 @@
       detailModal.classList.add('flex');
     };
 
-    // Fetch Pets
+    // Render Grid Cards
+    function renderPetGrid(pets) {
+      document.getElementById('item-count').innerText = `พบ ${pets.length} รายการ`;
+
+      if (!pets || pets.length === 0) {
+        petGrid.innerHTML = `
+          <div class="col-span-full bg-white p-8 rounded-xl border border-dashed border-slate-300 text-center">
+            <p class="text-slate-800 font-bold mb-1">ไม่พบรายการสัตว์เลี้ยงที่ค้นหา</p>
+            <p class="text-xs text-slate-500">ลองเปลี่ยนคำค้นหา หรือเลือกดูหมวดหมู่อื่นๆ ได้ครับ</p>
+          </div>
+        `;
+        return;
+      }
+
+      petGrid.innerHTML = pets.map((pet, idx) => {
+        const hasImage = pet.images && pet.images.length > 0 && pet.images[0];
+        return `
+          <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-md transition flex flex-col justify-between">
+            <div>
+              <div class="h-48 bg-slate-100 flex items-center justify-center text-slate-400 overflow-hidden relative">
+                ${hasImage 
+                  ? `<img src="${pet.images[0]}" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                     <span class="text-xs text-slate-400 hidden">โหลดรูปภาพไม่สำเร็จ</span>` 
+                  : '<span class="text-xs text-slate-400">ไม่มีรูปภาพ</span>'}
+              </div>
+              <div class="p-4">
+                <div class="flex justify-between items-start mb-2">
+                  <span class="text-xs font-bold uppercase bg-blue-50 text-blue-600 px-2 py-0.5 rounded">${pet.species || 'ไม่ระบุ'}</span>
+                  <span class="text-xs text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded font-medium">${pet.health_status || 'ปกติ'}</span>
+                </div>
+                <h3 class="font-bold text-slate-900 text-base mb-1 line-clamp-1">${pet.title || 'ไม่มีชื่อหัวข้อ'}</h3>
+                <p class="text-xs text-slate-500 mb-3">${pet.morph ? 'Morph: ' + pet.morph : 'ไม่มีระบุมอร์ฟ'}</p>
+              </div>
+            </div>
+            <div class="p-4 pt-0">
+              <div class="flex justify-between items-center pt-2 border-t border-slate-100">
+                <span class="text-lg font-extrabold text-blue-600">฿${pet.price ? Number(pet.price).toLocaleString() : '0'}</span>
+                <button onclick="showPetDetail(${idx})" class="text-xs bg-slate-900 hover:bg-slate-800 text-white px-3 py-1.5 rounded-lg transition">รายละเอียด</button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Filter Logic Combining Search Keyword & Category Tab
+    function applyFilters() {
+      const query = searchInput.value.trim().toLowerCase();
+
+      filteredPetsData = allPetsData.filter(pet => {
+        // 1. Check Category Filter
+        const matchesCategory = (currentCategory === 'ALL') || (pet.species === currentCategory);
+
+        // 2. Check Text Search Keyword (Title, Morph, Species, Description)
+        const titleMatch = (pet.title || '').toLowerCase().includes(query);
+        const morphMatch = (pet.morph || '').toLowerCase().includes(query);
+        const speciesMatch = (pet.species || '').toLowerCase().includes(query);
+        const descMatch = (pet.description || '').toLowerCase().includes(query);
+
+        const matchesQuery = titleMatch || morphMatch || speciesMatch || descMatch;
+
+        return matchesCategory && matchesQuery;
+      });
+
+      renderPetGrid(filteredPetsData);
+    }
+
+    // Category Filter Trigger
+    window.filterCategory = function(cat) {
+      currentCategory = cat;
+
+      // Update Active Tab UI
+      const tabs = document.querySelectorAll('.cat-tab');
+      tabs.forEach(tab => {
+        tab.className = 'cat-tab bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 px-4 py-1.5 rounded-full text-xs font-bold transition';
+      });
+
+      event.target.className = 'cat-tab bg-blue-600 text-white px-4 py-1.5 rounded-full text-xs font-bold transition shadow-sm';
+
+      applyFilters();
+    };
+
+    // Search Event Listeners
+    searchForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      applyFilters();
+    });
+
+    searchInput.addEventListener('input', () => {
+      applyFilters();
+    });
+
+    // Fetch Pets from Database
     async function fetchPets() {
       try {
         const { data: pets, error } = await supabaseClient
@@ -221,54 +333,15 @@
           return;
         }
 
-        petsData = pets || [];
-
-        if (petsData.length === 0) {
-          petGrid.innerHTML = `
-            <div class="col-span-full bg-white p-8 rounded-xl border border-dashed border-slate-300 text-center">
-              <p class="text-slate-800 font-bold mb-1">ยังไม่มีรายการสัตว์เลี้ยงในระบบ</p>
-              <p class="text-xs text-slate-500">กดปุ่ม "+ ลงประกาศ" ด้านบน เพื่อเพิ่มสัตว์เลี้ยงตัวแรกได้เลยครับ</p>
-            </div>
-          `;
-          return;
-        }
-
-        petGrid.innerHTML = petsData.map((pet, idx) => {
-          const hasImage = pet.images && pet.images.length > 0 && pet.images[0];
-          return `
-            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-md transition flex flex-col justify-between">
-              <div>
-                <div class="h-48 bg-slate-100 flex items-center justify-center text-slate-400 overflow-hidden relative">
-                  ${hasImage 
-                    ? `<img src="${pet.images[0]}" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-                       <span class="text-xs text-slate-400 hidden">โหลดรูปภาพไม่สำเร็จ</span>` 
-                    : '<span class="text-xs text-slate-400">ไม่มีรูปภาพ</span>'}
-                </div>
-                <div class="p-4">
-                  <div class="flex justify-between items-start mb-2">
-                    <span class="text-xs font-bold uppercase bg-blue-50 text-blue-600 px-2 py-0.5 rounded">${pet.species || 'ไม่ระบุ'}</span>
-                    <span class="text-xs text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded font-medium">${pet.health_status || 'ปกติ'}</span>
-                  </div>
-                  <h3 class="font-bold text-slate-900 text-base mb-1 line-clamp-1">${pet.title || 'ไม่มีชื่อหัวข้อ'}</h3>
-                  <p class="text-xs text-slate-500 mb-3">${pet.morph ? 'Morph: ' + pet.morph : 'ไม่มีระบุมอร์ฟ'}</p>
-                </div>
-              </div>
-              <div class="p-4 pt-0">
-                <div class="flex justify-between items-center pt-2 border-t border-slate-100">
-                  <span class="text-lg font-extrabold text-blue-600">฿${pet.price ? Number(pet.price).toLocaleString() : '0'}</span>
-                  <button onclick="showPetDetail(${idx})" class="text-xs bg-slate-900 hover:bg-slate-800 text-white px-3 py-1.5 rounded-lg transition">รายละเอียด</button>
-                </div>
-              </div>
-            </div>
-          `;
-        }).join('');
+        allPetsData = pets || [];
+        applyFilters();
 
       } catch (err) {
         petGrid.innerHTML = `<div class="col-span-full text-red-500 text-center text-sm">เกิดข้อผิดพลาดในการดึงข้อมูล: ${err.message}</div>`;
       }
     }
 
-    // Submit Add Pet
+    // Submit Add Pet Form
     addPetForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const submitBtn = document.getElementById('submit-btn');
