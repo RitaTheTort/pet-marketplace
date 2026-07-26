@@ -9,6 +9,7 @@
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen">
 
+  <!-- Header -->
   <header class="bg-slate-900 text-white shadow-md">
     <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
       <div class="flex items-center space-x-2">
@@ -21,6 +22,7 @@
     </div>
   </header>
 
+  <!-- Hero Banner -->
   <section class="bg-gradient-to-r from-slate-900 to-slate-800 text-white py-12 px-4">
     <div class="max-w-4xl mx-auto text-center">
       <h1 class="text-3xl md:text-4xl font-extrabold mb-3">ตลาดกลางซื้อขายสัตว์เลี้ยงที่ปลอดภัย 100%</h1>
@@ -32,12 +34,14 @@
     </div>
   </section>
 
+  <!-- Main Content -->
   <main class="max-w-6xl mx-auto px-4 py-8">
     <div class="flex justify-between items-center mb-6">
       <h2 class="text-xl font-bold text-slate-900">รายการสัตว์เลี้ยงมาใหม่</h2>
       <span class="text-xs text-slate-500">เชื่อมต่อระบบฐานข้อมูล Supabase Live Data</span>
     </div>
 
+    <!-- Pet Grid Container -->
     <div id="pet-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
       <div class="col-span-full text-center py-12 text-slate-400 text-sm">
         กำลังเชื่อมต่อฐานข้อมูล...
@@ -46,18 +50,29 @@
   </main>
 
   <script>
+    // Supabase Configuration
     const SUPABASE_URL = 'https://vrkxmlzsbxgoboulfgos.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZya3htbHpzYnhnb2JvdWxmZ29zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUwNzk3NDUsImV4cCI6MjEwMDY1NTc0NX0.2ZbPyeqT-oLtKegqgmHMQx70x1BWhLWXc5p2jySspiQ'; 
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZya3htbHpzYnhnb2JvdWxmg29zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUwNzk3NDUsImV4cCI6MjEwMDY1NTc0NX0.2ZbPyeqT-oLtKegqgmHMQx70x1BWhLWXc5p2jySspiQ';
 
-    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    // Initialize Client Safely
+    let supabaseClient = null;
+    if (window.supabase) {
+      supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    }
 
     async function fetchPets() {
       const grid = document.getElementById('pet-grid');
+      
+      if (!supabaseClient) {
+        grid.innerHTML = `<div class="col-span-full text-red-500 text-center text-sm">ไม่สามารถโหลด Supabase Client Library ได้</div>`;
+        return;
+      }
+
       try {
         const { data: pets, error } = await supabaseClient.from('pets').select('*');
         
         if (error) {
-          grid.innerHTML = `<div class="col-span-full bg-red-50 text-red-600 p-4 rounded-lg text-center text-sm">Supabase Error: ${error.message} (${error.code})</div>`;
+          grid.innerHTML = `<div class="col-span-full bg-red-50 text-red-600 p-4 rounded-lg text-center text-sm">ข้อผิดพลาดจากฐานข้อมูล: ${error.message}</div>`;
           return;
         }
 
@@ -85,13 +100,13 @@
             </div>
             <div class="p-4">
               <div class="flex justify-between items-start mb-2">
-                <span class="text-xs font-bold uppercase bg-blue-50 text-blue-600 px-2 py-0.5 rounded">${pet.species}</span>
-                <span class="text-xs text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded font-medium">${pet.health_status}</span>
+                <span class="text-xs font-bold uppercase bg-blue-50 text-blue-600 px-2 py-0.5 rounded">${pet.species || 'ไม่ระบุ'}</span>
+                <span class="text-xs text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded font-medium">${pet.health_status || 'ปกติ'}</span>
               </div>
-              <h3 class="font-bold text-slate-900 text-base mb-1">${pet.title}</h3>
+              <h3 class="font-bold text-slate-900 text-base mb-1">${pet.title || 'ไม่มีชื่อหัวข้อ'}</h3>
               <p class="text-xs text-slate-500 mb-3">${pet.morph ? 'Morph: ' + pet.morph : 'ไม่มีระบุมอร์ฟ'}</p>
               <div class="flex justify-between items-center pt-2 border-t border-slate-100">
-                <span class="text-lg font-extrabold text-blue-600">฿${Number(pet.price).toLocaleString()}</span>
+                <span class="text-lg font-extrabold text-blue-600">฿${pet.price ? Number(pet.price).toLocaleString() : '0'}</span>
                 <button class="text-xs bg-slate-900 text-white px-3 py-1.5 rounded-lg hover:bg-slate-800 transition">รายละเอียด</button>
               </div>
             </div>
@@ -99,7 +114,7 @@
         `).join('');
 
       } catch (err) {
-        grid.innerHTML = `<div class="col-span-full text-red-500 text-center text-sm">เกิดข้อผิดพลาด: ${err.message}</div>`;
+        grid.innerHTML = `<div class="col-span-full text-red-500 text-center text-sm">เกิดข้อผิดพลาดในการดึงข้อมูล: ${err.message}</div>`;
       }
     }
 
