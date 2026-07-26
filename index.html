@@ -353,22 +353,34 @@
     }
 
     // ฟังข้อความใหม่ระดับ Global เพื่อแจ้งเตือนจุดแดงทันที (ป้องกันการซ้ำซ้อน Channel)
-    function subscribeGlobalNotification() {
+    async function subscribeGlobalNotification() {
       if (!currentUser) return;
 
       if (globalNotificationChannel) {
-        supabaseClient.removeChannel(globalNotificationChannel);
+        await supabaseClient.removeChannel(globalNotificationChannel);
+        globalNotificationChannel = null;
       }
 
+      const channelName = `global-notif-${currentUser.id}`;
+
       globalNotificationChannel = supabaseClient
-        .channel('global-messages-notification')
+        .channel(channelName)
         .on(
           'postgres_changes',
-          { event: 'INSERT', schema: 'public', table: 'messages', filter: `receiver_id=eq.${currentUser.id}` },
-          () => { checkUnreadMessages(); }
-        )
-        .subscribe();
+          { 
+            event: 'INSERT', 
+            schema: 'public', 
+            table: 'messages', 
+            filter: `receiver_id=eq.${currentUser.id}` 
+          },
+          () => { 
+            checkUnreadMessages(); 
+          }
+        );
+
+      globalNotificationChannel.subscribe();
     }
+  
 
     function updateAuthUI(user) {
       currentUser = user;
