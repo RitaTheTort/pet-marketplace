@@ -55,7 +55,7 @@
     </div>
   </main>
 
-  <!-- Modal สำหรับลงประกาศสัตว์เลี้ยง -->
+  <!-- Modal 1: ลงประกาศสัตว์เลี้ยง -->
   <div id="add-pet-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4 overflow-y-auto">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden my-8">
       <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center">
@@ -115,25 +115,100 @@
     </div>
   </div>
 
+  <!-- Modal 2: แสดงรายละเอียดสัตว์เลี้ยง -->
+  <div id="detail-pet-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden my-8">
+      <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center">
+        <h3 id="detail-title" class="font-bold text-lg truncate pr-4">รายละเอียดสัตว์เลี้ยง</h3>
+        <button id="close-detail-btn" class="text-slate-400 hover:text-white text-xl font-bold">&times;</button>
+      </div>
+      <div class="p-6 space-y-4">
+        <div class="h-60 bg-slate-100 rounded-xl overflow-hidden flex items-center justify-center text-slate-400">
+          <img id="detail-image" src="" class="w-full h-full object-cover hidden">
+          <span id="detail-no-image" class="text-sm">ไม่มีรูปภาพ</span>
+        </div>
+        <div class="flex justify-between items-center">
+          <span id="detail-species" class="text-xs font-bold uppercase bg-blue-50 text-blue-600 px-2.5 py-1 rounded-md">SPECIES</span>
+          <span id="detail-health" class="text-xs font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-md">สมบูรณ์แข็งแรง</span>
+        </div>
+        <div>
+          <p class="text-xs text-slate-400 mb-1">มอร์ฟ / สายพันธุ์</p>
+          <p id="detail-morph" class="text-sm font-semibold text-slate-800">-</p>
+        </div>
+        <div>
+          <p class="text-xs text-slate-400 mb-1">รายละเอียดเพิ่มเติม</p>
+          <div id="detail-desc" class="text-sm text-slate-600 bg-slate-50 p-3 rounded-lg min-h-[60px] whitespace-pre-wrap">ไม่มีรายละเอียดเพิ่มเติม</div>
+        </div>
+        <div class="pt-4 border-t border-slate-100 flex justify-between items-center">
+          <div>
+            <p class="text-xs text-slate-400">ราคาขาย</p>
+            <p id="detail-price" class="text-2xl font-extrabold text-blue-600">฿0</p>
+          </div>
+          <button onclick="alert('ระบบแชต/ติดต่อผู้ขายกำลังอยู่ระหว่างการพัฒนาครับ')" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow transition">
+            ติดต่อผู้ขาย
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
     const SUPABASE_URL = 'https://vrkxmlzsbxgoboulfgos.supabase.co';
-    // ใส่คีย์ตัวล่าสุดของอี้อวี่
-    const SUPABASE_ANON_KEY = 'EyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZya3htbHpzYnhnb2JvdWxmb2dzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUwNzk3NDUsImV4cCI6MjEwMDY1NTc0NX0.2ZbPyeqT-oLtKegqgmHMQx70x1BWhLWXc5p2jySspiQ';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZya3htbHpzYnhnb2JvdWxmZ29zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUwNzk3NDUsImV4cCI6MjEwMDY1NTc0NX0.2ZbPyeqT-oLtKegqgmHMQx70x1BWhLWXc5p2jySspiQ';
 
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    const modal = document.getElementById('add-pet-modal');
+    // Modal References
+    const addModal = document.getElementById('add-pet-modal');
     const openModalBtn = document.getElementById('open-modal-btn');
     const closeModalBtn = document.getElementById('close-modal-btn');
     const cancelBtn = document.getElementById('cancel-btn');
     const addPetForm = document.getElementById('add-pet-form');
+
+    const detailModal = document.getElementById('detail-pet-modal');
+    const closeDetailBtn = document.getElementById('close-detail-btn');
+
     const petGrid = document.getElementById('pet-grid');
+    let petsData = []; // เก็บ Data ไว้สำหรับเปิด Detail
 
-    openModalBtn.addEventListener('click', () => { modal.classList.remove('hidden'); modal.classList.add('flex'); });
-    const closeModal = () => { modal.classList.add('hidden'); modal.classList.remove('flex'); addPetForm.reset(); };
-    closeModalBtn.addEventListener('click', closeModal);
-    cancelBtn.addEventListener('click', closeModal);
+    // Open/Close Modals
+    openModalBtn.addEventListener('click', () => { addModal.classList.remove('hidden'); addModal.classList.add('flex'); });
+    const closeAddModal = () => { addModal.classList.add('hidden'); addModal.classList.remove('flex'); addPetForm.reset(); };
+    closeModalBtn.addEventListener('click', closeAddModal);
+    cancelBtn.addEventListener('click', closeAddModal);
 
+    const closeDetailModal = () => { detailModal.classList.add('hidden'); detailModal.classList.remove('flex'); };
+    closeDetailBtn.addEventListener('click', closeDetailModal);
+
+    // Open Detail Function
+    window.showPetDetail = function(index) {
+      const pet = petsData[index];
+      if (!pet) return;
+
+      document.getElementById('detail-title').innerText = pet.title || 'ไม่มีชื่อหัวข้อ';
+      document.getElementById('detail-species').innerText = pet.species || 'ไม่ระบุ';
+      document.getElementById('detail-health').innerText = pet.health_status || 'ปกติ';
+      document.getElementById('detail-morph').innerText = pet.morph || 'ไม่ระบุมอร์ฟ';
+      document.getElementById('detail-desc').innerText = pet.description || 'ไม่มีรายละเอียดเพิ่มเติม';
+      document.getElementById('detail-price').innerText = '฿' + (pet.price ? Number(pet.price).toLocaleString() : '0');
+
+      const imgEl = document.getElementById('detail-image');
+      const noImgEl = document.getElementById('detail-no-image');
+
+      if (pet.images && pet.images.length > 0 && pet.images[0]) {
+        imgEl.src = pet.images[0];
+        imgEl.classList.remove('hidden');
+        noImgEl.classList.add('hidden');
+      } else {
+        imgEl.classList.add('hidden');
+        noImgEl.classList.remove('hidden');
+      }
+
+      detailModal.classList.remove('hidden');
+      detailModal.classList.add('flex');
+    };
+
+    // Fetch Pets
     async function fetchPets() {
       try {
         const { data: pets, error } = await supabaseClient
@@ -146,7 +221,9 @@
           return;
         }
 
-        if (!pets || pets.length === 0) {
+        petsData = pets || [];
+
+        if (petsData.length === 0) {
           petGrid.innerHTML = `
             <div class="col-span-full bg-white p-8 rounded-xl border border-dashed border-slate-300 text-center">
               <p class="text-slate-800 font-bold mb-1">ยังไม่มีรายการสัตว์เลี้ยงในระบบ</p>
@@ -156,7 +233,7 @@
           return;
         }
 
-        petGrid.innerHTML = pets.map(pet => {
+        petGrid.innerHTML = petsData.map((pet, idx) => {
           const hasImage = pet.images && pet.images.length > 0 && pet.images[0];
           return `
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-md transition flex flex-col justify-between">
@@ -179,7 +256,7 @@
               <div class="p-4 pt-0">
                 <div class="flex justify-between items-center pt-2 border-t border-slate-100">
                   <span class="text-lg font-extrabold text-blue-600">฿${pet.price ? Number(pet.price).toLocaleString() : '0'}</span>
-                  <button class="text-xs bg-slate-900 text-white px-3 py-1.5 rounded-lg hover:bg-slate-800 transition">รายละเอียด</button>
+                  <button onclick="showPetDetail(${idx})" class="text-xs bg-slate-900 hover:bg-slate-800 text-white px-3 py-1.5 rounded-lg transition">รายละเอียด</button>
                 </div>
               </div>
             </div>
@@ -191,6 +268,7 @@
       }
     }
 
+    // Submit Add Pet
     addPetForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const submitBtn = document.getElementById('submit-btn');
@@ -217,7 +295,7 @@
         if (error) {
           alert(`เกิดข้อผิดพลาดในการบันทึก: ${error.message}`);
         } else {
-          closeModal();
+          closeAddModal();
           fetchPets();
         }
       } catch (err) {
@@ -232,5 +310,6 @@
   </script>
 </body>
 </html>
+
 
 
