@@ -5,10 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pet Marketplace - ตลาดกลางสัตว์เลี้ยง</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Supabase Official JS SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen">
 
+  <!-- Header -->
   <header class="bg-slate-900 text-white shadow-md sticky top-0 z-40">
     <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
       <div class="flex items-center space-x-2">
@@ -26,11 +28,13 @@
     </div>
   </header>
 
+  <!-- Hero Banner & Search Bar -->
   <section class="bg-gradient-to-r from-slate-900 to-slate-800 text-white py-12 px-4">
     <div class="max-w-4xl mx-auto text-center">
       <h1 class="text-3xl md:text-4xl font-extrabold mb-3">ตลาดกลางซื้อขายสัตว์เลี้ยงที่ปลอดภัย 100%</h1>
       <p class="text-slate-300 text-sm md:text-base mb-6">มีระบบยืนยันตัวตนผู้ขาย (KYC) ระบบคนกลางพักเงิน (Escrow) และการบันทึกประวัติสายเลือด/สุขภาพ</p>
       
+      <!-- Search Form -->
       <form id="search-form" class="inline-flex rounded-md shadow-sm w-full max-w-md">
         <input type="text" id="search-input" placeholder="ค้นหาสายพันธุ์, มอร์ฟ (เช่น Amel Zulu, เต่า)..." class="w-full px-4 py-2.5 text-slate-900 rounded-l-lg focus:outline-none text-sm">
         <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-r-lg font-medium text-sm whitespace-nowrap">ค้นหา</button>
@@ -38,8 +42,10 @@
     </div>
   </section>
 
+  <!-- Main Content -->
   <main class="max-w-6xl mx-auto px-4 py-8">
     
+    <!-- Navigation Tabs -->
     <div class="flex border-b border-slate-200 mb-6">
       <button id="tab-all-pets" onclick="switchMainView('ALL')" class="py-2.5 px-4 font-bold text-sm border-b-2 border-blue-600 text-blue-600 transition">
         ตลาดสัตว์เลี้ยงทั้งหมด
@@ -49,6 +55,7 @@
       </button>
     </div>
 
+    <!-- Category Filter Tabs -->
     <div id="category-filter-container" class="mb-6 overflow-x-auto pb-2">
       <div class="flex space-x-2 min-w-max" id="category-tabs">
         <button onclick="filterCategory('ALL')" class="cat-tab bg-blue-600 text-white px-4 py-1.5 rounded-full text-xs font-bold transition shadow-sm">ทั้งหมด</button>
@@ -65,6 +72,7 @@
       <span class="text-xs text-slate-500" id="item-count">กำลังโหลดข้อมูล...</span>
     </div>
 
+    <!-- Pet Grid Container -->
     <div id="pet-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
       <div class="col-span-full text-center py-12 text-slate-400 text-sm">
         กำลังเชื่อมต่อฐานข้อมูล...
@@ -72,6 +80,7 @@
     </div>
   </main>
 
+  <!-- Modal 1: เข้าสู่ระบบ / สมัครสมาชิก -->
   <div id="auth-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4 overflow-y-auto">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden my-8">
       <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center">
@@ -110,6 +119,7 @@
     </div>
   </div>
 
+  <!-- Modal 2: ลงประกาศ / แก้ไขประกาศสัตว์เลี้ยง -->
   <div id="add-pet-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4 overflow-y-auto">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden my-8">
       <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center">
@@ -171,6 +181,7 @@
     </div>
   </div>
 
+  <!-- Modal 3: แสดงรายละเอียดสัตว์เลี้ยง -->
   <div id="detail-pet-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4 overflow-y-auto">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden my-8">
       <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center">
@@ -211,39 +222,60 @@
             <p id="detail-price" class="text-2xl font-extrabold text-blue-600">฿0</p>
           </div>
           <button id="contact-seller-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow transition">
-  ติดต่อผู้ขาย
-</button>
-
+            ติดต่อผู้ขาย
+          </button>
         </div>
       </div>
     </div>
   </div>
 
+  <!-- Modal 4: Real-time In-App Chat Modal -->
   <div id="chat-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg h-[550px] flex flex-col overflow-hidden">
+      <!-- Chat Header -->
       <div class="bg-slate-900 text-white px-5 py-3.5 flex justify-between items-center border-b border-slate-800">
         <div class="flex items-center space-x-3">
+          <button id="back-to-inbox-btn" class="text-slate-400 hover:text-white font-bold text-lg hidden mr-1">&larr;</button>
           <div class="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center font-bold text-sm text-white" id="chat-seller-avatar">
             S
           </div>
           <div>
-            <h4 id="chat-seller-name" class="font-bold text-sm leading-tight">ชื่อผู้ขาย</h4>
+            <h4 id="chat-seller-name" class="font-bold text-sm leading-tight">ชื่อผู้ติดต่อ</h4>
             <p id="chat-pet-title" class="text-[11px] text-blue-300 truncate max-w-[200px]">เกี่ยวกับ: สัตว์เลี้ยง</p>
           </div>
         </div>
         <button id="close-chat-btn" class="text-slate-400 hover:text-white text-xl font-bold">&times;</button>
       </div>
 
+      <!-- Chat Messages Body -->
       <div id="chat-messages-container" class="flex-1 p-4 overflow-y-auto space-y-3 bg-slate-50 text-sm">
         <div class="text-center text-xs text-slate-400 py-4">กำลังโหลดประวัติการสนทนา...</div>
       </div>
 
+      <!-- Chat Input Form -->
       <form id="chat-form" class="p-3 bg-white border-t border-slate-200 flex items-center space-x-2">
-        <input type="text" id="chat-input" required placeholder="พิมพ์ข้อความสอบถามผู้ขาย..." class="flex-1 px-4 py-2 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <input type="text" id="chat-input" required placeholder="พิมพ์ข้อความโต้ตอบ..." class="flex-1 px-4 py-2 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
         <button type="submit" id="send-msg-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-bold transition whitespace-nowrap">
           ส่ง
         </button>
       </form>
+    </div>
+  </div>
+
+  <!-- Modal 5: Seller Inbox Modal (กล่องรวมข้อความของผู้ขาย) -->
+  <div id="inbox-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg h-[550px] flex flex-col overflow-hidden">
+      <div class="bg-slate-900 text-white px-5 py-3.5 flex justify-between items-center border-b border-slate-800">
+        <div class="flex items-center space-x-2">
+          <span class="text-lg">💬</span>
+          <h4 class="font-bold text-base">กล่องข้อความสนทนาทั้งหมด</h4>
+        </div>
+        <button id="close-inbox-btn" class="text-slate-400 hover:text-white text-xl font-bold">&times;</button>
+      </div>
+
+      <div id="inbox-list-container" class="flex-1 overflow-y-auto p-4 divide-y divide-slate-100">
+        <div class="text-center text-xs text-slate-400 py-8">กำลังดึงรายการกล่องข้อความ...</div>
+      </div>
     </div>
   </div>
 
@@ -263,6 +295,7 @@
     // Chat state variables
     let currentActivePet = null;
     let chatRealtimeChannel = null;
+    let targetChatUserId = null; // ผู้ที่เรากำลังคุยด้วย
 
     const authModal = document.getElementById('auth-modal');
     const authForm = document.getElementById('auth-form');
@@ -283,6 +316,11 @@
     const chatForm = document.getElementById('chat-form');
     const chatInput = document.getElementById('chat-input');
     const chatMessagesContainer = document.getElementById('chat-messages-container');
+    const backToInboxBtn = document.getElementById('back-to-inbox-btn');
+
+    const inboxModal = document.getElementById('inbox-modal');
+    const closeInboxBtn = document.getElementById('close-inbox-btn');
+    const inboxListContainer = document.getElementById('inbox-list-container');
 
     const petGrid = document.getElementById('pet-grid');
     const searchForm = document.getElementById('search-form');
@@ -300,6 +338,9 @@
         const displayName = user.user_metadata?.full_name || user.email.split('@')[0];
 
         container.innerHTML = `
+          <button id="open-inbox-btn" onclick="openInboxModal()" class="bg-slate-800 hover:bg-slate-700 text-blue-400 border border-slate-700 font-medium px-3 py-2 rounded-lg text-xs md:text-sm transition flex items-center gap-1.5 whitespace-nowrap">
+            💬 <span class="hidden sm:inline">ข้อความ</span>
+          </button>
           <button id="open-add-modal-btn" class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-3 py-2 rounded-lg text-xs md:text-sm transition shadow whitespace-nowrap">
             + ลงประกาศ
           </button>
@@ -448,7 +489,7 @@
       detailModal.classList.add('flex');
     };
 
-    // ปุ่มติดต่อผู้ขาย -> เปิดระบบแชต Realtime
+    // ปุ่มติดต่อผู้ขาย
     contactSellerBtn.addEventListener('click', () => {
       if (!currentUser) {
         alert('กรุณาเข้าสู่ระบบก่อนส่งข้อความติดต่อผู้ขายครับ');
@@ -463,15 +504,102 @@
       }
 
       closeDetailModal();
-      openChatModal(currentActivePet);
+      openChatModal(currentActivePet, currentActivePet.seller_id, currentActivePet.seller_name);
+    });
+
+    // เปิด Inbox รวมกล่องแชต
+    window.openInboxModal = async function() {
+      if (!currentUser) return;
+
+      inboxModal.classList.remove('hidden');
+      inboxModal.classList.add('flex');
+      inboxListContainer.innerHTML = '<div class="text-center text-xs text-slate-400 py-8">กำลังโหลดรายการข้อความ...</div>';
+
+      // ดึงข้อความทั้งหมดที่เกี่ยวข้องกับ user คนนี้ (เป็นคนส่ง หรือ คนรับ)
+      const { data: messages, error } = await supabaseClient
+        .from('messages')
+        .select('*')
+        .or(`sender_id.eq.${currentUser.id},receiver_id.eq.${currentUser.id}`)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        inboxListContainer.innerHTML = `<div class="text-center text-xs text-red-500 py-4">เกิดข้อผิดพลาด: ${error.message}</div>`;
+        return;
+      }
+
+      if (!messages || messages.length === 0) {
+        inboxListContainer.innerHTML = `<div class="text-center text-xs text-slate-400 py-8">ยังไม่มีกล่องข้อความการสนทนา</div>`;
+        return;
+      }
+
+      // Group ข้อความแยกตาม pet_id + คู่สนทนา
+      const chatGroups = {};
+      messages.forEach(msg => {
+        const otherUserId = (msg.sender_id === currentUser.id) ? msg.receiver_id : msg.sender_id;
+        const key = `${msg.pet_id}_${otherUserId}`;
+        if (!chatGroups[key]) {
+          chatGroups[key] = {
+            pet_id: msg.pet_id,
+            otherUserId: otherUserId,
+            otherUserName: (msg.sender_id === currentUser.id) ? 'ผู้ขาย/คู่สนทนา' : (msg.sender_name || 'ผู้ซื้อ'),
+            lastMessage: msg.content,
+            lastTime: msg.created_at
+          };
+        }
+      });
+
+      const groupList = Object.values(chatGroups);
+      
+      // ดึงรายละเอียด pet
+      inboxListContainer.innerHTML = groupList.map((item, idx) => {
+        const pet = allPetsData.find(p => p.id === item.pet_id);
+        const petTitle = pet ? pet.title : 'สัตว์เลี้ยงในประกาศ';
+        const timeStr = new Date(item.lastTime).toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+        return `
+          <div onclick="selectChatFromInbox('${item.pet_id}', '${item.otherUserId}', '${item.otherUserName}', '${petTitle}')" class="p-3.5 hover:bg-slate-50 cursor-pointer rounded-xl transition flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+              <div class="w-10 h-10 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-sm">
+                ${item.otherUserName.charAt(0).toUpperCase()}
+              </div>
+              <div>
+                <p class="font-bold text-slate-800 text-sm">${item.otherUserName}</p>
+                <p class="text-xs text-blue-600 font-semibold truncate max-w-[180px]">${petTitle}</p>
+                <p class="text-xs text-slate-500 truncate max-w-[200px]">${item.lastMessage}</p>
+              </div>
+            </div>
+            <span class="text-[10px] text-slate-400">${timeStr}</span>
+          </div>
+        `;
+      }).join('');
+    };
+
+    closeInboxBtn.addEventListener('click', () => {
+      inboxModal.classList.add('hidden'); inboxModal.classList.remove('flex');
+    });
+
+    window.selectChatFromInbox = function(petId, otherUserId, otherUserName, petTitle) {
+      inboxModal.classList.add('hidden'); inboxModal.classList.remove('flex');
+      backToInboxBtn.classList.remove('hidden');
+
+      const petObj = allPetsData.find(p => p.id === petId) || { id: petId, title: petTitle };
+      openChatModal(petObj, otherUserId, otherUserName);
+    };
+
+    backToInboxBtn.addEventListener('click', () => {
+      chatModal.classList.add('hidden'); chatModal.classList.remove('flex');
+      openInboxModal();
     });
 
     // Function เปิดกล่องแชต
-    async function openChatModal(pet) {
+    async function openChatModal(pet, otherUserId, otherUserName) {
       if (!pet) return;
 
-      document.getElementById('chat-seller-name').innerText = pet.seller_name || 'ผู้ขาย';
-      document.getElementById('chat-seller-avatar').innerText = (pet.seller_name || 'S').charAt(0).toUpperCase();
+      currentActivePet = pet;
+      targetChatUserId = otherUserId;
+
+      document.getElementById('chat-seller-name').innerText = otherUserName || 'คู่สนทนา';
+      document.getElementById('chat-seller-avatar').innerText = (otherUserName || 'C').charAt(0).toUpperCase();
       document.getElementById('chat-pet-title').innerText = `ประกาศ: ${pet.title || 'สัตว์เลี้ยง'}`;
 
       chatModal.classList.remove('hidden');
@@ -484,6 +612,7 @@
     closeChatBtn.addEventListener('click', () => {
       chatModal.classList.add('hidden');
       chatModal.classList.remove('flex');
+      backToInboxBtn.classList.add('hidden');
       if (chatRealtimeChannel) {
         supabaseClient.removeChannel(chatRealtimeChannel);
       }
@@ -511,7 +640,7 @@
       if (messages.length === 0) {
         chatMessagesContainer.innerHTML = `
           <div class="text-center text-xs text-slate-400 py-8">
-            ยังไม่มีข้อความสนทนา พิมพ์ข้อความด้านล่างเพื่อเริ่มทักทายผู้ขายได้เลยครับ!
+            ยังไม่มีข้อความสนทนา พิมพ์ข้อความด้านล่างเพื่อเริ่มทักทายได้เลยครับ!
           </div>
         `;
         return;
@@ -523,7 +652,7 @@
 
         return `
           <div class="flex flex-col ${isMe ? 'items-end' : 'items-start'}">
-            <span class="text-[10px] text-slate-400 mb-0.5 px-1">${isMe ? 'คุณ' : (msg.sender_name || 'ผู้ขาย')}</span>
+            <span class="text-[10px] text-slate-400 mb-0.5 px-1">${isMe ? 'คุณ' : (msg.sender_name || 'คู่สนทนา')}</span>
             <div class="max-w-[75%] px-3.5 py-2 rounded-2xl text-xs ${isMe ? 'bg-blue-600 text-white rounded-br-none' : 'bg-white text-slate-800 border border-slate-200 rounded-bl-none shadow-sm'}">
               ${msg.content}
             </div>
@@ -568,7 +697,7 @@
         .insert([{
           pet_id: currentActivePet.id,
           sender_id: currentUser.id,
-          receiver_id: currentActivePet.seller_id || currentUser.id,
+          receiver_id: targetChatUserId || currentActivePet.seller_id || currentUser.id,
           sender_name: myName,
           content: content
         }]);
