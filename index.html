@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pet Marketplace - ตลาดกลางสัตว์เลี้ยงและระบบนิเวศแห่งความไว้วางใจ</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen">
+
+  <!-- Header -->
+  <header class="bg-slate-900 text-white shadow-md">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+      <div class="flex items-center space-x-2">
+        <span class="text-2xl font-bold text-blue-400">PetMarket</span>
+        <span class="text-xs bg-blue-900 text-blue-200 px-2 py-1 rounded">Beta</span>
+      </div>
+      <button class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg text-sm transition">
+        เข้าสู่ระบบ / ลงทะเบียน
+      </button>
+    </div>
+  </header>
+
+  <!-- Hero Banner -->
+  <section class="bg-gradient-to-r from-slate-900 to-slate-800 text-white py-12 px-4">
+    <div class="max-w-4xl mx-auto text-center">
+      <h1 class="text-3xl md:text-4xl font-extrabold mb-3">ตลาดกลางซื้อขายสัตว์เลี้ยงที่ปลอดภัย 100%</h1>
+      <p class="text-slate-300 text-sm md:text-base mb-6">มีระบบยืนยันตัวตนผู้ขาย (KYC) ระบบคนกลางพักเงิน (Escrow) และการบันทึกประวัติสายเลือด/สุขภาพ</p>
+      <div class="inline-flex rounded-md shadow-sm">
+        <input type="text" placeholder="ค้นหาสายพันธุ์, มอร์ฟ (เช่น Amel Zulu, Sulcata)..." class="w-64 md:w-80 px-4 py-2 text-slate-900 rounded-l-lg focus:outline-none text-sm">
+        <button class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-r-lg font-medium text-sm">ค้นหา</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Content -->
+  <main class="max-w-6xl mx-auto px-4 py-8">
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-xl font-bold text-slate-900">รายการสัตว์เลี้ยงมาใหม่</h2>
+      <span class="text-xs text-slate-500">เชื่อมต่อระบบฐานข้อมูล Supabase Live Data</span>
+    </div>
+
+    <!-- Pet Grid Container -->
+    <div id="pet-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+      <div class="col-span-full text-center py-12 text-slate-400 text-sm">
+        กำลังโหลดข้อมูลจากฐานข้อมูล...
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const SUPABASE_URL = 'https://vrkxmlzsbxgoboulfgos.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZya3htbHpzYnhnb2JvdWxmg29zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk2NDUwODQsImV4cCI6MjA2NTIyMTA4NH0.PLACEHOLDER'; 
+
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    async function fetchPets() {
+      const grid = document.getElementById('pet-grid');
+      try {
+        const { data: pets, error } = await supabaseClient.from('pets').select('*');
+        
+        if (error) throw error;
+
+        if (!pets || pets.length === 0) {
+          grid.innerHTML = `
+            <div class="col-span-full bg-white p-8 rounded-xl border border-dashed border-slate-300 text-center">
+              <p class="text-slate-500 font-medium mb-1">ยังไม่มีรายการสัตว์เลี้ยงในขณะนี้</p>
+              <p class="text-xs text-slate-400">ฐานข้อมูลพร้อมใช้งานแล้ว สามารถเริ่มทดสอบการลงขายเป็นตัวแรกได้</p>
+            </div>
+          `;
+          return;
+        }
+
+        grid.innerHTML = pets.map(pet => `
+          <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-md transition">
+            <div class="h-48 bg-slate-100 flex items-center justify-center text-slate-400">
+              ${pet.images && pet.images.length > 0 
+                ? `<img src="${pet.images[0]}" class="w-full h-full object-cover">` 
+                : '<span class="text-xs">ไม่มีรูปภาพ</span>'}
+            </div>
+            <div class="p-4">
+              <div class="flex justify-between items-start mb-2">
+                <span class="text-xs font-bold uppercase bg-blue-50 text-blue-600 px-2 py-0.5 rounded">${pet.species}</span>
+                <span class="text-xs text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded font-medium">${pet.health_status}</span>
+              </div>
+              <h3 class="font-bold text-slate-900 text-base mb-1">${pet.title}</h3>
+              <p class="text-xs text-slate-500 mb-3">${pet.morph ? 'Morph: ' + pet.morph : 'ไม่มีระบุมอร์ฟ'}</p>
+              <div class="flex justify-between items-center pt-2 border-t border-slate-100">
+                <span class="text-lg font-extrabold text-blue-600">฿${Number(pet.price).toLocaleString()}</span>
+                <button class="text-xs bg-slate-900 text-white px-3 py-1.5 rounded-lg hover:bg-slate-800 transition">รายละเอียด</button>
+              </div>
+            </div>
+          </div>
+        `).join('');
+
+      } catch (err) {
+        console.error(err);
+        grid.innerHTML = `<div class="col-span-full text-red-500 text-center text-sm">เกิดข้อผิดพลาดในการโหลดข้อมูล</div>`;
+      }
+    }
+
+    fetchPets();
+  </script>
+</body>
+</html>
