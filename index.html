@@ -91,17 +91,12 @@
 
       <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6" id="admin-role-management-section">
         <h3 class="font-bold text-lg text-slate-900 mb-2 flex items-center gap-2">
-          <span>🛡️ ค้นหาและจัดการสิทธิ์ผู้ใช้งาน (Admin Role Management)</span>
+          <span>🛡️ จัดการสิทธิ์ผู้ใช้งานและผู้ดูแลระบบ (Admin Role Management)</span>
         </h3>
-        <p class="text-xs text-slate-500 mb-4">ค้นหาสมาชิกด้วยอีเมลเพื่อแต่งตั้งสิทธิ์ผู้ดูแลระบบ หรือสร้างคำขอให้ Super Admin อนุมัติ</p>
+        <p class="text-xs text-slate-500 mb-4">รายชื่อสมาชิกทั้งหมดในระบบสำหรับกำหนดสิทธิ์ผู้ดูแลระบบ</p>
         
-        <div class="flex gap-2 mb-6">
-          <input type="text" id="admin-search-email" placeholder="กรอกอีเมลสมาชิกที่ต้องการค้นหา..." class="flex-1 px-4 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
-          <button onclick="searchUserByEmail()" class="bg-purple-600 hover:bg-purple-700 text-white px-5 py-2 rounded-lg text-sm font-bold transition shadow">ค้นหาผู้ใช้</button>
-        </div>
-
-        <div id="admin-search-result" class="space-y-3">
-          <!-- ผลลัพธ์จากการค้นหาจะแสดงที่นี่ -->
+        <div id="admin-users-list" class="space-y-3">
+          <p class="text-xs text-slate-400">กำลังโหลดรายชื่อสมาชิก...</p>
         </div>
       </div>
     </div>
@@ -813,6 +808,7 @@
         adminPanelContainer.classList.remove('hidden');
         document.getElementById('section-title').innerText = "ระบบจัดการหลังบ้าน (Admin Panel)";
         fetchAdminKycData();
+        fetchAdminUsersData();
       }
       applyFilters();
     };
@@ -856,66 +852,55 @@
       }).join('');
     }
 
-    // ฟังก์ชันค้นหาสมาชิกด้วยอีเมลสำหรับจัดการสิทธิ์ Admin
-    window.searchUserByEmail = async function() {
-      const emailQuery = document.getElementById('admin-search-email').value.trim().toLowerCase();
-      const resultContainer = document.getElementById('admin-search-result');
-
-      if (!emailQuery) {
-        alert('กรุณากรอกอีเมลที่ต้องการค้นหาครับ');
-        return;
-      }
-
-      resultContainer.innerHTML = '<p class="text-xs text-slate-400">กำลังค้นหาข้อมูลผู้ใช้งาน...</p>';
+    // โหลดรายชื่อผู้ใช้งานทั้งหมดเพื่อจัดการสิทธิ์ Admin
+    async function fetchAdminUsersData() {
+      const usersListContainer = document.getElementById('admin-users-list');
+      usersListContainer.innerHTML = '<p class="text-xs text-slate-400">กำลังดึงรายชื่อสมาชิก...</p>';
 
       const { data: profiles, error } = await supabaseClient
         .from('profiles')
         .select('*')
-        .ilike('full_name', `%${emailQuery}%`); // ค้นหาคร่าวๆ หรือหากต้องการระบุอีเมลตรงๆ สามารถปรับได้
+        .order('full_name', { ascending: true });
 
-      // เนื่องจากตาราง profiles เก็บ id และ full_name เราจะดึงข้อมูลมาเทียบ
-      const { data: allProfiles } = await supabaseClient.from('profiles').select('*');
-      
-      if (!allProfiles) {
-        resultContainer.innerHTML = '<p class="text-xs text-red-500">ไม่พบข้อมูลในระบบ</p>';
+      if (error) {
+        usersListContainer.innerHTML = `<p class="text-xs text-red-500">โหลดข้อมูลไม่สำเร็จ: ${error.message}</p>`;
         return;
       }
 
-      // ค้นหาแบบตรงตัวจาก ID หรือข้อมูลจำลอง
-      const matchedProfile = allProfiles.find(p => p.id.toLowerCase().includes(emailQuery) || (p.full_name && p.full_name.toLowerCase().includes(emailQuery)));
-
-      if (!matchedProfile) {
-        resultContainer.innerHTML = '<div class="p-4 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-500">ไม่พบผู้ใช้งานที่ตรงกับคำค้นหานี้</div>';
+      if (!profiles || profiles.length === 0) {
+        usersListContainer.innerHTML = `<p class="text-xs text-slate-400">ยังไม่มีข้อมูลสมาชิกในระบบ</p>`;
         return;
       }
 
-      const role = matchedProfile.role || 'user';
-      let roleBadge = '<span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-[11px] font-bold">User (สมาชิกทั่วไป)</span>';
-      if (role === 'admin') roleBadge = '<span class="bg-purple-100 text-purple-700 px-2 py-0.5 rounded text-[11px] font-bold">Admin (ผู้ดูแลระบบ)</span>';
-      if (role === 'super_admin') roleBadge = '<span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-[11px] font-bold">Super Admin (ผู้ดูแลสูงสุด)</span>';
+      usersListContainer.innerHTML = profiles.map(profile => {
+        const role = profile.role || 'user';
+        let roleBadge = '<span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-[11px] font-bold">User (สมาชิกทั่วไป)</span>';
+        if (role === 'admin') roleBadge = '<span class="bg-purple-100 text-purple-700 px-2 py-0.5 rounded text-[11px] font-bold">Admin (ผู้ดูแลระบบ)</span>';
+        if (role === 'super_admin') roleBadge = '<span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-[11px] font-bold">Super Admin (ผู้ดูแลสูงสุด)</span>';
 
-      const isMe = currentUser && currentUser.id === matchedProfile.id;
+        const isMe = currentUser && currentUser.id === profile.id;
 
-      resultContainer.innerHTML = `
-        <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <p class="font-bold text-slate-900 text-sm flex items-center gap-2">
-              ${matchedProfile.full_name || 'ไม่ระบุชื่อ'} ${isMe ? '<span class="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded"> (คุณเอง)</span>' : ''}
-            </p>
-            <p class="text-xs text-slate-500">ID: ${matchedProfile.id}</p>
-            <div class="mt-1">${roleBadge}</div>
+        return `
+          <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <p class="font-bold text-slate-900 text-sm flex items-center gap-2">
+                ${profile.full_name || 'ไม่ระบุชื่อ'} ${isMe ? '<span class="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded"> (คุณเอง)</span>' : ''}
+              </p>
+              <p class="text-xs text-slate-500">ID: ${profile.id}</p>
+              <div class="mt-1">${roleBadge}</div>
+            </div>
+            <div class="flex items-center gap-2">
+              ${currentUserRole === 'super_admin' && !isMe && role !== 'super_admin' ? `
+                ${role === 'admin' 
+                  ? `<button onclick="changeUserRole('${profile.id}', 'user')" class="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold transition">ถอดถอนสิทธิ์ Admin</button>`
+                  : `<button onclick="changeUserRole('${profile.id}', 'admin')" class="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-bold transition">แต่งตั้งเป็น Admin</button>`
+                }
+              ` : '<span class="text-[11px] text-slate-400">สิทธิ์จำกัด</span>'}
+            </div>
           </div>
-          <div class="flex items-center gap-2">
-            ${currentUserRole === 'super_admin' && !isMe && role !== 'super_admin' ? `
-              ${role === 'admin' 
-                ? `<button onclick="changeUserRole('${matchedProfile.id}', 'user')" class="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold transition">ถอดถอนสิทธิ์ Admin</button>`
-                : `<button onclick="changeUserRole('${matchedProfile.id}', 'admin')" class="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-bold transition">แต่งตั้งเป็น Admin</button>`
-              }
-            ` : '<span class="text-[11px] text-slate-400">สิทธิ์จำกัด</span>'}
-          </div>
-        </div>
-      `;
-    };
+        `;
+      }).join('');
+    }
 
     window.changeUserRole = async function(userId, newRole) {
       if (currentUserRole !== 'super_admin') {
@@ -935,7 +920,7 @@
         alert(`เปลี่ยนสิทธิ์ไม่สำเร็จ: ${error.message}`);
       } else {
         alert('อัปเดตบทบาทผู้ใช้งานสำเร็จเรียบร้อยแล้วครับ!');
-        searchUserByEmail();
+        fetchAdminUsersData();
       }
     };
 
