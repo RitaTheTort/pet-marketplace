@@ -258,9 +258,12 @@
 
   <!-- Modal: รายละเอียดสัตว์เลี้ยง -->
   <div id="detail-pet-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4 overflow-y-auto">
-    <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden my-8">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden my-8 relative">
+      <!-- ปุ่มปิด (×) มุมบนขวา -->
+      <button id="close-detail-btn-top" class="absolute top-3 right-3 z-10 w-8 h-8 bg-slate-900/70 hover:bg-slate-900 text-white rounded-full flex items-center justify-center text-lg font-bold transition shadow-md">&times;</button>
+
       <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center">
-        <h3 id="detail-title" class="font-bold text-lg truncate pr-4">รายละเอียดสัตว์เลี้ยง</h3>
+        <h3 id="detail-title" class="font-bold text-lg truncate pr-8">รายละเอียดสัตว์เลี้ยง</h3>
         <button id="close-detail-btn" class="text-slate-400 hover:text-white text-xl font-bold">&times;</button>
       </div>
       <div class="p-6 space-y-4">
@@ -470,6 +473,7 @@
 
     const detailModal = document.getElementById('detail-pet-modal');
     const closeDetailBtn = document.getElementById('close-detail-btn');
+    const closeDetailBtnTop = document.getElementById('close-detail-btn-top');
     const contactSellerBtn = document.getElementById('contact-seller-btn');
 
     const chatModal = document.getElementById('chat-modal');
@@ -1089,6 +1093,9 @@
 
     const closeDetailModal = () => { detailModal.classList.add('hidden'); detailModal.classList.remove('flex'); };
     closeDetailBtn.addEventListener('click', closeDetailModal);
+    if (closeDetailBtnTop) {
+      closeDetailBtnTop.addEventListener('click', closeDetailModal);
+    }
 
     window.showPetDetail = async function(index) {
       const pet = filteredPetsData[index];
@@ -1192,10 +1199,12 @@
 
       if (error || !types || types.length === 0) {
         types = [
-          { badge_id: 1, badge_name: 'ร้านนี้ส่งไวมาก', description: 'ผู้ขายที่มีความรวดเร็วในการจัดส่งและการจัดการสูง' },
-          { badge_id: 2, badge_name: 'ลูกค้าระดับตำนาน', description: 'ผู้ซื้อที่มีประวัติการทำธุรกรรมหรือพฤติกรรมยอดเยี่ยม' },
-          { badge_id: 3, badge_name: 'ดูแลเต็ม 10', description: 'ผู้ใช้ที่มีความใส่ใจในการสื่อสารและดูแลคู่ค้าอย่างดีเยี่ยม' },
-          { badge_id: 4, badge_name: 'ใจ ๆ', description: 'ผู้ใช้ที่มีความซื่อตรง ยืดหยุ่น และน่าร่วมงานด้วย' }
+          { badge_id: 1, badge_name: 'สายเปย์ตัวจริง', description: 'โอนไวจ่ายครบ' },
+          { badge_id: 2, badge_name: 'ซื่อสัตย์ไว้ใจได้', description: 'ไม่โกง!' },
+          { badge_id: 3, badge_name: 'รับผิดชอบดีเยี่ยม', description: 'เป็นผู้ซื้อก็น่ารัก เป็นผู้ขายก็จริงจัง' },
+          { badge_id: 4, badge_name: 'คนรักสัตว์', description: 'เสาหลักของวงการ' },
+          { badge_id: 5, badge_name: 'เจ้าประจำ', description: 'ซื้อแล้วซื้ออีก' },
+          { badge_id: 6, badge_name: 'แพ็คของแน่นหนา', description: 'จะแน่นหนาไปไหน' }
         ];
       }
 
