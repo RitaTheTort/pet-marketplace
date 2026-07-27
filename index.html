@@ -1122,6 +1122,20 @@
         submitBtn.innerText = 'บันทึกประกาศ';
       }
     });
+    // ตรวจสอบว่ามี Hash Fragment จาก Supabase ส่งมาหรือไม่
+if (window.location.hash && window.location.hash.includes('access_token')) {
+  // ดึงค่า Supabase Client ที่ใช้งานในโปรเจกต์มาจัดการเซสชัน
+  supabase.auth.getSession().then(({ data: { session }, error }) => {
+    if (session) {
+      // ล้าง Hash บน URL ออกเพื่อความสะอาด และแสดงผลว่ายืนยันตัวตนสำเร็จ
+      window.history.replaceState({}, document.title, window.location.pathname);
+      alert('ยืนยันตัวตนสำเร็จและเข้าสู่ระบบเรียบร้อยครับ!');
+      // รีโหลดหรือเปลี่ยนเส้นทางไปหน้าแดชบอร์ด/หน้าหลักตามต้องการ
+      window.location.reload();
+    }
+  });
+}
+
   </script>
 </body>
 </html>
