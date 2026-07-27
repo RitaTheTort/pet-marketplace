@@ -1025,6 +1025,50 @@
         }
       });
     });
+     const petImageFileInput = document.getElementById('pet-image-file');
+    const imageUrlInput = document.getElementById('image_url');
+
+    petImageFileInput.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      if (file.size > 5 * 1024 * 1024) {
+        alert('ขนาดไฟล์ใหญ่เกินไป กรุณาเลือกไฟล์ที่มีขนาดไม่เกิน 5MB');
+        petImageFileInput.value = '';
+        return;
+      }
+
+      const submitBtn = document.getElementById('submit-btn');
+      submitBtn.disabled = true;
+      submitBtn.innerText = 'กำลังอัปโหลดรูปภาพ...';
+
+      try {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
+        const filePath = `${fileName}`;
+
+        const { data, error } = await supabaseClient.storage
+          .from('pet-images')
+          .upload(filePath, file);
+
+        if (error) throw error;
+
+        const { data: publicUrlData } = supabaseClient.storage
+          .from('pet-images')
+          .getPublicUrl(filePath);
+
+        if (publicUrlData && publicUrlData.publicUrl) {
+          imageUrlInput.value = publicUrlData.publicUrl;
+          alert('อัปโหลดรูปภาพสำเร็จ!');
+        }
+      } catch (err) {
+        alert(`อัปโหลดรูปภาพไม่สำเร็จ: ${err.message}`);
+        petImageFileInput.value = '';
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerText = 'บันทึกประกาศ';
+      }
+    });
   </script>
 </body>
 </html>
