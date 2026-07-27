@@ -166,7 +166,15 @@
         <div>
           <label class="block text-xs font-bold text-slate-700 mb-1">สถานะยืนยันตัวตน (KYC Status)</label>
           <div id="profile-kyc-status-box" class="p-3 rounded-lg text-xs font-bold bg-slate-100 text-slate-600 flex items-center justify-between">
-            <span>⌛ กำลังตรวจสอบสถานะ</span>
+            <span>⏳ กำลังตรวจสอบสถานะ</span>
+          </div>
+        </div>
+
+        <!-- ส่วนแสดงถ้วยรางวัล / ป้ายพฤติกรรมสะสม -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">ถ้วยรางวัลและป้ายพฤติกรรมสะสม (Badges)</label>
+          <div id="profile-badges-container" class="p-3 rounded-xl border border-slate-200 bg-slate-50 flex flex-wrap gap-2 min-h-[50px] items-center">
+            <span class="text-xs text-slate-400">กำลังโหลดป้ายรางวัล...</span>
           </div>
         </div>
 
@@ -283,6 +291,19 @@
           </span>
         </div>
 
+        <!-- ส่วนแสดงป้ายรางวัลของผู้ขาย และปุ่มกดให้ป้าย -->
+        <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-2">
+          <div class="flex justify-between items-center">
+            <span class="text-xs text-slate-400 font-medium">ป้ายรางวัลสะสมของผู้ขาย:</span>
+            <button type="button" onclick="openGiveBadgeModal()" class="text-xs bg-purple-600 hover:bg-purple-700 text-white font-bold px-2.5 py-1 rounded-lg transition shadow-sm">
+              + มอบป้ายรางวัล
+            </button>
+          </div>
+          <div id="detail-seller-badges" class="flex flex-wrap gap-1.5 pt-1">
+            <span class="text-[11px] text-slate-400">ยังไม่มีป้ายรางวัล</span>
+          </div>
+        </div>
+
         <!-- กล่องข้อความแจ้งเตือนภัยและจำกัดความรับผิด (Disclaimer) -->
         <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 text-[11px] text-amber-800 space-y-1">
           <p class="font-bold flex items-center gap-1">⚠️ คำเตือนเพื่อความปลอดภัย:</p>
@@ -297,6 +318,25 @@
           <button id="contact-seller-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow transition">
             ติดต่อผู้ขาย
           </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: มอบป้ายรางวัล -->
+  <div id="give-badge-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden">
+      <div class="bg-slate-900 text-white px-5 py-3.5 flex justify-between items-center">
+        <h3 class="font-bold text-sm">มอบป้ายรางวัลให้ผู้ใช้งาน</h3>
+        <button onclick="closeGiveBadgeModal()" class="text-slate-400 hover:text-white text-xl font-bold">&times;</button>
+      </div>
+      <div class="p-5 space-y-4">
+        <p class="text-xs text-slate-600">เลือกป้ายรางวัลที่ต้องการมอบให้กับผู้ขายรายนี้ (ระบบจะตรวจสอบอายุบัญชีและประวัติการแชทให้อัตโนมัติ):</p>
+        <div id="badge-options-container" class="space-y-2">
+          <!-- รายการป้ายจะถูกเรนเดอร์ด้วย JavaScript -->
+        </div>
+        <div class="pt-2 flex justify-end">
+          <button type="button" onclick="closeGiveBadgeModal()" class="px-4 py-2 border border-slate-300 rounded-lg text-slate-600 text-xs font-medium">ปิด</button>
         </div>
       </div>
     </div>
@@ -626,6 +666,31 @@
 
       profileModal.classList.remove('hidden');
       profileModal.classList.add('flex');
+
+      // โหลดป้ายรางวัลสะสมในโปรไฟล์
+      const badgeContainer = document.getElementById('profile-badges-container');
+      badgeContainer.innerHTML = '<span class="text-xs text-slate-400">กำลังโหลดป้าย...</span>';
+
+      const { data: userBadges } = await supabaseClient
+        .from('user_badges')
+        .select('badge_id, badge_types(badge_name, description)')
+        .eq('receiver_id', currentUser.id);
+
+      if (!userBadges || userBadges.length === 0) {
+        badgeContainer.innerHTML = '<span class="text-xs text-slate-400">ยังไม่ได้รับป้ายรางวัลจากสมาชิกท่านอื่น</span>';
+      } else {
+        const badgeCounts = {};
+        userBadges.forEach(b => {
+          const name = b.badge_types?.badge_name || 'ป้ายรางวัล';
+          badgeCounts[name] = (badgeCounts[name] || 0) + 1;
+        });
+
+        badgeContainer.innerHTML = Object.entries(badgeCounts).map(([name, count]) => `
+          <span class="bg-purple-50 text-purple-700 border border-purple-200 text-xs font-bold px-2.5 py-1 rounded-lg flex items-center gap-1 shadow-sm">
+            🏆 ${name} <span class="bg-purple-200 text-purple-800 px-1.5 py-0.2 rounded-full text-[10px]">${count}</span>
+          </span>
+        `).join('');
+      }
 
       const { data: profileData } = await supabaseClient
         .from('profiles')
@@ -1065,6 +1130,31 @@
         }
       }
 
+      // โหลดป้ายรางวัลสะสมของผู้ขาย
+      const sellerBadgeContainer = document.getElementById('detail-seller-badges');
+      sellerBadgeContainer.innerHTML = '<span class="text-[11px] text-slate-400">กำลังโหลดป้าย...</span>';
+
+      const { data: badges } = await supabaseClient
+        .from('user_badges')
+        .select('badge_id, badge_types(badge_name)')
+        .eq('receiver_id', pet.seller_id);
+
+      if (!badges || badges.length === 0) {
+        sellerBadgeContainer.innerHTML = '<span class="text-[11px] text-slate-400">ยังไม่มีป้ายรางวัลสะสม</span>';
+      } else {
+        const badgeCounts = {};
+        badges.forEach(b => {
+          const name = b.badge_types?.badge_name || 'ป้ายรางวัล';
+          badgeCounts[name] = (badgeCounts[name] || 0) + 1;
+        });
+
+        sellerBadgeContainer.innerHTML = Object.entries(badgeCounts).map(([name, count]) => `
+          <span class="bg-purple-50 text-purple-700 border border-purple-200 text-[11px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1">
+            🏆 ${name} <span class="bg-purple-200 text-purple-800 px-1 py-0.1 rounded-full text-[9px]">${count}</span>
+          </span>
+        `).join('');
+      }
+
       const imgEl = document.getElementById('detail-image');
       const noImgEl = document.getElementById('detail-no-image');
 
@@ -1079,6 +1169,75 @@
 
       detailModal.classList.remove('hidden');
       detailModal.classList.add('flex');
+    };
+
+    window.openGiveBadgeModal = async function() {
+      if (!currentUser) {
+        alert('กรุณาเข้าสู่ระบบก่อนมอบป้ายรางวัลครับ');
+        return;
+      }
+      if (currentActivePet && currentActivePet.seller_id === currentUser.id) {
+        alert('ไม่สามารถมอบป้ายรางวัลให้บัญชีของตนเองได้ครับ');
+        return;
+      }
+
+      const modal = document.getElementById('give-badge-modal');
+      const container = document.getElementById('badge-options-container');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      container.innerHTML = '<p class="text-xs text-slate-400">กำลังโหลดรายการป้าย...</p>';
+
+      const { data: types, error } = await supabaseClient
+        .from('badge_types')
+        .select('*');
+
+      if (error || !types) {
+        container.innerHTML = '<p class="text-xs text-red-500">ไม่สามารถโหลดรายการป้ายได้</p>';
+        return;
+      }
+
+      container.innerHTML = types.map(badge => `
+        <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl flex justify-between items-center hover:bg-slate-100 transition">
+          <div>
+            <p class="font-bold text-slate-800 text-xs">🏆 ${badge.badge_name}</p>
+            <p class="text-[10px] text-slate-500">${badge.description || ''}</p>
+          </div>
+          <button onclick="submitGiveBadge(${badge.badge_id})" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition shadow-sm whitespace-nowrap">
+            มอบป้ายนี้
+          </button>
+        </div>
+      `).join('');
+    };
+
+    window.closeGiveBadgeModal = function() {
+      const modal = document.getElementById('give-badge-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    };
+
+    window.submitGiveBadge = async function(badgeId) {
+      if (!currentUser || !currentActivePet) return;
+      const sellerId = currentActivePet.seller_id;
+
+      try {
+        const { data, error } = await supabaseClient.rpc('give_user_badge', {
+          p_giver_id: currentUser.id,
+          p_receiver_id: sellerId,
+          p_badge_id: badgeId
+        });
+
+        if (error) throw error;
+
+        if (data.status === 'success') {
+          alert(`🎉 ${data.message}`);
+          closeGiveBadgeModal();
+          showPetDetail(filteredPetsData.indexOf(currentActivePet));
+        } else {
+          alert(`⚠️ แจ้งเตือนจากระบบ: ${data.message}`);
+        }
+      } catch (err) {
+        alert(`เกิดข้อผิดพลาดในการมอบป้าย: ${err.message}`);
+      }
     };
 
     contactSellerBtn.addEventListener('click', () => {
@@ -1220,7 +1379,6 @@
       if (!content || !currentActivePet || !currentUser) return;
 
       const myName = currentUser.user_metadata?.full_name || currentUser.email.split('@')[0];
-
       chatInput.value = '';
 
       const { error } = await supabaseClient
@@ -1457,20 +1615,18 @@
 
       try {
         const optimizedFile = await compressImage(file, 1200, 0.8);
-
         const fileExt = file.name.split('.').pop();
         const fileName = `${Date.now()}_${Math.random()}.${fileExt}`;
-        const filePath = `${fileName}`;
 
-        const { data, error } = await supabaseClient.storage
+        const { error } = await supabaseClient.storage
             .from('pet-images')
-            .upload(filePath, optimizedFile);
+            .upload(fileName, optimizedFile);
 
         if (error) throw error;
 
         const { data: publicUrlData } = await supabaseClient.storage
             .from('pet-images')
-            .getPublicUrl(filePath);
+            .getPublicUrl(fileName);
 
         if (publicUrlData && publicUrlData.publicUrl) {
             imageUrlInput.value = publicUrlData.publicUrl;
