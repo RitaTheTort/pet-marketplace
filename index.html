@@ -421,16 +421,16 @@
     const tabMyPets = document.getElementById('tab-my-pets');
     const categoryFilterContainer = document.getElementById('category-filter-container');
 
-    // ฟังก์ชันอัปโหลดเอกสารยืนยันตัวตน KYC
+    // ฟังก์ชันอัปโหลดเอกสารยืนยันตัวตน KYC (สร้างชื่อไฟล์ใหม่ไม่ซ้ำกันเพื่อเลี่ยงปัญหา RLS Update)
     async function uploadKycDocument(file, userId) {
       try {
         const fileExt = file.name.split('.').pop();
-        const fileName = `kyc_${userId}_${Date.now()}.${fileExt}`;
+        const fileName = `kyc_${userId}_${Date.now()}_${Math.random().toString(36.substring(2, 7))}.${fileExt}`;
         const filePath = `${userId}/${fileName}`;
 
         const { data, error } = await supabaseClient.storage
           .from('kyc-documents')
-          .upload(filePath, file, { upsert: true });
+          .upload(filePath, file, { upsert: false });
 
         if (error) throw error;
 
@@ -634,7 +634,7 @@
 
         if (kycUrl) {
           updatePayload.kyc_document_url = kycUrl;
-          updatePayload.kyc_status = 'pending'; // ส่งเอกสารใหม่ ให้สถานะเปลี่ยนเป็นรอตรวจ
+          updatePayload.kyc_status = 'pending';
         }
 
         const { error } = await supabaseClient
@@ -643,7 +643,6 @@
 
         if (error) throw error;
 
-        // อัปเดต metadata ของ auth ด้วย
         await supabaseClient.auth.updateUser({
           data: { full_name: newName }
         });
