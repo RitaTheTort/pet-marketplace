@@ -916,8 +916,8 @@
       if (error) {
         alert(`เปลี่ยนสิทธิ์ไม่สำเร็จ: ${error.message}`);
       } else {
-        alert('อัปเดตบทบาทผู้ใช้งานสำเร็จเรียบร้อยแล้วครับ!');
         await fetchAdminUsersData();
+        alert('อัปเดตบทบาทผู้ใช้งานสำเร็จเรียบร้อยแล้วครับ!');
       }
     };
 
@@ -932,9 +932,9 @@
       if (error) {
         alert(`อนุมัติไม่สำเร็จ: ${error.message}`);
       } else {
-        alert('อนุมัติยืนยันตัวตนสำเร็จเรียบร้อยแล้วครับ!');
         await fetchAdminKycData();
         await fetchAdminUsersData();
+        alert('อนุมัติยืนยันตัวตนสำเร็จเรียบร้อยแล้วครับ!');
       }
     };
 
