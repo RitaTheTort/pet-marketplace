@@ -258,10 +258,13 @@
 
   <!-- Modal: รายละเอียดสัตว์เลี้ยง -->
   <div id="detail-pet-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4 overflow-y-auto">
-    <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden my-8 relative">
-      <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center relative">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg my-8 relative overflow-visible">
+      <!-- ปุ่มปิด (×) ลอยที่มุมขวาบนสุดของการ์ด Modal -->
+      <button id="close-detail-btn-top" class="absolute -top-3 -right-3 z-50 w-9 h-9 bg-slate-900 hover:bg-slate-800 text-white rounded-full flex items-center justify-center text-lg font-bold transition shadow-lg border-2 border-white">&times;</button>
+
+      <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center rounded-t-2xl">
         <h3 id="detail-title" class="font-bold text-lg truncate pr-8">รายละเอียดสัตว์เลี้ยง</h3>
-        <button id="close-detail-btn-top" class="absolute right-4 top-1/2 -translate-y-1/2 w-8 h-8 bg-slate-800 hover:bg-slate-700 text-white rounded-full flex items-center justify-center text-lg font-bold transition shadow">&times;</button>
+        <button id="close-detail-btn" class="text-slate-400 hover:text-white text-xl font-bold">&times;</button>
       </div>
       <div class="p-6 space-y-4">
         <div class="h-60 bg-slate-100 rounded-xl overflow-hidden flex items-center justify-center text-slate-400">
@@ -469,6 +472,7 @@
     const addPetForm = document.getElementById('add-pet-form');
 
     const detailModal = document.getElementById('detail-pet-modal');
+    const closeDetailBtn = document.getElementById('close-detail-btn');
     const closeDetailBtnTop = document.getElementById('close-detail-btn-top');
     const contactSellerBtn = document.getElementById('contact-seller-btn');
 
@@ -487,7 +491,7 @@
     const searchForm = document.getElementById('search-form');
     const searchInput = document.getElementById('search-input');
 
-    const tabAllPets = document.getElementById('tab-all-pets');
+    const tabAllpets = document.getElementById('tab-all-pets');
     const tabMyPets = document.getElementById('tab-my-pets');
     const categoryFilterContainer = document.getElementById('category-filter-container');
     const adminTabContainer = document.getElementById('admin-tab-container');
@@ -1461,7 +1465,7 @@
         petGrid.innerHTML = `
           <div class="col-span-full bg-white p-8 rounded-xl border border-dashed border-slate-300 text-center">
             <p class="text-slate-800 font-bold mb-1">${currentMainView === 'MY' ? 'คุณยังไม่มีรายการประกาศขาย' : 'ไม่พบรายการสัตว์เลี้ยงที่ค้นหา'}</p>
-            <p class="text-xs text-slate-500">${currentMainView === 'MY' ? 'กดปุ่ม "+ ลงประกาศ" มุมขวาบนเพื่อสร้างประกาศแรกได้เลยครับ' : 'ลองเปลี่ยนคำค้นหา หรือเลือกดูหมวดหมู่อย่างอื่นได้ครับ'}</p>
+            <p class="text-xs text-slate-500">${currentMainView === 'MY' ? 'กดปุ่ม "+ ลงประกาศ" มุมขวาบนเพื่อสร้างประกาศแรกได้เลยครับ' : 'ลองเปลี่ยนคำค้นหา หรือเลือกดูหมวดหมู่อื่นๆ ได้ครับ'}</p>
           </div>
         `;
         return;
