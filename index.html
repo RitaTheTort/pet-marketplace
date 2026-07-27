@@ -5,10 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pet Marketplace - ตลาดกลางสัตว์เลี้ยง</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Supabase Official JS SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen">
 
+  <!-- Header -->
   <header class="bg-slate-900 text-white shadow-md sticky top-0 z-40">
     <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
       <div class="flex items-center space-x-2">
@@ -26,11 +28,13 @@
     </div>
   </header>
 
+  <!-- Hero Banner & Search Bar -->
   <section class="bg-gradient-to-r from-slate-900 to-slate-800 text-white py-12 px-4">
     <div class="max-w-4xl mx-auto text-center">
       <h1 class="text-3xl md:text-4xl font-extrabold mb-3">ตลาดกลางซื้อขายสัตว์เลี้ยงที่ปลอดภัย 100%</h1>
       <p class="text-slate-300 text-sm md:text-base mb-6">มีระบบยืนยันตัวตนผู้ขาย (KYC) ระบบคนกลางพักเงิน (Escrow) และการบันทึกประวัติสายเลือด/สุขภาพ</p>
       
+      <!-- Search Form -->
       <form id="search-form" class="inline-flex rounded-md shadow-sm w-full max-w-md">
         <input type="text" id="search-input" placeholder="ค้นหาสายพันธุ์, มอร์ฟ (เช่น Amel Zulu, เต่า)..." class="w-full px-4 py-2.5 text-slate-900 rounded-l-lg focus:outline-none text-sm">
         <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-r-lg font-medium text-sm whitespace-nowrap">ค้นหา</button>
@@ -38,8 +42,10 @@
     </div>
   </section>
 
+  <!-- Main Content -->
   <main class="max-w-6xl mx-auto px-4 py-8">
     
+    <!-- Navigation Tabs -->
     <div class="flex border-b border-slate-200 mb-6">
       <button id="tab-all-pets" onclick="switchMainView('ALL')" class="py-2.5 px-4 font-bold text-sm border-b-2 border-blue-600 text-blue-600 transition">
         ตลาดสัตว์เลี้ยงทั้งหมด
@@ -49,6 +55,7 @@
       </button>
     </div>
 
+    <!-- Category Filter Tabs -->
     <div id="category-filter-container" class="mb-6 overflow-x-auto pb-2">
       <div class="flex space-x-2 min-w-max" id="category-tabs">
         <button onclick="filterCategory('ALL')" class="cat-tab bg-blue-600 text-white px-4 py-1.5 rounded-full text-xs font-bold transition shadow-sm">ทั้งหมด</button>
@@ -65,6 +72,7 @@
       <span class="text-xs text-slate-500" id="item-count">กำลังโหลดข้อมูล...</span>
     </div>
 
+    <!-- Pet Grid Container -->
     <div id="pet-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
       <div class="col-span-full text-center py-12 text-slate-400 text-sm">
         กำลังเชื่อมต่อฐานข้อมูล...
@@ -72,6 +80,7 @@
     </div>
   </main>
 
+  <!-- Modal 1: เข้าสู่ระบบ / สมัครสมาชิก -->
   <div id="auth-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4 overflow-y-auto">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden my-8">
       <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center">
@@ -113,6 +122,7 @@
     </div>
   </div>
 
+  <!-- Modal 2: ลงประกาศ / แก้ไขประกาศสัตว์เลี้ยง -->
   <div id="add-pet-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4 overflow-y-auto">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden my-8">
       <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center">
@@ -157,10 +167,8 @@
         </div>
 
         <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">อัปโหลดรูปภาพสัตว์เลี้ยง (เลือกไฟล์จากเครื่อง/มือถือ)</label>
-          <input type="file" id="pet-image-file" accept="image/*" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-bold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
-          <input type="hidden" id="image_url" value="">
-          <p class="text-[10px] text-slate-400 mt-1">รองรับไฟล์ภาพ (JPG, PNG, WEBP) ระบบจะย่อขนาดและอัปโหลดขึ้นคลาวด์ให้อัตโนมัติ</p>
+          <label class="block text-xs font-bold text-slate-700 mb-1">URL รูปภาพสัตว์เลี้ยง (URL รูปภาพ .jpg / .png)</label>
+          <input type="url" id="image_url" placeholder="https://example.com/image.jpg" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
         </div>
 
         <div>
@@ -176,6 +184,7 @@
     </div>
   </div>
 
+  <!-- Modal 3: แสดงรายละเอียดสัตว์เลี้ยง -->
   <div id="detail-pet-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4 overflow-y-auto">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden my-8">
       <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center">
@@ -223,8 +232,10 @@
     </div>
   </div>
 
+  <!-- Modal 4: Real-time In-App Chat Modal -->
   <div id="chat-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg h-[550px] flex flex-col overflow-hidden">
+      <!-- Chat Header -->
       <div class="bg-slate-900 text-white px-5 py-3.5 flex justify-between items-center border-b border-slate-800">
         <div class="flex items-center space-x-3">
           <button id="back-to-inbox-btn" class="text-slate-400 hover:text-white font-bold text-lg hidden mr-1">&larr;</button>
@@ -239,10 +250,12 @@
         <button id="close-chat-btn" class="text-slate-400 hover:text-white text-xl font-bold">&times;</button>
       </div>
 
+      <!-- Chat Messages Body -->
       <div id="chat-messages-container" class="flex-1 p-4 overflow-y-auto space-y-3 bg-slate-50 text-sm">
         <div class="text-center text-xs text-slate-400 py-4">กำลังโหลดประวัติการสนทนา...</div>
       </div>
 
+      <!-- Chat Input Form -->
       <form id="chat-form" class="p-3 bg-white border-t border-slate-200 flex items-center space-x-2">
         <input type="text" id="chat-input" required placeholder="พิมพ์ข้อความโต้ตอบ..." class="flex-1 px-4 py-2 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
         <button type="submit" id="send-msg-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-bold transition whitespace-nowrap">
@@ -252,6 +265,7 @@
     </div>
   </div>
 
+  <!-- Modal 5: Seller Inbox Modal (กล่องรวมข้อความ) -->
   <div id="inbox-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg h-[550px] flex flex-col overflow-hidden">
       <div class="bg-slate-900 text-white px-5 py-3.5 flex justify-between items-center border-b border-slate-800">
@@ -269,52 +283,6 @@
   </div>
 
   <script>
-    // ฟังก์ชันบีบอัดภาพฝั่ง Client
-    async function compressImage(file, maxWidth = 1200, quality = 0.8) {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = (event) => {
-          const img = new Image();
-          img.src = event.target.result;
-          img.onload = () => {
-            const canvas = document.createElement('canvas');
-            let width = img.width;
-            let height = img.height;
-
-            if (width > maxWidth) {
-              height = Math.round((height * maxWidth) / width);
-              width = maxWidth;
-            }
-
-            canvas.width = width;
-            canvas.height = height;
-
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0, width, height);
-
-            canvas.toBlob(
-              (blob) => {
-                if (!blob) {
-                  reject(new Error('Canvas to Blob failed'));
-                  return;
-                }
-                const compressedFile = new File([blob], file.name, {
-                  type: 'image/jpeg',
-                  lastModified: Date.now(),
-                });
-                resolve(compressedFile);
-              },
-              'image/jpeg',
-              quality
-            );
-          };
-          img.onerror = (error) => reject(error);
-        };
-        reader.onerror = (error) => reject(error);
-      });
-    }
-
     const SUPABASE_URL = 'https://vrkxmlzsbxgoboulfgos.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZya3htbHpzYnhnb2JvdWxmZ29zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUwNzk3NDUsImV4cCI6MjEwMDY1NTc0NX0.2ZbPyeqT-oLtKegqgmHMQx70x1BWhLWXc5p2jySspiQ';
 
@@ -327,6 +295,7 @@
     let currentCategory = 'ALL';
     let currentMainView = 'ALL';
     
+    // Chat state variables
     let currentActivePet = null;
     let chatRealtimeChannel = null;
     let globalNotificationChannel = null;
@@ -365,6 +334,7 @@
     const tabMyPets = document.getElementById('tab-my-pets');
     const categoryFilterContainer = document.getElementById('category-filter-container');
 
+    // ฟังก์ชันส่งอีเมลลืมรหัสผ่าน (แก้ไขให้ redirectTo วิ่งไปที่ index.html เพื่อป้องกัน 404)
     async function handleForgotPassword() {
       const emailInput = document.getElementById('auth-email').value.trim();
       if (!emailInput) {
@@ -374,7 +344,7 @@
 
       try {
         const { data, error } = await supabaseClient.auth.resetPasswordForEmail(emailInput, {
-          redirectTo: 'https://ritathetort.github.io/pet-marketplace/index.html',
+          redirectTo: 'https://ritathetort.github.io/index.html',
         });
         if (error) throw error;
         alert('ระบบได้ส่งลิงก์สำหรับรีเซ็ตรหัสผ่านไปยังอีเมลของคุณแล้ว กรุณาตรวจสอบกล่องข้อความ');
@@ -383,6 +353,7 @@
       }
     }
 
+    // ฟังก์ชันเช็กจำนวนข้อความที่ยังไม่ได้อ่าน เพื่อแสดงจุดแดง (Notification Badge)
     async function checkUnreadMessages() {
       if (!currentUser) return;
 
@@ -403,6 +374,7 @@
       }
     }
 
+    // ฟังข้อความใหม่ระดับ Global เพื่อแจ้งเตือนจุดแดงทันที (ป้องกันการซ้ำซ้อน Channel)
     async function subscribeGlobalNotification() {
       if (!currentUser) return;
 
@@ -478,6 +450,7 @@
       applyFilters();
     }
 
+    // ฟังก์ชันแสดง Inbox รวมกล่องข้อความ
     window.openInboxModal = async function() {
       if (!currentUser) return;
 
@@ -665,6 +638,7 @@
       detailModal.classList.add('flex');
     };
 
+    // ปุ่มติดต่อผู้ขาย
     contactSellerBtn.addEventListener('click', () => {
       if (!currentUser) {
         alert('กรุณาเข้าสู่ระบบก่อนส่งข้อความติดต่อผู้ขายครับ');
@@ -699,6 +673,7 @@
       openInboxModal();
     });
 
+    // Function เปิดกล่องแชต
     async function openChatModal(pet, otherUserId, otherUserName) {
       if (!pet) return;
 
@@ -725,6 +700,7 @@
       }
     });
 
+    // ดึงข้อความแชตเก่า + Mark as Read
     async function fetchChatMessages(petId) {
       chatMessagesContainer.innerHTML = '<div class="text-center text-xs text-slate-400 py-4">กำลังโหลดข้อความ...</div>';
 
@@ -781,6 +757,7 @@
       chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
     }
 
+    // ฟังข้อความใหม่แบบ Realtime
     function subscribeToRealtimeChat(petId) {
       if (chatRealtimeChannel) {
         supabaseClient.removeChannel(chatRealtimeChannel);
@@ -798,6 +775,7 @@
         .subscribe();
     }
 
+    // ส่งข้อความ
     chatForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const content = chatInput.value.trim();
@@ -975,87 +953,6 @@
       }
     }
 
-    document.addEventListener('DOMContentLoaded', async () => {
-      fetchPets();
-
-      const { data: { session } } = await supabaseClient.auth.getSession();
-      if (session) {
-        updateAuthUI(session.user);
-      } else {
-        updateAuthUI(null);
-      }
-
-      supabaseClient.auth.onAuthStateChange(async (event, session) => {
-        if (event === 'PASSWORD_RECOVERY') {
-          const newPassword = prompt('กรุณากรอกรหัสผ่านใหม่ของคุณ (อย่างน้อย 6 ตัวอักษร):');
-          if (newPassword && newPassword.length >= 6) {
-            const { data, error } = await supabaseClient.auth.updateUser({ password: newPassword });
-            if (error) {
-              alert(`เปลี่ยนรหัสผ่านไม่สำเร็จ: ${error.message}`);
-            } else {
-              alert('เปลี่ยนรหัสผ่านเรียบร้อยแล้ว! สามารถเข้าสู่ระบบด้วยรหัสผ่านใหม่ได้เลยครับ');
-            }
-          } else {
-            alert('รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษรครับ');
-          }
-        }
-      });
-
-      supabaseClient.auth.onAuthStateChange((_event, session) => {
-        if (_event !== 'PASSWORD_RECOVERY') {
-          updateAuthUI(session ? session.user : null);
-        }
-      });
-    });
-
-    const petImageFileInput = document.getElementById('pet-image-file');
-    const imageUrlInput = document.getElementById('image_url');
-    const addPetForm = document.getElementById('add-pet-form');
-
-    petImageFileInput.addEventListener('change', async (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-
-      if (file.size > 15 * 1024 * 1024) {
-        alert('ขนาดไฟล์ใหญ่เกินไป กรุณาเลือกไฟล์ที่มีขนาดไม่เกิน 15MB');
-        petImageFileInput.value = '';
-        return;
-      }
-
-      const submitBtn = document.getElementById('submit-btn');
-      submitBtn.disabled = true;
-      submitBtn.innerText = 'กำลังบีบอัดและอัปโหลดรูปภาพ...';
-
-      try {
-        const optimizedFile = await compressImage(file, 1200, 0.8);
-
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${Date.now()}_${Math.random()}.${fileExt}`;
-        const filePath = `${fileName}`;
-
-        const { data, error } = await supabaseClient.storage
-            .from('pet-images')
-            .upload(filePath, optimizedFile);
-
-        if (error) throw error;
-
-        const { data: publicUrlData } = await supabaseClient.storage
-            .from('pet-images')
-            .getPublicUrl(filePath);
-
-        if (publicUrlData && publicUrlData.publicUrl) {
-            imageUrlInput.value = publicUrlData.publicUrl;
-            alert('อัปโหลดและบีบอัดรูปภาพสำเร็จ!');
-        }
-      } catch (error) {
-        alert('อัปโหลดรูปภาพไม่สำเร็จ: ' + error.message);
-        petImageFileInput.value = '';
-      } finally {
-        submitBtn.disabled = false;
-        submitBtn.innerText = 'บันทึกประกาศ';
-      }
-    });
-
     addPetForm.addEventListener('submit', async (e) => {
       e.preventDefault();
 
@@ -1112,6 +1009,40 @@
         submitBtn.disabled = false;
         submitBtn.innerText = 'บันทึกประกาศ';
       }
+    });
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      fetchPets();
+
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      if (session) {
+        updateAuthUI(session.user);
+      } else {
+        updateAuthUI(null);
+      }
+
+      // ดักจับสถานะ Password Recovery เมื่อผู้ใช้คลิกลิงก์จากอีเมล
+      supabaseClient.auth.onAuthStateChange(async (event, session) => {
+        if (event === 'PASSWORD_RECOVERY') {
+          const newPassword = prompt('กรุณากรอกรหัสผ่านใหม่ของคุณ (อย่างน้อย 6 ตัวอักษร):');
+          if (newPassword && newPassword.length >= 6) {
+            const { data, error } = await supabaseClient.auth.updateUser({ password: newPassword });
+            if (error) {
+              alert(`เปลี่ยนรหัสผ่านไม่สำเร็จ: ${error.message}`);
+            } else {
+              alert('เปลี่ยนรหัสผ่านเรียบร้อยแล้ว! สามารถเข้าสู่ระบบด้วยรหัสผ่านใหม่ได้เลยครับ');
+            }
+          } else {
+            alert('รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษรครับ');
+          }
+        }
+      });
+
+      supabaseClient.auth.onAuthStateChange((_event, session) => {
+        if (_event !== 'PASSWORD_RECOVERY') {
+          updateAuthUI(session ? session.user : null);
+        }
+      });
     });
   </script>
 </body>
