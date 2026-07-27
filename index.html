@@ -421,16 +421,18 @@
     const tabMyPets = document.getElementById('tab-my-pets');
     const categoryFilterContainer = document.getElementById('category-filter-container');
 
-    // ฟังก์ชันอัปโหลดเอกสารยืนยันตัวตน KYC (สร้างชื่อไฟล์ใหม่ไม่ซ้ำกันเพื่อเลี่ยงปัญหา RLS Update)
+    // ฟังก์ชันอัปโหลดเอกสารยืนยันตัวตน KYC (พร้อมบีบอัดภาพอัตโนมัติก่อนอัปโหลด)
     async function uploadKycDocument(file, userId) {
       try {
+        const optimizedFile = await compressImage(file, 1200, 0.8);
+
         const fileExt = file.name.split('.').pop();
         const fileName = `kyc_${userId}_${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
         const filePath = `${userId}/${fileName}`;
 
         const { data, error } = await supabaseClient.storage
           .from('kyc-documents')
-          .upload(filePath, file, { upsert: false });
+          .upload(filePath, optimizedFile, { upsert: false });
 
         if (error) throw error;
 
@@ -622,7 +624,7 @@
       try {
         let kycUrl = null;
         if (kycFile) {
-          saveBtn.innerText = 'กำลังอัปโหลดเอกสาร KYC...';
+          saveBtn.innerText = 'กำลังบีบอัดและอัปโหลดเอกสาร KYC...';
           kycUrl = await uploadKycDocument(kycFile, currentUser.id);
         }
 
@@ -793,7 +795,7 @@
           let kycUrl = null;
 
           if (userId && kycFileInput.files[0]) {
-            submitBtn.innerText = 'กำลังอัปโหลดเอกสาร KYC...';
+            submitBtn.innerText = 'กำลังบีบอัดและอัปโหลดเอกสาร KYC...';
             kycUrl = await uploadKycDocument(kycFileInput.files[0], userId);
           }
 
