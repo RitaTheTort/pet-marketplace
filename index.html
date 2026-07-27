@@ -88,6 +88,15 @@
           <p class="text-xs text-slate-400">กำลังโหลดข้อมูลผู้สมัคร...</p>
         </div>
       </div>
+
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6" id="admin-role-management-section">
+        <h3 class="font-bold text-lg text-slate-900 mb-4 flex items-center gap-2">
+          <span>🛡️ จัดการสิทธิ์ผู้ใช้งานและผู้ดูแลระบบ (Admin Role Management)</span>
+        </h3>
+        <div id="admin-users-list" class="space-y-3">
+          <p class="text-xs text-slate-400">กำลังโหลดรายชื่อสมาชิก...</p>
+        </div>
+      </div>
     </div>
   </main>
 
@@ -390,6 +399,7 @@
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     let currentUser = null;
+    let currentUserRole = 'user'; // 'user', 'admin', 'super_admin'
     let isSignUpMode = false;
     let allPetsData = [];
     let filteredPetsData = [];
@@ -400,9 +410,6 @@
     let chatRealtimeChannel = null;
     let globalNotificationChannel = null;
     let targetChatUserId = null;
-
-    // กำหนดอีเมลแอดมิน (สามารถเปลี่ยนเป็นอีเมลของอี้อวี่ได้เลยครับ)
-    const ADMIN_EMAIL = 'teahubstation@gmail.com';
 
     const authModal = document.getElementById('auth-modal');
     const authForm = document.getElementById('auth-form');
@@ -537,12 +544,24 @@
       globalNotificationChannel.subscribe();
     }
 
-    function updateAuthUI(user) {
+    async function updateAuthUI(user) {
       currentUser = user;
+      currentUserRole = 'user';
       const container = document.getElementById('auth-buttons-container');
 
       if (user) {
         const displayName = user.user_metadata?.full_name || user.email.split('@')[0];
+
+        // ดึง role จากตาราง profiles ล่าสุด
+        const { data: profileData } = await supabaseClient
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .single();
+
+        if (profileData && profileData.role) {
+          currentUserRole = profileData.role;
+        }
 
         container.innerHTML = `
           <button id="open-inbox-btn" onclick="openInboxModal()" class="relative bg-slate-800 hover:bg-slate-700 text-blue-400 border border-slate-700 font-medium px-3 py-2 rounded-lg text-xs md:text-sm transition flex items-center gap-1.5 whitespace-nowrap">
@@ -566,7 +585,8 @@
 
         tabMyPets.classList.remove('hidden');
         
-        if (user.email === ADMIN_EMAIL) {
+        // ตรวจสอบสิทธิ์ Admin หรือ Super Admin เพื่อเปิดเมนูหลังบ้าน
+        if (currentUserRole === 'admin' || currentUserRole === 'super_admin') {
           adminTabContainer.classList.remove('hidden');
         } else {
           adminTabContainer.classList.add('hidden');
@@ -612,6 +632,8 @@
         .single();
 
       if (profileData) {
+        if (profileData.role) currentUserRole = profileData.role;
+
         if (profileData.full_name && !document.getElementById('profile-name').value) {
           document.getElementById('profile-name').value = profileData.full_name;
         }
@@ -786,6 +808,7 @@
         adminPanelContainer.classList.remove('hidden');
         document.getElementById('section-title').innerText = "ระบบจัดการหลังบ้าน (Admin Panel)";
         fetchAdminKycData();
+        fetchAdminUsersData();
       }
       applyFilters();
     };
@@ -811,7 +834,7 @@
       }
 
       kycListContainer.innerHTML = profiles.map(profile => {
-        const statusText = profile.kyc_status === 'approved' ? '✓ ออนุมัติแล้ว' : profile.kyc_status === 'pending' ? '⌛ รอตรวจสอบ' : '✕ ยังไม่ยืนยัน';
+        const statusText = profile.kyc_status === 'approved' ? '✓ อนุมัติแล้ว' : profile.kyc_status === 'pending' ? '⌛ รอตรวจสอบ' : '✕ ยังไม่ยืนยัน';
         const statusColor = profile.kyc_status === 'approved' ? 'bg-blue-100 text-blue-700' : profile.kyc_status === 'pending' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600';
 
         return `
@@ -829,6 +852,81 @@
         `;
       }).join('');
     }
+
+    // โหลดรายชื่อผู้ใช้งานเพื่อจัดการสิทธิ์ Admin (สำหรับ Super Admin เท่านั้น)
+    async function fetchAdminUsersData() {
+      const usersListContainer = document.getElementById('admin-users-list');
+      const roleSec = document.getElementById('admin-role-management-section');
+
+      if (currentUserRole !== 'super_admin') {
+        roleSec.classList.add('hidden');
+        return;
+      }
+      roleSec.classList.remove('hidden');
+      usersListContainer.innerHTML = '<p class="text-xs text-slate-400">กำลังดึงข้อมูลสิทธิ์ผู้ใช้งาน...</p>';
+
+      const { data: profiles, error } = await supabaseClient
+        .from('profiles')
+        .select('*')
+        .order('full_name', { ascending: true });
+
+      if (error) {
+        usersListContainer.innerHTML = `<p class="text-xs text-red-500">โหลดข้อมูลไม่สำเร็จ: ${error.message}</p>`;
+        return;
+      }
+
+      usersListContainer.innerHTML = profiles.map(profile => {
+        const role = profile.role || 'user';
+        let roleBadge = '<span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-[11px] font-bold">User (สมาชิกทั่วไป)</span>';
+        if (role === 'admin') roleBadge = '<span class="bg-purple-100 text-purple-700 px-2 py-0.5 rounded text-[11px] font-bold">Admin (ผู้ดูแลระบบ)</span>';
+        if (role === 'super_admin') roleBadge = '<span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-[11px] font-bold">Super Admin (ผู้ดูแลสูงสุด)</span>';
+
+        const isMe = currentUser && currentUser.id === profile.id;
+
+        return `
+          <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <p class="font-bold text-slate-900 text-sm flex items-center gap-2">
+                ${profile.full_name || 'ไม่ระบุชื่อ'} ${isMe ? '<span class="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded"> (คุณเอง)</span>' : ''}
+              </p>
+              <p class="text-xs text-slate-500">ID: ${profile.id}</p>
+              <div class="mt-1">${roleBadge}</div>
+            </div>
+            <div class="flex items-center gap-2">
+              ${!isMe && role !== 'super_admin' ? `
+                ${role === 'admin' 
+                  ? `<button onclick="changeUserRole('${profile.id}', 'user')" class="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold transition">ถอดถอนสิทธิ์ Admin</button>`
+                  : `<button onclick="changeUserRole('${profile.id}', 'admin')" class="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-bold transition">แต่งตั้งเป็น Admin</button>`
+                }
+              ` : '<span class="text-[11px] text-slate-400">ไม่สามารถเปลี่ยนสิทธิ์ได้</span>'}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // ฟังก์ชันเปลี่ยนสิทธิ์ผู้ใช้งาน (เพิ่ม/ลดสิทธิ์ Admin)
+    window.changeUserRole = async function(userId, newRole) {
+      if (currentUserRole !== 'super_admin') {
+        alert('เฉพาะ Super Admin เท่านั้นที่มีสิทธิ์เปลี่ยนแปลงบทบาทผู้ใช้งานครับ');
+        return;
+      }
+
+      const actionText = newRole === 'admin' ? 'แต่งตั้งให้เป็นผู้ดูแลระบบ (Admin)' : 'ถอดถอนสิทธิ์ผู้ดูแลระบบให้กลับเป็นสมาชิกทั่วไป';
+      if (!confirm(`คุณแน่ใจหรือไม่ว่าต้องการ${actionText}?`)) return;
+
+      const { error } = await supabaseClient
+        .from('profiles')
+        .update({ role: newRole, updated_at: new Date() })
+        .eq('id', userId);
+
+      if (error) {
+        alert(`เปลี่ยนสิทธิ์ไม่สำเร็จ: ${error.message}`);
+      } else {
+        alert('อัปเดตบทบาทผู้ใช้งานสำเร็จเรียบร้อยแล้วครับ!');
+        fetchAdminUsersData();
+      }
+    };
 
     // ฟังก์ชันให้แอดมินกดอนุมัติ KYC
     window.approveKycUser = async function(userId) {
@@ -905,6 +1003,7 @@
             await supabaseClient.from('profiles').upsert({
               id: userId,
               full_name: fullName,
+              role: 'user',
               kyc_status: kycUrl ? 'pending' : 'unverified',
               kyc_document_url: kycUrl,
               updated_at: new Date()
@@ -1222,7 +1321,7 @@
       petGrid.innerHTML = pets.map((pet, idx) => {
         const hasImage = pet.images && pet.images.length > 0 && pet.images[0];
         const isOwner = currentUser && pet.seller_id && (currentUser.id === pet.seller_id);
-        const isAdmin = currentUser && currentUser.email === ADMIN_EMAIL;
+        const isAdmin = currentUser && (currentUserRole === 'admin' || currentUserRole === 'super_admin');
 
         return `
           <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-md transition flex flex-col justify-between">
