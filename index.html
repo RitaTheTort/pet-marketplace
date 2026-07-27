@@ -491,7 +491,7 @@
     const searchForm = document.getElementById('search-form');
     const searchInput = document.getElementById('search-input');
 
-    const tabAllpets = document.getElementById('tab-all-pets');
+    const tabAllPets = document.getElementById('tab-all-pets');
     const tabMyPets = document.getElementById('tab-my-pets');
     const categoryFilterContainer = document.getElementById('category-filter-container');
     const adminTabContainer = document.getElementById('admin-tab-container');
@@ -853,20 +853,20 @@
     window.switchMainView = function(view) {
       currentMainView = view;
       
-      tabAllPets.className = "py-2.5 px-4 font-bold text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-700 transition";
-      tabMyPets.className = "py-2.5 px-4 font-bold text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-700 transition";
+      if (tabAllPets) tabAllPets.className = "py-2.5 px-4 font-bold text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-700 transition";
+      if (tabMyPets) tabMyPets.className = "py-2.5 px-4 font-bold text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-700 transition";
       
       const tabAdmin = document.getElementById('tab-admin');
       if (tabAdmin) tabAdmin.className = "py-1.5 px-3 bg-purple-600 text-white rounded-lg text-xs font-bold transition shadow";
 
       if (view === 'ALL') {
-        tabAllPets.className = "py-2.5 px-4 font-bold text-sm border-b-2 border-blue-600 text-blue-600 transition";
+        if (tabAllPets) tabAllPets.className = "py-2.5 px-4 font-bold text-sm border-b-2 border-blue-600 text-blue-600 transition";
         categoryFilterContainer.classList.remove('hidden');
         petGrid.classList.remove('hidden');
         adminPanelContainer.classList.add('hidden');
         document.getElementById('section-title').innerText = "รายการสัตว์เลี้ยงมาใหม่";
       } else if (view === 'MY') {
-        tabMyPets.className = "py-2.5 px-4 font-bold text-sm border-b-2 border-blue-600 text-blue-600 transition";
+        if (tabMyPets) tabMyPets.className = "py-2.5 px-4 font-bold text-sm border-b-2 border-blue-600 text-blue-600 transition";
         categoryFilterContainer.classList.add('hidden');
         petGrid.classList.remove('hidden');
         adminPanelContainer.classList.add('hidden');
