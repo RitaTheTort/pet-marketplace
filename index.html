@@ -98,6 +98,13 @@
           </div>
         </div>
 
+        <!-- เพิ่มส่วนอัปโหลดเอกสาร KYC สำหรับการสมัครสมาชิก -->
+        <div id="kyc-input-group" class="hidden space-y-1">
+          <label class="block text-xs font-bold text-slate-700">อัปโหลดเอกสารยืนยันตัวตน (KYC) เช่น บัตรประชาชน *</label>
+          <input type="file" id="kyc-file-input" accept="image/*" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-xs file:font-bold file:bg-blue-50 file:text-blue-700">
+          <p class="text-[10px] text-slate-400">ภาพถ่ายบัตรประชาชน (ปิดหมายเลข 13 หลักเพื่อความปลอดภัย)</p>
+        </div>
+
         <div class="pt-2">
           <button type="submit" id="auth-submit-btn" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-bold shadow transition">
             เข้าสู่ระบบ
@@ -205,8 +212,8 @@
             <p class="text-xs text-slate-400 mb-0.5">ผู้ลงประกาศขาย</p>
             <p id="detail-seller-name" class="text-sm font-bold text-slate-800">กำลังโหลด...</p>
           </div>
-          <span class="text-xs bg-blue-100 text-blue-700 font-bold px-2.5 py-1 rounded-full flex items-center gap-1">
-            ✓ ผู้ขายยืนยันตัวตน
+          <span id="detail-kyc-badge" class="text-xs bg-slate-200 text-slate-600 font-bold px-2.5 py-1 rounded-full flex items-center gap-1">
+            ⏳ กำลังตรวจสอบสถานะ
           </span>
         </div>
 
@@ -335,6 +342,7 @@
     const authForm = document.getElementById('auth-form');
     const toggleAuthBtn = document.getElementById('toggle-auth-btn');
     const nameInputGroup = document.getElementById('name-input-group');
+    const kycInputGroup = document.getElementById('kyc-input-group');
 
     const addModal = document.getElementById('add-pet-modal');
     const closeModalBtn = document.getElementById('close-modal-btn');
@@ -363,6 +371,31 @@
     const tabAllPets = document.getElementById('tab-all-pets');
     const tabMyPets = document.getElementById('tab-my-pets');
     const categoryFilterContainer = document.getElementById('category-filter-container');
+
+    // ฟังก์ชันอัปโหลดเอกสารยืนยันตัวตน KYC
+    async function uploadKycDocument(file, userId) {
+      try {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `kyc_${userId}_${Date.now()}.${fileExt}`;
+        const filePath = `${userId}/${fileName}`;
+
+        const { data, error } = await supabaseClient.storage
+          .from('kyc-documents')
+          .upload(filePath, file, { upsert: true });
+
+        if (error) throw error;
+
+        const { data: publicUrlData } = supabaseClient.storage
+          .from('kyc-documents')
+          .getPublicUrl(filePath);
+
+        return publicUrlData.publicUrl;
+      } catch (err) {
+        console.error('Error uploading KYC document:', err.message);
+        alert('เกิดข้อผิดพลาดในการอัปโหลดเอกสารยืนยันตัวตน: ' + err.message);
+        return null;
+      }
+    }
 
     async function handleForgotPassword() {
       const emailInput = document.getElementById('auth-email').value.trim();
@@ -570,11 +603,15 @@
       const forgotContainer = document.getElementById('forgot-password-container');
       if (isSignUpMode) {
         nameInputGroup.classList.remove('hidden');
+        kycInputGroup.classList.remove('hidden');
         document.getElementById('auth-name').setAttribute('required', 'true');
+        document.getElementById('kyc-file-input').setAttribute('required', 'true');
         if (forgotContainer) forgotContainer.classList.add('hidden');
       } else {
         nameInputGroup.classList.add('hidden');
+        kycInputGroup.classList.add('hidden');
         document.getElementById('auth-name').removeAttribute('required');
+        document.getElementById('kyc-file-input').removeAttribute('required');
         if (forgotContainer) forgotContainer.classList.remove('hidden');
       }
 
@@ -589,6 +626,7 @@
       const email = document.getElementById('auth-email').value.trim();
       const password = document.getElementById('auth-password').value;
       const fullName = document.getElementById('auth-name').value.trim();
+      const kycFileInput = document.getElementById('kyc-file-input');
       const submitBtn = document.getElementById('auth-submit-btn');
 
       submitBtn.disabled = true;
@@ -602,7 +640,26 @@
             options: { data: { full_name: fullName } }
           });
           if (error) throw error;
-          alert('ลงทะเบียนสำเร็จ! เข้าสู่ระบบได้เลยครับ');
+
+          const userId = data.user?.id;
+          let kycUrl = null;
+
+          if (userId && kycFileInput.files[0]) {
+            submitBtn.innerText = 'กำลังอัปโหลดเอกสาร KYC...';
+            kycUrl = await uploadKycDocument(kycFileInput.files[0], userId);
+          }
+
+          if (userId) {
+            await supabaseClient.from('profiles').upsert({
+              id: userId,
+              full_name: fullName,
+              kyc_status: kycUrl ? 'pending' : 'unverified',
+              kyc_document_url: kycUrl,
+              updated_at: new Date()
+            });
+          }
+
+          alert('ลงทะเบียนและส่งเอกสารยืนยันตัวตนสำเร็จ! เข้าสู่ระบบได้เลยครับ');
         } else {
           const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
           if (error) throw error;
@@ -647,6 +704,32 @@
       document.getElementById('detail-desc').innerText = pet.description || 'ไม่มีรายละเอียดเพิ่มเติม';
       document.getElementById('detail-price').innerText = '฿' + (pet.price ? Number(pet.price).toLocaleString() : '0');
       document.getElementById('detail-seller-name').innerText = pet.seller_name || 'ผู้ขายทั่วไป (ไม่ระบุชื่อ)';
+
+      // ดึงสถานะ KYC ของผู้ขายจากตาราง profiles มาแสดงผล
+      const kycBadgeEl = document.getElementById('detail-kyc-badge');
+      kycBadgeEl.className = 'text-xs font-bold px-2.5 py-1 rounded-full flex items-center gap-1 bg-slate-200 text-slate-600';
+      kycBadgeEl.innerText = '⏳ กำลังตรวจสอบสถานะ';
+
+      if (pet.seller_id) {
+        const { data: profileData } = await supabaseClient
+          .from('profiles')
+          .select('kyc_status')
+          .eq('id', pet.seller_id)
+          .single();
+
+        if (profileData) {
+          if (profileData.kyc_status === 'approved') {
+            kycBadgeEl.className = 'text-xs bg-blue-100 text-blue-700 font-bold px-2.5 py-1 rounded-full flex items-center gap-1';
+            kycBadgeEl.innerText = '✓ ผู้ขายยืนยันตัวตน';
+          } else if (profileData.kyc_status === 'pending') {
+            kycBadgeEl.className = 'text-xs bg-amber-100 text-amber-700 font-bold px-2.5 py-1 rounded-full flex items-center gap-1';
+            kycBadgeEl.innerText = '⌛ รอผู้ดูแลระบบอนุมัติ KYC';
+          } else {
+            kycBadgeEl.className = 'text-xs bg-slate-100 text-slate-500 font-bold px-2.5 py-1 rounded-full flex items-center gap-1';
+            kycBadgeEl.innerText = '✕ ยังไม่ยืนยันตัวตน';
+          }
+        }
+      }
 
       const imgEl = document.getElementById('detail-image');
       const noImgEl = document.getElementById('detail-no-image');
@@ -1122,20 +1205,6 @@
         submitBtn.innerText = 'บันทึกประกาศ';
       }
     });
-    // ตรวจสอบว่ามี Hash Fragment จาก Supabase ส่งมาหรือไม่
-if (window.location.hash && window.location.hash.includes('access_token')) {
-  // ดึงค่า Supabase Client ที่ใช้งานในโปรเจกต์มาจัดการเซสชัน
-  supabase.auth.getSession().then(({ data: { session }, error }) => {
-    if (session) {
-      // ล้าง Hash บน URL ออกเพื่อความสะอาด และแสดงผลว่ายืนยันตัวตนสำเร็จ
-      window.history.replaceState({}, document.title, window.location.pathname);
-      alert('ยืนยันตัวตนสำเร็จและเข้าสู่ระบบเรียบร้อยครับ!');
-      // รีโหลดหรือเปลี่ยนเส้นทางไปหน้าแดชบอร์ด/หน้าหลักตามต้องการ
-      window.location.reload();
-    }
-  });
-}
-
   </script>
 </body>
 </html>
