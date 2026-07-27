@@ -641,7 +641,7 @@
         if (profileData.kyc_status === 'approved') {
           statusBox.className = 'p-3 rounded-lg text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200 flex items-center justify-between';
           statusBox.innerHTML = `<span>✓ ยืนยันตัวตนสำเร็จแล้ว (Approved)</span> ${profileData.kyc_document_url ? `<a href="${profileData.kyc_document_url}" target="_blank" class="text-blue-600 underline font-semibold">ดูเอกสาร</a>` : ''}`;
-        } else if (profileData.kyc_status === 'pending') {
+        } else if (profileData.kyc_status === 'pending' || profileData.kyc_status === 'admin_checked') {
           statusBox.className = 'p-3 rounded-lg text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200 flex items-center justify-between';
           statusBox.innerHTML = `<span>⌛ รอผู้ดูแลระบบตรวจสอบเอกสาร (Pending)</span> ${profileData.kyc_document_url ? `<a href="${profileData.kyc_document_url}" target="_blank" class="text-amber-600 underline font-semibold">ดูเอกสาร</a>` : ''}`;
         } else {
@@ -820,7 +820,7 @@
       const { data: profiles, error } = await supabaseClient
         .from('profiles')
         .select('*')
-        .eq('kyc_status', 'pending')
+        .in('kyc_status', ['pending', 'admin_checked'])
         .order('updated_at', { ascending: false });
 
       if (error) {
@@ -834,17 +834,39 @@
       }
 
       kycListContainer.innerHTML = profiles.map(profile => {
-        const canApprove = (currentUserRole === 'super_admin');
+        const isSuperAdmin = (currentUserRole === 'super_admin');
+        const isAdmin = (currentUserRole === 'admin');
+        const isCheckedByAdmin = (profile.kyc_status === 'admin_checked');
+
+        let statusBadge = '<span class="inline-block mt-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-700">⌛ รอตรวจสอบ</span>';
+        if (isCheckedByAdmin) {
+          statusBadge = '<span class="inline-block mt-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-700">🛡️ แอดมินตรวจสอบแล้ว (รอ Super Admin อนุมัติ)</span>';
+        }
+
+        let actionButtons = '';
+        if (profile.kyc_document_url) {
+          actionButtons += `<a href="${profile.kyc_document_url}" target="_blank" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-bold transition">ดูเอกสาร</a>`;
+        } else {
+          actionButtons += `<span class="text-xs text-slate-400">ไม่มีเอกสาร</span>`;
+        }
+
+        if (isAdmin && !isCheckedByAdmin) {
+          actionButtons += `<button onclick="adminCheckKycUser('${profile.id}')" class="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-bold transition">ตรวจสอบเอกสารแล้ว</button>`;
+        }
+
+        if (isSuperAdmin) {
+          actionButtons += `<button onclick="approveKycUser('${profile.id}')" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition">อนุมัติ KYC</button>`;
+        }
+
         return `
           <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
               <p class="font-bold text-slate-900 text-sm">${profile.full_name || 'ไม่ระบุชื่อ'}</p>
               <p class="text-xs text-slate-500">รหัสผู้ใช้: ${profile.id}</p>
-              <span class="inline-block mt-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-700">⌛ รอตรวจสอบ</span>
+              ${statusBadge}
             </div>
             <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
-              ${profile.kyc_document_url ? `<a href="${profile.kyc_document_url}" target="_blank" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-bold transition">ดูเอกสาร</a>` : '<span class="text-xs text-slate-400">ไม่มีเอกสาร</span>'}
-              ${canApprove ? `<button onclick="approveKycUser('${profile.id}')" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition">อนุมัติ KYC</button>` : '<span class="text-[11px] text-slate-400">สิทธิ์ Admin ดูเอกสารเท่านั้น</span>'}
+              ${actionButtons}
             </div>
           </div>
         `;
@@ -921,6 +943,22 @@
       } else {
         alert('อัปเดตบทบาทผู้ใช้งานสำเร็จเรียบร้อยแล้วครับ!');
         await fetchAdminUsersData();
+      }
+    };
+
+    window.adminCheckKycUser = async function(userId) {
+      if (!confirm('ยืนยันว่าได้ตรวจสอบความถูกต้องของเอกสาร KYC นี้แล้ว?')) return;
+
+      const { error } = await supabaseClient
+        .from('profiles')
+        .update({ kyc_status: 'admin_checked', updated_at: new Date() })
+        .eq('id', userId);
+
+      if (error) {
+        alert(`บันทึกไม่สำเร็จ: ${error.message}`);
+      } else {
+        await fetchAdminKycData();
+        alert('บันทึกสถานะ "ตรวจสอบเอกสารแล้ว" สำเร็จ ส่งต่อให้ Super Admin อนุมัติขั้นสุดท้ายครับ!');
       }
     };
 
@@ -1072,7 +1110,7 @@
           if (profileData.kyc_status === 'approved') {
             kycBadgeEl.className = 'text-xs bg-blue-100 text-blue-700 font-bold px-2.5 py-1 rounded-full flex items-center gap-1';
             kycBadgeEl.innerText = '✓ ผู้ขายยืนยันตัวตน';
-          } else if (profileData.kyc_status === 'pending') {
+          } else if (profileData.kyc_status === 'pending' || profileData.kyc_status === 'admin_checked') {
             kycBadgeEl.className = 'text-xs bg-amber-100 text-amber-700 font-bold px-2.5 py-1 rounded-full flex items-center gap-1';
             kycBadgeEl.innerText = '⌛ รอผู้ดูแลระบบอนุมัติ KYC';
           } else {
