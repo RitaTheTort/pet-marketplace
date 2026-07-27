@@ -16,7 +16,7 @@
         <span class="text-[10px] bg-blue-900 text-blue-200 px-1.5 py-0.5 rounded shrink-0">Beta</span>
       </div>
       <div class="flex items-center space-x-1.5 shrink-0" id="auth-buttons-container">
-        <button id="open-add-modal-btn" class="hidden bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-2 py-1.5 rounded-lg text-xs transition shadow shrink-0 whitespace-nowrap">
+        <button id="open-add-modal-btn" class="hidden bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-2.5 py-1.5 rounded-lg text-xs transition shadow shrink-0 whitespace-nowrap">
           + ลงประกาศ
         </button>
         <button id="open-auth-modal-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-3 py-1.5 rounded-lg text-xs transition whitespace-nowrap">
@@ -127,12 +127,6 @@
           <div class="text-right mt-1" id="forgot-password-container">
             <button type="button" onclick="handleForgotPassword()" class="text-[11px] text-blue-600 hover:underline">ลืมรหัสผ่าน?</button>
           </div>
-        </div>
-
-        <div id="kyc-input-group" class="hidden space-y-1">
-          <label class="block text-xs font-bold text-slate-700">อัปโหลดเอกสารยืนยันตัวตน (KYC) เช่น บัตรประชาชน *</label>
-          <input type="file" id="kyc-file-input" accept="image/*" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-xs file:font-bold file:bg-blue-50 file:text-blue-700">
-          <p class="text-[10px] text-slate-400">ภาพถ่ายบัตรประชาชน (ปิดหมายเลข 13 หลักเพื่อความปลอดภัย)</p>
         </div>
 
         <div class="pt-2">
@@ -417,7 +411,6 @@
     const authForm = document.getElementById('auth-form');
     const toggleAuthBtn = document.getElementById('toggle-auth-btn');
     const nameInputGroup = document.getElementById('name-input-group');
-    const kycInputGroup = document.getElementById('kyc-input-group');
 
     const profileModal = document.getElementById('profile-modal');
     const profileForm = document.getElementById('profile-form');
@@ -950,15 +943,11 @@
       const forgotContainer = document.getElementById('forgot-password-container');
       if (isSignUpMode) {
         nameInputGroup.classList.remove('hidden');
-        kycInputGroup.classList.remove('hidden');
         document.getElementById('auth-name').setAttribute('required', 'true');
-        document.getElementById('kyc-file-input').setAttribute('required', 'true');
         if (forgotContainer) forgotContainer.classList.add('hidden');
       } else {
         nameInputGroup.classList.add('hidden');
-        kycInputGroup.classList.add('hidden');
         document.getElementById('auth-name').removeAttribute('required');
-        document.getElementById('kyc-file-input').removeAttribute('required');
         if (forgotContainer) forgotContainer.classList.remove('hidden');
       }
 
@@ -973,7 +962,6 @@
       const email = document.getElementById('auth-email').value.trim();
       const password = document.getElementById('auth-password').value;
       const fullName = document.getElementById('auth-name').value.trim();
-      const kycFileInput = document.getElementById('kyc-file-input');
       const submitBtn = document.getElementById('auth-submit-btn');
 
       submitBtn.disabled = true;
@@ -989,25 +977,18 @@
           if (error) throw error;
 
           const userId = data.user?.id;
-          let kycUrl = null;
-
-          if (userId && kycFileInput.files[0]) {
-            submitBtn.innerText = 'กำลังบีบอัดและอัปโหลดเอกสาร KYC...';
-            kycUrl = await uploadKycDocument(kycFileInput.files[0], userId);
-          }
 
           if (userId) {
             await supabaseClient.from('profiles').upsert({
               id: userId,
               full_name: fullName,
               role: 'user',
-              kyc_status: kycUrl ? 'pending' : 'unverified',
-              kyc_document_url: kycUrl,
+              kyc_status: 'unverified',
               updated_at: new Date()
             });
           }
 
-          alert('ลงทะเบียนและส่งเอกสารยืนยันตัวตนสำเร็จ! เข้าสู่ระบบได้เลยครับ');
+          alert('ลงทะเบียนสำเร็จ! เข้าสู่ระบบได้เลยครับ');
         } else {
           const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
           if (error) throw error;
