@@ -15,7 +15,6 @@
         <span class="text-2xl font-extrabold text-blue-400 tracking-wide truncate">PetMarket</span>
         <span class="text-[10px] bg-blue-900 text-blue-200 px-1.5 py-0.5 rounded shrink-0 font-semibold">Beta</span>
       </div>
-      <!-- คงเหลือเฉพาะปุ่มเข้าสู่ระบบ หรือข้อมูลผู้ใช้งานที่จำเป็นบนเฮดเดอร์ เพื่อความสะอาดตา -->
       <div class="flex items-center space-x-2 shrink-0" id="auth-buttons-container">
         <button id="open-auth-modal-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-3.5 py-1.5 rounded-lg text-xs transition whitespace-nowrap shadow-sm">
           เข้าสู่ระบบ
@@ -38,7 +37,6 @@
 
   <main class="max-w-6xl mx-auto px-4 py-8">
     
-    <!-- แถบเมนูหลัก และย้ายปุ่มแชท + ปุ่มลงประกาศ มาไว้ในโซนนี้เพื่อให้คำว่า PetMarket ด้านบนเด่นชัด -->
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-200 mb-6 gap-4 pb-3">
       <div class="flex flex-wrap items-center gap-2">
         <button id="tab-all-pets" onclick="switchMainView('ALL')" class="py-2 px-3.5 font-bold text-sm border-b-2 border-blue-600 text-blue-600 transition">
@@ -49,11 +47,8 @@
         </button>
       </div>
 
-      <!-- ปุ่ม Action หลัก (แชท และ ลงประกาศ) ถูกย้ายมาแสดงผลบริเวณนี้เมื่อเข้าสู่ระบบแล้ว -->
       <div class="flex items-center space-x-2 w-full sm:w-auto justify-between sm:justify-end" id="action-buttons-lower-container">
-        <div id="dynamic-action-area" class="flex items-center space-x-2">
-          <!-- เรนเดอร์ด้วย JavaScript ตามสถานะ Login -->
-        </div>
+        <div id="dynamic-action-area" class="flex items-center space-x-2"></div>
         <div id="admin-tab-container" class="hidden">
           <button onclick="switchMainView('ADMIN')" id="tab-admin" class="py-1.5 px-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-bold transition shadow">
             🛡️ หลังบ้าน Admin
@@ -84,7 +79,6 @@
       </div>
     </div>
 
-    <!-- ส่วนแสดงผลหน้า Admin Panel -->
     <div id="admin-panel-container" class="hidden space-y-8">
       <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
         <h3 class="font-bold text-lg text-slate-900 mb-4 flex items-center gap-2">
@@ -176,7 +170,6 @@
           </div>
         </div>
 
-        <!-- ส่วนแสดงถ้วยรางวัล / ป้ายพฤติกรรมสะสม -->
         <div>
           <label class="block text-xs font-bold text-slate-700 mb-1">ถ้วยรางวัลและป้ายพฤติกรรมสะสม (Badges)</label>
           <div id="profile-badges-container" class="p-3 rounded-xl border border-slate-200 bg-slate-50 flex flex-wrap gap-2 min-h-[50px] items-center">
@@ -266,7 +259,6 @@
   <div id="detail-pet-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4 overflow-y-auto">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg my-8 relative overflow-hidden">
       
-      <!-- ส่วนหัว Modal พร้อมปุ่มปิดชัดเจน -->
       <div class="bg-slate-900 text-white px-5 py-4 flex justify-between items-center">
         <h3 id="detail-title" class="font-bold text-base truncate pr-2">รายละเอียดสัตว์เลี้ยง</h3>
         <button type="button" id="close-detail-btn-top" class="bg-slate-800 hover:bg-slate-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1 border border-slate-700">
@@ -275,7 +267,6 @@
       </div>
 
       <div class="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
-        <!-- ปรับรูปภาพให้ไม่เกินกรอบ และกดเพื่อขยายภาพใหญ่ได้ -->
         <div class="h-60 bg-slate-100 rounded-xl overflow-hidden flex items-center justify-center text-slate-400 relative group cursor-pointer" onclick="openImageLightbox()" title="คลิกเพื่อดูรูปภาพขนาดใหญ่">
           <img id="detail-image" src="" class="w-full h-full object-contain hidden">
           <span id="detail-no-image" class="text-sm">ไม่มีรูปภาพ</span>
@@ -307,7 +298,6 @@
           </span>
         </div>
 
-        <!-- ส่วนแสดงป้ายรางวัลของผู้ขาย และปุ่มกดให้ป้าย -->
         <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-2">
           <div class="flex justify-between items-center">
             <span class="text-xs text-slate-400 font-medium">ป้ายรางวัลสะสมของผู้ขาย:</span>
@@ -320,7 +310,6 @@
           </div>
         </div>
 
-        <!-- กล่องข้อความแจ้งเตือนภัยและจำกัดความรับผิด (Disclaimer) -->
         <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 text-[11px] text-amber-800 space-y-1">
           <p class="font-bold flex items-center gap-1">⚠️ คำเตือนเพื่อความปลอดภัย:</p>
           <p>อย่าลืมตรวจสอบความถูกต้องของเลขบัญชี ความโปร่งใสของผู้ขายทุกครั้งก่อนทำการโอนหรือชำระเงิน ทางพื้นที่สามารถตรวจสอบได้เพียงระดับหนึ่งเท่านั้น หากพบข้อสงสัย ติดต่อ admin</p>
@@ -336,7 +325,6 @@
           </button>
         </div>
 
-        <!-- ปุ่มปิดหน้าต่างด้านล่าง -->
         <div class="pt-2">
           <button type="button" onclick="document.getElementById('detail-pet-modal').classList.add('hidden'); document.getElementById('detail-pet-modal').classList.remove('flex');" class="w-full py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl font-bold text-xs transition">
             ✕ ปิดหน้าต่างนี้
@@ -364,9 +352,7 @@
       </div>
       <div class="p-5 space-y-4">
         <p class="text-xs text-slate-600">เลือกป้ายรางวัลที่ต้องการมอบให้กับผู้ขายรายนี้:</p>
-        <div id="badge-options-container" class="space-y-2">
-          <!-- รายการป้ายจะถูกเรนเดอร์ด้วย JavaScript -->
-        </div>
+        <div id="badge-options-container" class="space-y-2"></div>
         <div class="pt-2 flex justify-end">
           <button type="button" onclick="closeGiveBadgeModal()" class="px-4 py-2 border border-slate-300 rounded-lg text-slate-600 text-xs font-medium">ปิด</button>
         </div>
@@ -635,7 +621,6 @@
           currentUserRole = profileData.role;
         }
 
-        // ปุ่มเข้าสู่ระบบด้านบนถูกซ่อน/เปลี่ยนเป็นปุ่มจัดการโปรไฟล์แทน
         container.innerHTML = `
           <div class="flex items-center space-x-1.5 bg-slate-800 px-2 py-1.5 rounded-lg border border-slate-700 shrink-0">
             <span class="text-xs font-bold text-slate-200 truncate max-w-[80px]">คุณ ${displayName}</span>
@@ -646,7 +631,6 @@
           </div>
         `;
 
-        // ปุ่มแชท และ ปุ่มลงประกาศ ย้ายมาแสดงผลบริเวณด้านล่าง (ตามที่อี้อวี่ต้องการ)
         dynamicActionArea.innerHTML = `
           <button id="open-inbox-btn" onclick="openInboxModal()" class="relative bg-slate-800 hover:bg-slate-700 text-blue-400 border border-slate-700 font-medium px-3 py-1.5 rounded-lg text-xs transition flex items-center gap-1 shrink-0" title="กล่องข้อความ">
             💬 แชท
@@ -706,7 +690,6 @@
       profileModal.classList.remove('hidden');
       profileModal.classList.add('flex');
 
-      // โหลดป้ายรางวัลสะสมในโปรไฟล์
       const badgeContainer = document.getElementById('profile-badges-container');
       badgeContainer.innerHTML = '<span class="text-xs text-slate-400">กำลังโหลดป้าย...</span>';
 
@@ -1132,14 +1115,12 @@
       closeDetailBtnTop.addEventListener('click', closeDetailModal);
     }
 
-    // คลิกพื้นที่ว่างฉากหลังเพื่อปิด Modal รายละเอียดได้ทันที
     detailModal.addEventListener('click', (e) => {
       if (e.target === detailModal) {
         closeDetailModal();
       }
     });
 
-    // ฟังก์ชันเปิด-ปิด Lightbox ดูภาพใหญ่
     window.openImageLightbox = function() {
       const imgEl = document.getElementById('detail-image');
       const lightboxModal = document.getElementById('lightbox-modal');
@@ -1196,7 +1177,6 @@
         }
       }
 
-      // โหลดป้ายรางวัลสะสมของผู้ขาย
       const sellerBadgeContainer = document.getElementById('detail-seller-badges');
       sellerBadgeContainer.innerHTML = '<span class="text-[11px] text-slate-400">กำลังโหลดป้าย...</span>';
 
@@ -1359,8 +1339,8 @@
       chatModal.classList.remove('hidden');
       chatModal.classList.add('flex');
 
-      await fetchChatMessages(pet.id);
-      subscribeToRealtimeChat(pet.id);
+      await fetchChatMessages(pet.id, otherUserId);
+      subscribeToRealtimeChat(pet.id, otherUserId);
     }
 
     closeChatBtn.addEventListener('click', () => {
@@ -1372,13 +1352,17 @@
       }
     });
 
-    async function fetchChatMessages(petId) {
+    // --- แก้ไขจุดรั่วไหลของข้อมูลแชท: กรองเฉพาะคู่สนทนาและประกาศนั้นๆ เท่านั้น ---
+    async function fetchChatMessages(petId, otherUserId) {
       chatMessagesContainer.innerHTML = '<div class="text-center text-xs text-slate-400 py-4">กำลังโหลดข้อความ...</div>';
+
+      if (!currentUser) return;
 
       const { data: messages, error } = await supabaseClient
         .from('messages')
         .select('*')
         .eq('pet_id', petId)
+        .or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${otherUserId}),and(sender_id.eq.${otherUserId},receiver_id.eq.${currentUser.id})`)
         .order('created_at', { ascending: true });
 
       if (error) {
@@ -1386,17 +1370,15 @@
         return;
       }
 
-      if (currentUser) {
-        await supabaseClient
-          .from('messages')
-          .update({ is_read: true })
-          .eq('pet_id', petId)
-          .eq('receiver_id', currentUser.id)
-          .or('is_read.is.null,is_read.eq.false');
+      await supabaseClient
+        .from('messages')
+        .update({ is_read: true })
+        .eq('pet_id', petId)
+        .eq('receiver_id', currentUser.id)
+        .eq('sender_id', otherUserId)
+        .or('is_read.is.null,is_read.eq.false');
           
-        checkUnreadMessages();
-      }
-
+      checkUnreadMessages();
       renderChatMessages(messages || []);
     }
 
@@ -1428,18 +1410,24 @@
       chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
     }
 
-    function subscribeToRealtimeChat(petId) {
+    function subscribeToRealtimeChat(petId, otherUserId) {
       if (chatRealtimeChannel) {
         supabaseClient.removeChannel(chatRealtimeChannel);
       }
 
       chatRealtimeChannel = supabaseClient
-        .channel(`chat-pet-${petId}`)
+        .channel(`chat-pet-${petId}-${otherUserId}`)
         .on(
           'postgres_changes',
           { event: 'INSERT', schema: 'public', table: 'messages', filter: `pet_id=eq.${petId}` },
-          () => {
-            fetchChatMessages(petId);
+          (payload) => {
+            const newMsg = payload.new;
+            if (
+              (newMsg.sender_id === currentUser.id && newMsg.receiver_id === otherUserId) ||
+              (newMsg.sender_id === otherUserId && newMsg.receiver_id === currentUser.id)
+            ) {
+              fetchChatMessages(petId, otherUserId);
+            }
           }
         )
         .subscribe();
@@ -1458,7 +1446,7 @@
         .insert([{
           pet_id: currentActivePet.id,
           sender_id: currentUser.id,
-          receiver_id: targetChatUserId || currentActivePet.seller_id || currentUser.id,
+          receiver_id: targetChatUserId,
           sender_name: myName,
           content: content,
           is_read: false
