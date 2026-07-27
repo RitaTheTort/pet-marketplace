@@ -269,7 +269,6 @@
   </div>
 
   <script>
-    // ฟังก์ชันบีบอัดภาพฝั่ง Client
     async function compressImage(file, maxWidth = 1200, quality = 0.8) {
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -827,20 +826,31 @@
       if (!confirm('คุณแน่ใจหรือไม่ว่าต้องการลบประกาศนี้?')) return;
 
       try {
-        const { data, error } = await supabaseClient
+        const petToDelete = allPetsData.find(p => p.id === petId);
+
+        const { error: dbError } = await supabaseClient
           .from('pets')
           .delete()
-          .eq('id', petId)
-          .select();
+          .eq('id', petId);
 
-        if (error) {
-          alert(`ไม่สามารถลบได้: ${error.message}`);
-        } else {
-          alert('ลบประกาศเรียบร้อยแล้วครับ');
-          fetchPets();
+        if (dbError) throw dbError;
+
+        if (petToDelete && petToDelete.images && petToDelete.images.length > 0) {
+          const imageUrl = petToDelete.images[0];
+          const urlParts = imageUrl.split('/');
+          const fileName = urlParts[urlParts.length - 1];
+
+          if (fileName) {
+            await supabaseClient.storage
+              .from('pet-images')
+              .remove([fileName]);
+          }
         }
+
+        alert('ลบประกาศและไฟล์รูปภาพเรียบร้อยแล้วครับ');
+        fetchPets();
       } catch (err) {
-        alert(`เกิดข้อผิดพลาด: ${err.message}`);
+        alert(`เกิดข้อผิดพลาดในการลบ: ${err.message}`);
       }
     };
 
