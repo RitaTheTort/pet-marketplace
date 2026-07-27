@@ -908,16 +908,18 @@
       const actionText = newRole === 'admin' ? 'แต่งตั้งให้เป็นผู้ดูแลระบบ (Admin)' : 'ถอดถอนสิทธิ์ผู้ดูแลระบบให้กลับเป็นสมาชิกทั่วไป';
       if (!confirm(`คุณแน่ใจหรือไม่ว่าต้องการ${actionText}?`)) return;
 
-      const { error } = await supabaseClient
+      const { data, error } = await supabaseClient
         .from('profiles')
         .update({ role: newRole, updated_at: new Date() })
-        .eq('id', userId);
+        .eq('id', userId)
+        .select();
 
       if (error) {
         alert(`เปลี่ยนสิทธิ์ไม่สำเร็จ: ${error.message}`);
+        console.error('Role Update Error:', error);
       } else {
-        await fetchAdminUsersData();
         alert('อัปเดตบทบาทผู้ใช้งานสำเร็จเรียบร้อยแล้วครับ!');
+        await fetchAdminUsersData();
       }
     };
 
