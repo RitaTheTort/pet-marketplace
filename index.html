@@ -10,16 +10,14 @@
 <body class="bg-slate-50 text-slate-800 min-h-screen">
 
   <header class="bg-slate-900 text-white shadow-md sticky top-0 z-40">
-    <div class="max-w-6xl mx-auto px-3 py-3 flex justify-between items-center">
-      <div class="flex items-center space-x-1.5 min-w-0">
-        <span class="text-xl font-bold text-blue-400 truncate">PetMarket</span>
-        <span class="text-[10px] bg-blue-900 text-blue-200 px-1.5 py-0.5 rounded shrink-0">Beta</span>
+    <div class="max-w-6xl mx-auto px-4 py-3.5 flex justify-between items-center">
+      <div class="flex items-center space-x-2 min-w-0">
+        <span class="text-2xl font-extrabold text-blue-400 tracking-wide truncate">PetMarket</span>
+        <span class="text-[10px] bg-blue-900 text-blue-200 px-1.5 py-0.5 rounded shrink-0 font-semibold">Beta</span>
       </div>
-      <div class="flex items-center space-x-1.5 shrink-0" id="auth-buttons-container">
-        <button id="open-add-modal-btn" class="hidden bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-2.5 py-1.5 rounded-lg text-xs transition shadow shrink-0 whitespace-nowrap">
-          + ลงประกาศ
-        </button>
-        <button id="open-auth-modal-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-3 py-1.5 rounded-lg text-xs transition whitespace-nowrap">
+      <!-- คงเหลือเฉพาะปุ่มเข้าสู่ระบบ หรือข้อมูลผู้ใช้งานที่จำเป็นบนเฮดเดอร์ เพื่อความสะอาดตา -->
+      <div class="flex items-center space-x-2 shrink-0" id="auth-buttons-container">
+        <button id="open-auth-modal-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-3.5 py-1.5 rounded-lg text-xs transition whitespace-nowrap shadow-sm">
           เข้าสู่ระบบ
         </button>
       </div>
@@ -40,19 +38,27 @@
 
   <main class="max-w-6xl mx-auto px-4 py-8">
     
-    <div class="flex justify-between items-center border-b border-slate-200 mb-6">
-      <div class="flex">
-        <button id="tab-all-pets" onclick="switchMainView('ALL')" class="py-2.5 px-4 font-bold text-sm border-b-2 border-blue-600 text-blue-600 transition">
+    <!-- แถบเมนูหลัก และย้ายปุ่มแชท + ปุ่มลงประกาศ มาไว้ในโซนนี้เพื่อให้คำว่า PetMarket ด้านบนเด่นชัด -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-200 mb-6 gap-4 pb-3">
+      <div class="flex flex-wrap items-center gap-2">
+        <button id="tab-all-pets" onclick="switchMainView('ALL')" class="py-2 px-3.5 font-bold text-sm border-b-2 border-blue-600 text-blue-600 transition">
           ตลาดสัตว์เลี้ยงทั้งหมด
         </button>
-        <button id="tab-my-pets" onclick="switchMainView('MY')" class="hidden py-2.5 px-4 font-bold text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-700 transition">
+        <button id="tab-my-pets" onclick="switchMainView('MY')" class="hidden py-2 px-3.5 font-bold text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-700 transition">
           ประกาศของฉัน <span id="my-count-badge" class="ml-1 bg-slate-200 text-slate-700 px-2 py-0.5 rounded-full text-xs">0</span>
         </button>
       </div>
-      <div id="admin-tab-container" class="hidden pb-2">
-        <button onclick="switchMainView('ADMIN')" id="tab-admin" class="py-1.5 px-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-bold transition shadow">
-          🛡️ หลังบ้าน Admin
-        </button>
+
+      <!-- ปุ่ม Action หลัก (แชท และ ลงประกาศ) ถูกย้ายมาแสดงผลบริเวณนี้เมื่อเข้าสู่ระบบแล้ว -->
+      <div class="flex items-center space-x-2 w-full sm:w-auto justify-between sm:justify-end" id="action-buttons-lower-container">
+        <div id="dynamic-action-area" class="flex items-center space-x-2">
+          <!-- เรนเดอร์ด้วย JavaScript ตามสถานะ Login -->
+        </div>
+        <div id="admin-tab-container" class="hidden">
+          <button onclick="switchMainView('ADMIN')" id="tab-admin" class="py-1.5 px-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-bold transition shadow">
+            🛡️ หลังบ้าน Admin
+          </button>
+        </div>
       </div>
     </div>
 
@@ -614,6 +620,7 @@
       currentUser = user;
       currentUserRole = 'user';
       const container = document.getElementById('auth-buttons-container');
+      const dynamicActionArea = document.getElementById('dynamic-action-area');
 
       if (user) {
         const displayName = user.user_metadata?.full_name || user.email.split('@')[0];
@@ -628,14 +635,8 @@
           currentUserRole = profileData.role;
         }
 
+        // ปุ่มเข้าสู่ระบบด้านบนถูกซ่อน/เปลี่ยนเป็นปุ่มจัดการโปรไฟล์แทน
         container.innerHTML = `
-          <button id="open-inbox-btn" onclick="openInboxModal()" class="relative bg-slate-800 hover:bg-slate-700 text-blue-400 border border-slate-700 font-medium p-1.5 rounded-lg text-xs transition flex items-center justify-center shrink-0" title="กล่องข้อความ">
-            💬
-            <span id="unread-badge" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-[9px] font-bold px-1 py-0.2 rounded-full animate-pulse">0</span>
-          </button>
-          <button id="open-add-modal-btn" class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-2.5 py-1.5 rounded-lg text-xs transition shadow shrink-0 whitespace-nowrap">
-            + ลงประกาศ
-          </button>
           <div class="flex items-center space-x-1.5 bg-slate-800 px-2 py-1.5 rounded-lg border border-slate-700 shrink-0">
             <span class="text-xs font-bold text-slate-200 truncate max-w-[80px]">คุณ ${displayName}</span>
             <button onclick="openProfileModal()" class="bg-slate-700 hover:bg-slate-600 text-blue-300 px-2 py-1 rounded text-xs font-bold transition flex items-center gap-0.5" title="จัดการบัญชี">
@@ -644,6 +645,18 @@
             <button onclick="handleSignOut()" class="text-xs text-red-400 hover:text-red-300 font-bold ml-0.5">ออก</button>
           </div>
         `;
+
+        // ปุ่มแชท และ ปุ่มลงประกาศ ย้ายมาแสดงผลบริเวณด้านล่าง (ตามที่อี้อวี่ต้องการ)
+        dynamicActionArea.innerHTML = `
+          <button id="open-inbox-btn" onclick="openInboxModal()" class="relative bg-slate-800 hover:bg-slate-700 text-blue-400 border border-slate-700 font-medium px-3 py-1.5 rounded-lg text-xs transition flex items-center gap-1 shrink-0" title="กล่องข้อความ">
+            💬 แชท
+            <span id="unread-badge" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-[9px] font-bold px-1.5 py-0.2 rounded-full animate-pulse">0</span>
+          </button>
+          <button id="open-add-modal-btn" class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-3 py-1.5 rounded-lg text-xs transition shadow shrink-0 whitespace-nowrap">
+            + ลงประกาศ
+          </button>
+        `;
+
         document.getElementById('open-add-modal-btn').addEventListener('click', () => {
           document.getElementById('form-modal-title').innerText = 'ลงประกาศขายสัตว์เลี้ยง';
           document.getElementById('edit-pet-id').value = '';
@@ -663,7 +676,7 @@
         subscribeGlobalNotification();
       } else {
         container.innerHTML = `
-          <button id="open-auth-modal-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-3 py-2 rounded-lg text-xs md:text-sm transition whitespace-nowrap">
+          <button id="open-auth-modal-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-3.5 py-1.5 rounded-lg text-xs transition whitespace-nowrap shadow-sm">
             เข้าสู่ระบบ
           </button>
         `;
@@ -671,6 +684,7 @@
           authModal.classList.remove('hidden'); authModal.classList.add('flex');
         });
 
+        dynamicActionArea.innerHTML = '';
         tabMyPets.classList.add('hidden');
         adminTabContainer.classList.add('hidden');
         currentMainView = 'ALL';
@@ -875,20 +889,20 @@
     window.switchMainView = function(view) {
       currentMainView = view;
       
-      if (tabAllPets) tabAllPets.className = "py-2.5 px-4 font-bold text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-700 transition";
-      if (tabMyPets) tabMyPets.className = "py-2.5 px-4 font-bold text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-700 transition";
+      if (tabAllPets) tabAllPets.className = "py-2 px-3.5 font-bold text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-700 transition";
+      if (tabMyPets) tabMyPets.className = "py-2 px-3.5 font-bold text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-700 transition";
       
       const tabAdmin = document.getElementById('tab-admin');
       if (tabAdmin) tabAdmin.className = "py-1.5 px-3 bg-purple-600 text-white rounded-lg text-xs font-bold transition shadow";
 
       if (view === 'ALL') {
-        if (tabAllPets) tabAllPets.className = "py-2.5 px-4 font-bold text-sm border-b-2 border-blue-600 text-blue-600 transition";
+        if (tabAllPets) tabAllPets.className = "py-2 px-3.5 font-bold text-sm border-b-2 border-blue-600 text-blue-600 transition";
         categoryFilterContainer.classList.remove('hidden');
         petGrid.classList.remove('hidden');
         adminPanelContainer.classList.add('hidden');
         document.getElementById('section-title').innerText = "รายการสัตว์เลี้ยงมาใหม่";
       } else if (view === 'MY') {
-        if (tabMyPets) tabMyPets.className = "py-2.5 px-4 font-bold text-sm border-b-2 border-blue-600 text-blue-600 transition";
+        if (tabMyPets) tabMyPets.className = "py-2 px-3.5 font-bold text-sm border-b-2 border-blue-600 text-blue-600 transition";
         categoryFilterContainer.classList.add('hidden');
         petGrid.classList.remove('hidden');
         adminPanelContainer.classList.add('hidden');
