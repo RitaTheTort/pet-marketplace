@@ -16,10 +16,10 @@
         <span class="text-[10px] bg-blue-900 text-blue-200 px-1.5 py-0.5 rounded shrink-0">Beta</span>
       </div>
       <div class="flex items-center space-x-1.5 shrink-0" id="auth-buttons-container">
-        <button id="open-add-modal-btn" class="hidden bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-2.5 py-1.5 rounded-lg text-xs transition shadow whitespace-nowrap">
+        <button id="open-add-modal-btn" class="hidden bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-2 py-1.5 rounded-lg text-xs transition shadow shrink-0 whitespace-nowrap">
           + ลงประกาศ
         </button>
-        <button id="open-auth-modal-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-2.5 py-1.5 rounded-lg text-xs transition whitespace-nowrap">
+        <button id="open-auth-modal-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-3 py-1.5 rounded-lg text-xs transition whitespace-nowrap">
           เข้าสู่ระบบ
         </button>
       </div>
@@ -565,16 +565,19 @@
         }
 
         container.innerHTML = `
-          <button id="open-inbox-btn" onclick="openInboxModal()" class="relative bg-slate-800 hover:bg-slate-700 text-blue-400 border border-slate-700 font-medium p-2 rounded-lg text-xs transition flex items-center justify-center shrink-0">
+          <button id="open-inbox-btn" onclick="openInboxModal()" class="relative bg-slate-800 hover:bg-slate-700 text-blue-400 border border-slate-700 font-medium p-1.5 rounded-lg text-xs transition flex items-center justify-center shrink-0" title="กล่องข้อความ">
             💬
             <span id="unread-badge" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-[9px] font-bold px-1 py-0.2 rounded-full animate-pulse">0</span>
           </button>
           <button id="open-add-modal-btn" class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-2.5 py-1.5 rounded-lg text-xs transition shadow shrink-0 whitespace-nowrap">
             + ลงประกาศ
           </button>
-          <div class="flex items-center space-x-1.5 bg-slate-800 px-2 py-1.5 rounded-lg border border-slate-700 min-w-0">
-            <button onclick="openProfileModal()" class="text-xs font-bold text-slate-200 truncate hover:text-blue-400 transition max-w-[70px] sm:max-w-[120px]">คุณ ${displayName}</button>
-            <button onclick="handleSignOut()" class="text-xs text-red-400 hover:text-red-300 font-bold shrink-0">ออก</button>
+          <div class="flex items-center space-x-1.5 bg-slate-800 px-2 py-1.5 rounded-lg border border-slate-700 shrink-0">
+            <span class="text-xs font-bold text-slate-200 truncate max-w-[80px]">คุณ ${displayName}</span>
+            <button onclick="openProfileModal()" class="bg-slate-700 hover:bg-slate-600 text-blue-300 px-2 py-1 rounded text-xs font-bold transition flex items-center gap-0.5" title="จัดการบัญชี">
+              ⚙️ จัดการ
+            </button>
+            <button onclick="handleSignOut()" class="text-xs text-red-400 hover:text-red-300 font-bold ml-0.5">ออก</button>
           </div>
         `;
         document.getElementById('open-add-modal-btn').addEventListener('click', () => {
