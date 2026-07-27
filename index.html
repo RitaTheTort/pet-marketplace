@@ -10,17 +10,17 @@
 <body class="bg-slate-50 text-slate-800 min-h-screen">
 
   <header class="bg-slate-900 text-white shadow-md sticky top-0 z-40">
-    <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
-      <div class="flex items-center space-x-2">
-        <span class="text-2xl font-bold text-blue-400">PetMarket</span>
-        <span class="text-xs bg-blue-900 text-blue-200 px-2 py-1 rounded">Beta</span>
+    <div class="max-w-6xl mx-auto px-3 py-3 flex justify-between items-center">
+      <div class="flex items-center space-x-1.5 min-w-0">
+        <span class="text-xl font-bold text-blue-400 truncate">PetMarket</span>
+        <span class="text-[10px] bg-blue-900 text-blue-200 px-1.5 py-0.5 rounded shrink-0">Beta</span>
       </div>
-      <div class="flex items-center space-x-2" id="auth-buttons-container">
-        <button id="open-add-modal-btn" class="hidden bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-3 py-2 rounded-lg text-xs md:text-sm transition shadow whitespace-nowrap">
+      <div class="flex items-center space-x-1.5 shrink-0" id="auth-buttons-container">
+        <button id="open-add-modal-btn" class="hidden bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-2.5 py-1.5 rounded-lg text-xs transition shadow whitespace-nowrap">
           + ลงประกาศ
         </button>
-        <button id="open-auth-modal-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-3 py-2 rounded-lg text-xs md:text-sm transition whitespace-nowrap">
-          เข้าสู่ระบบ / สมัครสมาชิก
+        <button id="open-auth-modal-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-2.5 py-1.5 rounded-lg text-xs transition whitespace-nowrap">
+          เข้าสู่ระบบ
         </button>
       </div>
     </div>
@@ -129,6 +129,12 @@
           </div>
         </div>
 
+        <div id="kyc-input-group" class="hidden space-y-1">
+          <label class="block text-xs font-bold text-slate-700">อัปโหลดเอกสารยืนยันตัวตน (KYC) เช่น บัตรประชาชน *</label>
+          <input type="file" id="kyc-file-input" accept="image/*" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-xs file:font-bold file:bg-blue-50 file:text-blue-700">
+          <p class="text-[10px] text-slate-400">ภาพถ่ายบัตรประชาชน (ปิดหมายเลข 13 หลักเพื่อความปลอดภัย)</p>
+        </div>
+
         <div class="pt-2">
           <button type="submit" id="auth-submit-btn" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-bold shadow transition">
             เข้าสู่ระบบ
@@ -173,7 +179,7 @@
         <div>
           <label class="block text-xs font-bold text-slate-700 mb-1">อัปเดต/ส่งเอกสารยืนยันตัวตนใหม่ (ถ้ามี)</label>
           <input type="file" id="profile-kyc-file" accept="image/*" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-xs file:font-bold file:bg-blue-50 file:text-blue-700">
-          <p class="text-[10px] text-slate-400 mt-1">อัปโหลดภาพบัตรประชาชน (ปิดหมายเลข 13 หลักเพื่อความปลอดภัย)</p>
+          <p class="text-[10px] text-slate-400 mt-1">อัปโหลดภาพบัตรประชาชนเพื่อเปลี่ยนหรือส่งเอกสารเพิ่ม</p>
         </div>
 
         <div class="pt-3 flex justify-end space-x-3 border-t border-slate-100">
@@ -390,8 +396,9 @@
     }
 
     const SUPABASE_URL = 'https://vrkxmlzsbxgoboulfgos.supabase.co';
-    const realSupabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZya3htbHpzYnhnb2JvdWxmZ29zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUwNzk3NDUsImV4cCI6MjEwMDY1NTc0NX0.2ZbPyeqT-oLtKegqgmHMQx70x1BWhLWXc5p2jySspiQ';
-    const supabaseClient = window.supabase.createClient(SUPABASE_URL, realSupabaseKey);
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZya3htbHpzYnhnb2JvdWxmZ29zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUwNzk3NDUsImV4cCI6MjEwMDY1NTc0NX0.2ZbPyeqT-oLtKegqgmHMQx70x1BWhLWXc5p2jySspiQ';
+
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     let currentUser = null;
     let currentUserRole = 'user';
@@ -410,6 +417,7 @@
     const authForm = document.getElementById('auth-form');
     const toggleAuthBtn = document.getElementById('toggle-auth-btn');
     const nameInputGroup = document.getElementById('name-input-group');
+    const kycInputGroup = document.getElementById('kyc-input-group');
 
     const profileModal = document.getElementById('profile-modal');
     const profileForm = document.getElementById('profile-form');
@@ -557,18 +565,16 @@
         }
 
         container.innerHTML = `
-          <button id="open-inbox-btn" onclick="openInboxModal()" class="relative bg-slate-800 hover:bg-slate-700 text-blue-400 border border-slate-700 font-medium px-3 py-2 rounded-lg text-xs md:text-sm transition flex items-center gap-1.5 whitespace-nowrap">
-            💬 <span class="hidden sm:inline">ข้อความ</span>
-            <span id="unread-badge" class="hidden absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full animate-pulse">0</span>
+          <button id="open-inbox-btn" onclick="openInboxModal()" class="relative bg-slate-800 hover:bg-slate-700 text-blue-400 border border-slate-700 font-medium p-2 rounded-lg text-xs transition flex items-center justify-center shrink-0">
+            💬
+            <span id="unread-badge" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-[9px] font-bold px-1 py-0.2 rounded-full animate-pulse">0</span>
           </button>
-          <button id="open-add-modal-btn" class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-3 py-2 rounded-lg text-xs md:text-sm transition shadow whitespace-nowrap">
+          <button id="open-add-modal-btn" class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-2.5 py-1.5 rounded-lg text-xs transition shadow shrink-0 whitespace-nowrap">
             + ลงประกาศ
           </button>
-          <div class="flex items-center space-x-1.5 bg-slate-800 px-2.5 py-1.5 rounded-lg border border-slate-700">
-            <button onclick="openProfileModal()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-2.5 py-1 rounded-md transition shadow flex items-center gap-1 whitespace-nowrap">
-              ⚙️ <span class="max-w-[90px] md:max-w-[120px] truncate">คุณ ${displayName}</span>
-            </button>
-            <button onclick="handleSignOut()" class="text-xs text-red-400 hover:text-red-300 font-bold px-1.5 py-1 transition whitespace-nowrap">ออก</button>
+          <div class="flex items-center space-x-1.5 bg-slate-800 px-2 py-1.5 rounded-lg border border-slate-700 min-w-0">
+            <button onclick="openProfileModal()" class="text-xs font-bold text-slate-200 truncate hover:text-blue-400 transition max-w-[70px] sm:max-w-[120px]">คุณ ${displayName}</button>
+            <button onclick="handleSignOut()" class="text-xs text-red-400 hover:text-red-300 font-bold shrink-0">ออก</button>
           </div>
         `;
         document.getElementById('open-add-modal-btn').addEventListener('click', () => {
@@ -591,7 +597,7 @@
       } else {
         container.innerHTML = `
           <button id="open-auth-modal-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-3 py-2 rounded-lg text-xs md:text-sm transition whitespace-nowrap">
-            เข้าสู่ระบบ / สมัครสมาชิก
+            เข้าสู่ระบบ
           </button>
         `;
         document.getElementById('open-auth-modal-btn').addEventListener('click', () => {
@@ -614,7 +620,7 @@
       document.getElementById('profile-kyc-file').value = '';
       
       const statusBox = document.getElementById('profile-kyc-status-box');
-      statusBox.innerHTML = `<span>⌛ กำลังโหลดสถานะ...</span>`;
+      statusBox.innerHTML = `<span>⏳ กำลังโหลดสถานะ...</span>`;
 
       profileModal.classList.remove('hidden');
       profileModal.classList.add('flex');
@@ -635,7 +641,7 @@
         if (profileData.kyc_status === 'approved') {
           statusBox.className = 'p-3 rounded-lg text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200 flex items-center justify-between';
           statusBox.innerHTML = `<span>✓ ยืนยันตัวตนสำเร็จแล้ว (Approved)</span> ${profileData.kyc_document_url ? `<a href="${profileData.kyc_document_url}" target="_blank" class="text-blue-600 underline font-semibold">ดูเอกสาร</a>` : ''}`;
-        } else if (profileData.kyc_status === 'pending' || profileData.kyc_status === 'admin_checked') {
+        } else if (profileData.kyc_status === 'pending') {
           statusBox.className = 'p-3 rounded-lg text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200 flex items-center justify-between';
           statusBox.innerHTML = `<span>⌛ รอผู้ดูแลระบบตรวจสอบเอกสาร (Pending)</span> ${profileData.kyc_document_url ? `<a href="${profileData.kyc_document_url}" target="_blank" class="text-amber-600 underline font-semibold">ดูเอกสาร</a>` : ''}`;
         } else {
@@ -814,7 +820,6 @@
       const { data: profiles, error } = await supabaseClient
         .from('profiles')
         .select('*')
-        .in('kyc_status', ['pending', 'admin_checked'])
         .order('updated_at', { ascending: false });
 
       if (error) {
@@ -823,44 +828,24 @@
       }
 
       if (!profiles || profiles.length === 0) {
-        kycListContainer.innerHTML = `<p class="text-xs text-slate-400">ไม่มีรายการรอตรวจสอบ KYC ในขณะนี้</p>`;
+        kycListContainer.innerHTML = `<p class="text-xs text-slate-400">ยังไม่มีข้อมูลสมาชิกในระบบ</p>`;
         return;
       }
 
       kycListContainer.innerHTML = profiles.map(profile => {
-        const isSuperAdmin = (currentUserRole === 'super_admin');
-        const isAdmin = (currentUserRole === 'admin');
-        const isCheckedByAdmin = (profile.kyc_status === 'admin_checked');
-
-        let statusBadge = '<span class="inline-block mt-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-700">⌛ รอตรวจสอบ</span>';
-        if (isCheckedByAdmin) {
-          statusBadge = '<span class="inline-block mt-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-700">🛡️ แอดมินตรวจสอบแล้ว (รอ Super Admin อนุมัติ)</span>';
-        }
-
-        let actionButtons = '';
-        if (profile.kyc_document_url) {
-          actionButtons += `<a href="${profile.kyc_document_url}" target="_blank" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-bold transition">ดูเอกสาร</a>`;
-        } else {
-          actionButtons += `<span class="text-xs text-slate-400">ไม่มีเอกสาร</span>`;
-        }
-
-        if (isAdmin && !isCheckedByAdmin) {
-          actionButtons += `<button onclick="adminCheckKycUser('${profile.id}')" class="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-bold transition">ตรวจสอบเอกสารแล้ว</button>`;
-        }
-
-        if (isSuperAdmin) {
-          actionButtons += `<button onclick="approveKycUser('${profile.id}')" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition">อนุมัติ KYC</button>`;
-        }
+        const statusText = profile.kyc_status === 'approved' ? '✓ อนุมัติแล้ว' : profile.kyc_status === 'pending' ? '⌛ รอตรวจสอบ' : '✕ ยังไม่ยืนยัน';
+        const statusColor = profile.kyc_status === 'approved' ? 'bg-blue-100 text-blue-700' : profile.kyc_status === 'pending' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600';
 
         return `
           <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
               <p class="font-bold text-slate-900 text-sm">${profile.full_name || 'ไม่ระบุชื่อ'}</p>
               <p class="text-xs text-slate-500">รหัสผู้ใช้: ${profile.id}</p>
-              ${statusBadge}
+              <span class="inline-block mt-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full ${statusColor}">${statusText}</span>
             </div>
             <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
-              ${actionButtons}
+              ${profile.kyc_document_url ? `<a href="${profile.kyc_document_url}" target="_blank" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-bold transition">ดูเอกสาร</a>` : '<span class="text-xs text-slate-400">ไม่มีเอกสาร</span>'}
+              ${profile.kyc_status !== 'approved' ? `<button onclick="approveKycUser('${profile.id}')" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition">อนุมัติ KYC</button>` : ''}
             </div>
           </div>
         `;
@@ -925,43 +910,20 @@
       const actionText = newRole === 'admin' ? 'แต่งตั้งให้เป็นผู้ดูแลระบบ (Admin)' : 'ถอดถอนสิทธิ์ผู้ดูแลระบบให้กลับเป็นสมาชิกทั่วไป';
       if (!confirm(`คุณแน่ใจหรือไม่ว่าต้องการ${actionText}?`)) return;
 
-      const { data, error } = await supabaseClient
-        .from('profiles')
-        .update({ role: newRole, updated_at: new Date() })
-        .eq('id', userId)
-        .select();
-
-      if (error) {
-        alert(`เปลี่ยนสิทธิ์ไม่สำเร็จ: ${error.message}`);
-        console.error('Role Update Error:', error);
-      } else {
-        alert('อัปเดตบทบาทผู้ใช้งานสำเร็จเรียบร้อยแล้วครับ!');
-        await fetchAdminUsersData();
-      }
-    };
-
-    window.adminCheckKycUser = async function(userId) {
-      if (!confirm('ยืนยันว่าได้ตรวจสอบความถูกต้องของเอกสาร KYC นี้แล้ว?')) return;
-
       const { error } = await supabaseClient
         .from('profiles')
-        .update({ kyc_status: 'admin_checked', updated_at: new Date() })
+        .update({ role: newRole, updated_at: new Date() })
         .eq('id', userId);
 
       if (error) {
-        alert(`บันทึกไม่สำเร็จ: ${error.message}`);
+        alert(`เปลี่ยนสิทธิ์ไม่สำเร็จ: ${error.message}`);
       } else {
-        await fetchAdminKycData();
-        alert('บันทึกสถานะ "ตรวจสอบเอกสารแล้ว" สำเร็จ ส่งต่อให้ Super Admin อนุมัติขั้นสุดท้ายครับ!');
+        alert('อัปเดตบทบาทผู้ใช้งานสำเร็จเรียบร้อยแล้วครับ!');
+        fetchAdminUsersData();
       }
     };
 
     window.approveKycUser = async function(userId) {
-      if (currentUserRole !== 'super_admin') {
-        alert('เฉพาะ Super Admin เท่านั้นที่มีสิทธิ์อนุมัติ KYC ครับ');
-        return;
-      }
-
       if (!confirm('ยืนยันการอนุมัติเอกสารยืนยันตัวตน (KYC) สำหรับผู้ใช้งานนี้?')) return;
 
       const { error } = await supabaseClient
@@ -972,9 +934,8 @@
       if (error) {
         alert(`อนุมัติไม่สำเร็จ: ${error.message}`);
       } else {
-        await fetchAdminKycData();
-        await fetchAdminUsersData();
         alert('อนุมัติยืนยันตัวตนสำเร็จเรียบร้อยแล้วครับ!');
+        fetchAdminKycData();
       }
     };
 
@@ -986,11 +947,15 @@
       const forgotContainer = document.getElementById('forgot-password-container');
       if (isSignUpMode) {
         nameInputGroup.classList.remove('hidden');
+        kycInputGroup.classList.remove('hidden');
         document.getElementById('auth-name').setAttribute('required', 'true');
+        document.getElementById('kyc-file-input').setAttribute('required', 'true');
         if (forgotContainer) forgotContainer.classList.add('hidden');
       } else {
         nameInputGroup.classList.add('hidden');
+        kycInputGroup.classList.add('hidden');
         document.getElementById('auth-name').removeAttribute('required');
+        document.getElementById('kyc-file-input').removeAttribute('required');
         if (forgotContainer) forgotContainer.classList.remove('hidden');
       }
 
@@ -1005,6 +970,7 @@
       const email = document.getElementById('auth-email').value.trim();
       const password = document.getElementById('auth-password').value;
       const fullName = document.getElementById('auth-name').value.trim();
+      const kycFileInput = document.getElementById('kyc-file-input');
       const submitBtn = document.getElementById('auth-submit-btn');
 
       submitBtn.disabled = true;
@@ -1020,17 +986,25 @@
           if (error) throw error;
 
           const userId = data.user?.id;
+          let kycUrl = null;
+
+          if (userId && kycFileInput.files[0]) {
+            submitBtn.innerText = 'กำลังบีบอัดและอัปโหลดเอกสาร KYC...';
+            kycUrl = await uploadKycDocument(kycFileInput.files[0], userId);
+          }
+
           if (userId) {
             await supabaseClient.from('profiles').upsert({
               id: userId,
               full_name: fullName,
               role: 'user',
-              kyc_status: 'unverified',
+              kyc_status: kycUrl ? 'pending' : 'unverified',
+              kyc_document_url: kycUrl,
               updated_at: new Date()
             });
           }
 
-          alert('ลงทะเบียนสำเร็จ! สามารถเข้าสู่ระบบได้เลยครับ');
+          alert('ลงทะเบียนและส่งเอกสารยืนยันตัวตนสำเร็จ! เข้าสู่ระบบได้เลยครับ');
         } else {
           const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
           if (error) throw error;
@@ -1091,7 +1065,7 @@
           if (profileData.kyc_status === 'approved') {
             kycBadgeEl.className = 'text-xs bg-blue-100 text-blue-700 font-bold px-2.5 py-1 rounded-full flex items-center gap-1';
             kycBadgeEl.innerText = '✓ ผู้ขายยืนยันตัวตน';
-          } else if (profileData.kyc_status === 'pending' || profileData.kyc_status === 'admin_checked') {
+          } else if (profileData.kyc_status === 'pending') {
             kycBadgeEl.className = 'text-xs bg-amber-100 text-amber-700 font-bold px-2.5 py-1 rounded-full flex items-center gap-1';
             kycBadgeEl.innerText = '⌛ รอผู้ดูแลระบบอนุมัติ KYC';
           } else {
