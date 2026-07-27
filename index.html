@@ -1042,29 +1042,37 @@
       submitBtn.disabled = true;
       submitBtn.innerText = 'กำลังอัปโหลดรูปภาพ...';
 
-      try {
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
+          try {
+        const fileInput = document.querySelector('input[type="file"]');
+        if (!fileInput || fileInput.files.length === 0) throw new Error('กรุณาเลือกไฟล์ภาพ');
+        
+        const originalFile = fileInput.files[0];
+        const optimizedFile = await compressImage(originalFile, 1200, 0.8);
+
+        const fileExt = originalFile.name.split('.').pop();
+        const fileName = `${Date.now()}_${Math.random()}.${fileExt}`;
         const filePath = `${fileName}`;
 
         const { data, error } = await supabaseClient.storage
-          .from('pet-images')
-          .upload(filePath, file);
+            .from('pet-images')
+            .upload(filePath, optimizedFile);
 
         if (error) throw error;
 
-        const { data: publicUrlData } = supabaseClient.storage
-          .from('pet-images')
-          .getPublicUrl(filePath);
+        const { data: publicUrlData } = await supabaseClient.storage
+            .from('pet-images')
+            .getPublicUrl(filePath);
 
         if (publicUrlData && publicUrlData.publicUrl) {
-          imageUrlInput.value = publicUrlData.publicUrl;
-          alert('อัปโหลดรูปภาพสำเร็จ!');
+            imageUrlInput.value = publicUrlData.publicUrl;
+            alert('อัปโหลดรูปภาพสำเร็จ!');
         }
-      } catch (err) {
-        alert(`อัปโหลดรูปภาพไม่สำเร็จ: ${err.message}`);
-        petImageFileInput.value = '';
-      } finally {
+    } catch (error) {
+        alert('อัปโหลดรูปภาพไม่สำเร็จ: ' + error.message);
+    }
+
+
+       finally {
         submitBtn.disabled = false;
         submitBtn.innerText = 'บันทึกประกาศ';
       }
