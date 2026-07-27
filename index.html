@@ -258,15 +258,17 @@
 
   <!-- Modal: รายละเอียดสัตว์เลี้ยง -->
   <div id="detail-pet-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4 overflow-y-auto">
-    <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg my-8 relative overflow-visible">
-      <!-- ปุ่มปิด (×) ลอยที่มุมขวาบนสุดของการ์ด Modal -->
-      <button id="close-detail-btn-top" class="absolute -top-3 -right-3 z-50 w-9 h-9 bg-slate-900 hover:bg-slate-800 text-white rounded-full flex items-center justify-center text-lg font-bold transition shadow-lg border-2 border-white">&times;</button>
-
-      <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center rounded-t-2xl">
-        <h3 id="detail-title" class="font-bold text-lg truncate pr-8">รายละเอียดสัตว์เลี้ยง</h3>
-        <button id="close-detail-btn" class="text-slate-400 hover:text-white text-xl font-bold">&times;</button>
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg my-8 relative overflow-hidden">
+      
+      <!-- ส่วนหัว Modal พร้อมปุ่มปิดชัดเจน -->
+      <div class="bg-slate-900 text-white px-5 py-4 flex justify-between items-center">
+        <h3 id="detail-title" class="font-bold text-base truncate pr-2">รายละเอียดสัตว์เลี้ยง</h3>
+        <button type="button" id="close-detail-btn-top" class="bg-slate-800 hover:bg-slate-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1 border border-slate-700">
+          ✕ ปิดหน้าต่างนี้
+        </button>
       </div>
-      <div class="p-6 space-y-4">
+
+      <div class="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
         <div class="h-60 bg-slate-100 rounded-xl overflow-hidden flex items-center justify-center text-slate-400">
           <img id="detail-image" src="" class="w-full h-full object-cover hidden">
           <span id="detail-no-image" class="text-sm">ไม่มีรูปภาพ</span>
@@ -322,6 +324,14 @@
             ติดต่อผู้ขาย
           </button>
         </div>
+
+        <!-- เพิ่มปุ่มปิดขนาดใหญ่บริเวณด้านล่างสุดเพื่อให้กดปิดได้ง่ายยิ่งขึ้น -->
+        <div class="pt-2">
+          <button type="button" onclick="document.getElementById('detail-pet-modal').classList.add('hidden'); document.getElementById('detail-pet-modal').classList.remove('flex');" class="w-full py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl font-bold text-xs transition">
+            ✕ ปิดหน้าต่างนี้
+          </button>
+        </div>
+
       </div>
     </div>
   </div>
@@ -472,7 +482,6 @@
     const addPetForm = document.getElementById('add-pet-form');
 
     const detailModal = document.getElementById('detail-pet-modal');
-    const closeDetailBtn = document.getElementById('close-detail-btn');
     const closeDetailBtnTop = document.getElementById('close-detail-btn-top');
     const contactSellerBtn = document.getElementById('contact-seller-btn');
 
@@ -1095,6 +1104,13 @@
     if (closeDetailBtnTop) {
       closeDetailBtnTop.addEventListener('click', closeDetailModal);
     }
+
+    // คลิกพื้นที่ว่างฉากหลังเพื่อปิด Modal รายละเอียดได้ทันที
+    detailModal.addEventListener('click', (e) => {
+      if (e.target === detailModal) {
+        closeDetailModal();
+      }
+    });
 
     window.showPetDetail = async function(index) {
       const pet = filteredPetsData[index];
