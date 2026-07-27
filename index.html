@@ -820,6 +820,7 @@
       const { data: profiles, error } = await supabaseClient
         .from('profiles')
         .select('*')
+        .eq('kyc_status', 'pending')
         .order('updated_at', { ascending: false });
 
       if (error) {
@@ -828,31 +829,27 @@
       }
 
       if (!profiles || profiles.length === 0) {
-        kycListContainer.innerHTML = `<p class="text-xs text-slate-400">ยังไม่มีข้อมูลสมาชิกในระบบ</p>`;
+        kycListContainer.innerHTML = `<p class="text-xs text-slate-400">ไม่มีรายการรอตรวจสอบ KYC ในขณะนี้</p>`;
         return;
       }
 
       kycListContainer.innerHTML = profiles.map(profile => {
-        const statusText = profile.kyc_status === 'approved' ? '✓ อนุมัติแล้ว' : profile.kyc_status === 'pending' ? '⌛ รอตรวจสอบ' : '✕ ยังไม่ยืนยัน';
-        const statusColor = profile.kyc_status === 'approved' ? 'bg-blue-100 text-blue-700' : profile.kyc_status === 'pending' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600';
-
         return `
           <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
               <p class="font-bold text-slate-900 text-sm">${profile.full_name || 'ไม่ระบุชื่อ'}</p>
               <p class="text-xs text-slate-500">รหัสผู้ใช้: ${profile.id}</p>
-              <span class="inline-block mt-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full ${statusColor}">${statusText}</span>
+              <span class="inline-block mt-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-700">⌛ รอตรวจสอบ</span>
             </div>
             <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
               ${profile.kyc_document_url ? `<a href="${profile.kyc_document_url}" target="_blank" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-bold transition">ดูเอกสาร</a>` : '<span class="text-xs text-slate-400">ไม่มีเอกสาร</span>'}
-              ${profile.kyc_status !== 'approved' ? `<button onclick="approveKycUser('${profile.id}')" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition">อนุมัติ KYC</button>` : ''}
+              <button onclick="approveKycUser('${profile.id}')" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition">อนุมัติ KYC</button>
             </div>
           </div>
         `;
       }).join('');
     }
 
-    // โหลดรายชื่อผู้ใช้งานทั้งหมดเพื่อจัดการสิทธิ์ Admin
     async function fetchAdminUsersData() {
       const usersListContainer = document.getElementById('admin-users-list');
       usersListContainer.innerHTML = '<p class="text-xs text-slate-400">กำลังดึงรายชื่อสมาชิก...</p>';
@@ -920,7 +917,7 @@
         alert(`เปลี่ยนสิทธิ์ไม่สำเร็จ: ${error.message}`);
       } else {
         alert('อัปเดตบทบาทผู้ใช้งานสำเร็จเรียบร้อยแล้วครับ!');
-        fetchAdminUsersData();
+        await fetchAdminUsersData();
       }
     };
 
@@ -936,7 +933,8 @@
         alert(`อนุมัติไม่สำเร็จ: ${error.message}`);
       } else {
         alert('อนุมัติยืนยันตัวตนสำเร็จเรียบร้อยแล้วครับ!');
-        fetchAdminKycData();
+        await fetchAdminKycData();
+        await fetchAdminUsersData();
       }
     };
 
