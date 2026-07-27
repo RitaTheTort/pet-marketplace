@@ -269,10 +269,15 @@
       </div>
 
       <div class="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
-        <div class="h-60 bg-slate-100 rounded-xl overflow-hidden flex items-center justify-center text-slate-400">
-          <img id="detail-image" src="" class="w-full h-full object-cover hidden">
+        <!-- ปรับรูปภาพให้ไม่เกินกรอบ และกดเพื่อขยายภาพใหญ่ได้ -->
+        <div class="h-60 bg-slate-100 rounded-xl overflow-hidden flex items-center justify-center text-slate-400 relative group cursor-pointer" onclick="openImageLightbox()" title="คลิกเพื่อดูรูปภาพขนาดใหญ่">
+          <img id="detail-image" src="" class="w-full h-full object-contain hidden">
           <span id="detail-no-image" class="text-sm">ไม่มีรูปภาพ</span>
+          <div class="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white text-xs font-bold">
+            🔍 คลิกเพื่อขยายภาพ
+          </div>
         </div>
+
         <div class="flex justify-between items-center">
           <span id="detail-species" class="text-xs font-bold uppercase bg-blue-50 text-blue-600 px-2.5 py-1 rounded-md">SPECIES</span>
           <span id="detail-health" class="text-xs font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-md">สมบูรณ์แข็งแรง</span>
@@ -325,7 +330,7 @@
           </button>
         </div>
 
-        <!-- เพิ่มปุ่มปิดขนาดใหญ่บริเวณด้านล่างสุดเพื่อให้กดปิดได้ง่ายยิ่งขึ้น -->
+        <!-- ปุ่มปิดหน้าต่างด้านล่าง -->
         <div class="pt-2">
           <button type="button" onclick="document.getElementById('detail-pet-modal').classList.add('hidden'); document.getElementById('detail-pet-modal').classList.remove('flex');" class="w-full py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl font-bold text-xs transition">
             ✕ ปิดหน้าต่างนี้
@@ -333,6 +338,14 @@
         </div>
 
       </div>
+    </div>
+  </div>
+
+  <!-- Modal: ดูภาพขนาดใหญ่ (Lightbox) -->
+  <div id="lightbox-modal" class="fixed inset-0 bg-black/90 hidden items-center justify-center z-[100] p-4" onclick="closeImageLightbox()">
+    <div class="relative max-w-4xl max-h-full flex items-center justify-center">
+      <button type="button" class="absolute -top-10 right-0 text-white bg-slate-800 hover:bg-slate-700 px-3 py-1 rounded-lg text-xs font-bold transition">✕ ปิดภาพใหญ่</button>
+      <img id="lightbox-img" src="" class="max-w-full max-h-[85vh] object-contain rounded-xl shadow-2xl">
     </div>
   </div>
 
@@ -1111,6 +1124,24 @@
         closeDetailModal();
       }
     });
+
+    // ฟังก์ชันเปิด-ปิด Lightbox ดูภาพใหญ่
+    window.openImageLightbox = function() {
+      const imgEl = document.getElementById('detail-image');
+      const lightboxModal = document.getElementById('lightbox-modal');
+      const lightboxImg = document.getElementById('lightbox-img');
+      if (imgEl && imgEl.src && !imgEl.classList.contains('hidden')) {
+        lightboxImg.src = imgEl.src;
+        lightboxModal.classList.remove('hidden');
+        lightboxModal.classList.add('flex');
+      }
+    };
+
+    window.closeImageLightbox = function() {
+      const lightboxModal = document.getElementById('lightbox-modal');
+      lightboxModal.classList.add('hidden');
+      lightboxModal.classList.remove('flex');
+    };
 
     window.showPetDetail = async function(index) {
       const pet = filteredPetsData[index];
