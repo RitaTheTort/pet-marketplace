@@ -331,7 +331,7 @@
         <button onclick="closeGiveBadgeModal()" class="text-slate-400 hover:text-white text-xl font-bold">&times;</button>
       </div>
       <div class="p-5 space-y-4">
-        <p class="text-xs text-slate-600">เลือกป้ายรางวัลที่ต้องการมอบให้กับผู้ขายรายนี้ (ระบบจะตรวจสอบอายุบัญชีและประวัติการแชทให้อัตโนมัติ):</p>
+        <p class="text-xs text-slate-600">เลือกป้ายรางวัลที่ต้องการมอบให้กับผู้ขายรายนี้:</p>
         <div id="badge-options-container" class="space-y-2">
           <!-- รายการป้ายจะถูกเรนเดอร์ด้วย JavaScript -->
         </div>
@@ -496,7 +496,6 @@
     async function uploadKycDocument(file, userId) {
       try {
         const optimizedFile = await compressImage(file, 1200, 0.8);
-
         const fileExt = file.name.split('.').pop();
         const fileName = `kyc_${userId}_${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
         const filePath = `${userId}/${fileName}`;
@@ -1187,13 +1186,17 @@
       modal.classList.add('flex');
       container.innerHTML = '<p class="text-xs text-slate-400">กำลังโหลดรายการป้าย...</p>';
 
-      const { data: types, error } = await supabaseClient
+      let { data: types, error } = await supabaseClient
         .from('badge_types')
         .select('*');
 
-      if (error || !types) {
-        container.innerHTML = '<p class="text-xs text-red-500">ไม่สามารถโหลดรายการป้ายได้</p>';
-        return;
+      if (error || !types || types.length === 0) {
+        types = [
+          { badge_id: 1, badge_name: 'ร้านนี้ส่งไวมาก', description: 'ผู้ขายที่มีความรวดเร็วในการจัดส่งและการจัดการสูง' },
+          { badge_id: 2, badge_name: 'ลูกค้าระดับตำนาน', description: 'ผู้ซื้อที่มีประวัติการทำธุรกรรมหรือพฤติกรรมยอดเยี่ยม' },
+          { badge_id: 3, badge_name: 'ดูแลเต็ม 10', description: 'ผู้ใช้ที่มีความใส่ใจในการสื่อสารและดูแลคู่ค้าอย่างดีเยี่ยม' },
+          { badge_id: 4, badge_name: 'ใจ ๆ', description: 'ผู้ใช้ที่มีความซื่อตรง ยืดหยุ่น และน่าร่วมงานด้วย' }
+        ];
       }
 
       container.innerHTML = types.map(badge => `
