@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PetMarket - ตลาดประมูลสัตว์เลี้ยงสด (Live Auction)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen">
+
+  <header class="bg-slate-900 text-white shadow-md sticky top-0 z-40">
+    <div class="max-w-6xl mx-auto px-4 py-3.5 flex justify-between items-center">
+      <div class="flex items-center space-x-3">
+        <a href="index.html" class="text-blue-400 hover:text-blue-300 font-bold text-sm flex items-center gap-1">
+          &larr; กลับสู่หน้าหลักตลาดซื้อขาย
+        </a>
+        <span class="text-slate-600">|</span>
+        <span class="text-xl font-extrabold text-red-400 tracking-wide">Live Auction Hub</span>
+      </div>
+      <div class="flex items-center space-x-2" id="auth-buttons-container">
+        <button id="open-auth-modal-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-3.5 py-1.5 rounded-lg text-xs transition shadow-sm">
+          เข้าสู่ระบบ
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <section class="bg-gradient-to-r from-red-900 to-slate-900 text-white py-10 px-4">
+    <div class="max-w-4xl mx-auto text-center flex flex-col items-center">
+      <h1 class="text-3xl font-extrabold mb-2">🔨 ตลาดประมูลสัตว์เลี้ยงออนไลน์ (Live Auction)</h1>
+      <p class="text-slate-300 text-sm mb-4">ร่วมประมูลสินค้าคัดพิเศษ หรือเปิดประมูลสัตว์เลี้ยงของคุณเองได้ทันที</p>
+      <button id="open-create-auc-btn" onclick="openCreateAuctionModal()" class="hidden bg-red-600 hover:bg-red-700 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-lg transition flex items-center gap-2">
+        + เปิดประมูลสินค้าใหม่
+      </button>
+    </div>
+  </section>
+
+  <main class="max-w-6xl mx-auto px-4 py-8">
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-xl font-bold text-slate-900">รายการประมูลที่กำลังดำเนินอยู่</h2>
+      <span class="text-xs text-slate-500" id="auction-count">กำลังโหลดข้อมูล...</span>
+    </div>
+
+    <!-- Grid แสดงรายการประมูล -->
+    <div id="auction-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div class="col-span-full text-center py-12 text-slate-400 text-sm">
+        กำลังเชื่อมต่อตารางประมูล Supabase...
+      </div>
+    </div>
+  </main>
+
+  <!-- Modal: เปิดประมูลสินค้า -->
+  <div id="create-auction-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden my-8">
+      <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center">
+        <h3 class="font-bold text-lg">🔨 สร้างห้องประมูลสัตว์เลี้ยง</h3>
+        <button onclick="closeCreateAuctionModal()" class="text-slate-400 hover:text-white text-xl font-bold">&times;</button>
+      </div>
+      <form id="create-auction-form" class="p-6 space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">หัวข้อการประมูล *</label>
+          <input type="text" id="auc-title" required placeholder="เช่น เต่าดาวอินเดีย สายพันธุ์คัดพิเศษ" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:outline-none">
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">หมวดหมู่ / ชนิด *</label>
+            <select id="auc-species" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:outline-none">
+              <option value="Tortoise">Tortoise (เต่าบก)</option>
+              <option value="Gecko">Gecko (ตุ๊กแก)</option>
+              <option value="Frog">Frog (กบ)</option>
+              <option value="Cat">Cat (แมว)</option>
+              <option value="Other">อื่นๆ</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">ราคาเริ่มต้น (บาท) *</label>
+            <input type="number" id="auc-start-price" required placeholder="เช่น 10000" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:outline-none">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">ราคาซื้อทันที (Buy-It-Now)</label>
+            <input type="number" id="auc-buyout-price" placeholder="ไม่บังคับ เช่น 25000" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">ระยะเวลาประมูล (ชั่วโมง) *</label>
+            <input type="number" id="auc-duration" required value="24" min="1" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:outline-none">
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">รูปภาพสัตว์เลี้ยง (บีบอัดอัตโนมัติ) *</label>
+          <input type="file" id="auc-image-file" accept="image/*" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-bold file:bg-red-50 file:text-red-700">
+          <input type="hidden" id="auc-image-url" value="">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">รายละเอียดเพิ่มเติม</label>
+          <textarea id="auc-description" rows="3" placeholder="ระบุขนาด น้ำหนัก สุขภาพ และเงื่อนไขการจัดส่ง..." class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:outline-none"></textarea>
+        </div>
+        <div class="pt-3 flex justify-end space-x-3 border-t border-slate-100">
+          <button type="button" onclick="closeCreateAuctionModal()" class="px-4 py-2 border border-slate-300 rounded-lg text-slate-600 text-xs font-medium">ยกเลิก</button>
+          <button type="submit" id="auc-submit-btn" class="px-5 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold shadow transition">ยืนยันเปิดประมูล</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: เข้าสู่ระบบ / สมัครสมาชิก -->
+  <div id="auth-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden">
+      <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center">
+        <h3 class="font-bold text-lg">เข้าสู่ระบบ</h3>
+        <button onclick="document.getElementById('auth-modal').classList.add('hidden')" class="text-slate-400 hover:text-white text-xl font-bold">&times;</button>
+      </div>
+      <form id="auth-form" class="p-6 space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">อีเมล *</label>
+          <input type="email" id="auth-email" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">รหัสผ่าน *</label>
+          <input type="password" id="auth-password" required minlength="6" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm">
+        </div>
+        <button type="submit" class="w-full py-2.5 bg-blue-600 text-white rounded-lg text-sm font-bold shadow">เข้าสู่ระบบ</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    async function compressImage(file, maxWidth = 1200, quality = 0.8) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (event) => {
+          const img = new Image();
+          img.src = event.target.result;
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            let width = img.width; let height = img.height;
+            if (width > maxWidth) { height = Math.round((height * maxWidth) / width); width = maxWidth; }
+            canvas.width = width; canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+            canvas.toBlob((blob) => {
+              if (!blob) { reject(new Error('Canvas to Blob failed')); return; }
+              resolve(new File([blob], file.name, { type: 'image/jpeg', lastModified: Date.now() }));
+            }, 'image/jpeg', quality);
+          };
+          img.onerror = (error) => reject(error);
+        };
+        reader.onerror = (error) => reject(error);
+      });
+    }
+
+    const SUPABASE_URL = 'https://vrkxmlzsbxgoboulfgos.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZya3htbHpzYnhnb2JvdWxmZ29zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUwNzk3NDUsImV4cCI6MjEwMDY1NTc0NX0.2ZbPyeqT-oLtKegqgmHMQx70x1BWhLWXc5p2jySspiQ';
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let currentUser = null;
+
+    async function updateAuthUI(user) {
+      currentUser = user;
+      const container = document.getElementById('auth-buttons-container');
+      const createAucBtn = document.getElementById('open-create-auc-btn');
+
+      if (user) {
+        const displayName = user.user_metadata?.full_name || user.email.split('@')[0];
+        container.innerHTML = `
+          <div class="flex items-center space-x-2 bg-slate-800 px-3 py-1.5 rounded-lg text-xs text-white">
+            <span>คุณ ${displayName}</span>
+            <button onclick="handleSignOut()" class="text-red-400 font-bold">ออก</button>
+          </div>
+        `;
+        if (createAucBtn) createAucBtn.classList.remove('hidden');
+      } else {
+        container.innerHTML = `
+          <button onclick="document.getElementById('auth-modal').classList.remove('hidden'); document.getElementById('auth-modal').classList.add('flex');" class="bg-blue-600 text-white px-3.5 py-1.5 rounded-lg text-xs font-bold">เข้าสู่ระบบ</button>
+        `;
+        if (createAucBtn) createAucBtn.classList.add('hidden');
+      }
+    }
+
+    window.handleSignOut = async function() {
+      await supabaseClient.auth.signOut();
+      updateAuthUI(null);
+    };
+
+    window.openCreateAuctionModal = function() {
+      if (!currentUser) { alert('กรุณาเข้าสู่ระบบก่อนเปิดประมูล'); return; }
+      document.getElementById('create-auction-modal').classList.remove('hidden');
+      document.getElementById('create-auction-modal').classList.add('flex');
+    };
+
+    window.closeCreateAuctionModal = function() {
+      document.getElementById('create-auction-modal').classList.add('hidden');
+      document.getElementById('create-auction-modal').classList.remove('flex');
+    };
+
+    const aucImageFileInput = document.getElementById('auc-image-file');
+    aucImageFileInput.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const submitBtn = document.getElementById('auc-submit-btn');
+      submitBtn.disabled = true; submitBtn.innerText = 'กำลังบีบอัดและอัปโหลดภาพ...';
+      try {
+        const optimizedFile = await compressImage(file, 1200, 0.8);
+        const fileName = `auc_${Date.now()}_${Math.random()}.${file.name.split('.').pop()}`;
+        const { error } = await supabaseClient.storage.from('pet-images').upload(fileName, optimizedFile);
+        if (error) throw error;
+        const { data: publicUrlData } = await supabaseClient.storage.from('pet-images').getPublicUrl(fileName);
+        document.getElementById('auc-image-url').value = publicUrlData.publicUrl;
+        alert('อัปโหลดและบีบอัดรูปภาพสำเร็จ!');
+      } catch (err) {
+        alert('อัปโหลดภาพไม่สำเร็จ: ' + err.message);
+        aucImageFileInput.value = '';
+      } finally {
+        submitBtn.disabled = false; submitBtn.innerText = 'ยืนยันเปิดประมูล';
+      }
+    });
+
+    document.getElementById('create-auction-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!currentUser) return;
+      const title = document.getElementById('auc-title').value.trim();
+      const species = document.getElementById('auc-species').value;
+      const startPrice = parseFloat(document.getElementById('auc-start-price').value);
+      const buyoutPrice = document.getElementById('auc-buyout-price').value ? parseFloat(document.getElementById('auc-buyout-price').value) : null;
+      const durationHours = parseInt(document.getElementById('auc-duration').value);
+      const imageUrl = document.getElementById('auc-image-url').value;
+      const description = document.getElementById('auc-description').value.trim();
+      const sellerName = currentUser.user_metadata?.full_name || currentUser.email.split('@')[0];
+
+      if (!imageUrl) { alert('กรุณารออัปโหลดรูปภาพให้เสร็จสิ้นก่อนครับ'); return; }
+      const expiresAt = new Date(Date.now() + durationHours * 3600 * 1000).toISOString();
+
+      const payload = {
+        title, species, start_price: startPrice, current_price: startPrice, buyout_price: buyoutPrice,
+        images: [imageUrl], description, seller_id: currentUser.id, seller_name: sellerName,
+        expires_at: expiresAt, status: 'active'
+      };
+
+      try {
+        const { error } = await supabaseClient.from('auctions').insert([payload]);
+        if (error) throw error;
+        alert('เปิดประมูลสินค้าสำเร็จเรียบร้อยแล้ว!');
+        closeCreateAuctionModal();
+        fetchAuctions();
+      } catch (err) {
+        alert(`เกิดข้อผิดพลาด: ${err.message}`);
+      }
+    });
+
+    async function fetchAuctions() {
+      const grid = document.getElementById('auction-grid');
+      grid.innerHTML = '<div class="col-span-full text-center py-12 text-slate-400">กำลังโหลดรายการประมูล...</div>';
+      try {
+        const { data, error } = await supabaseClient.from('auctions').select('*').eq('status', 'active').order('created_at', { ascending: false });
+        if (error) throw error;
+        renderAuctions(data || []);
+      } catch (err) {
+        grid.innerHTML = `<div class="col-span-full text-red-500 text-center">เกิดข้อผิดพลาด: ${err.message}</div>`;
+      }
+    }
+
+    function renderAuctions(auctions) {
+      document.getElementById('auction-count').innerText = `กำลังประมูล ${auctions.length} รายการ`;
+      const grid = document.getElementById('auction-grid');
+      if (!auctions.length) {
+        grid.innerHTML = `<div class="col-span-full bg-white p-8 rounded-xl text-center text-slate-500">ยังไม่มีรายการเปิดประมูลในขณะนี้</div>`;
+        return;
+      }
+      grid.innerHTML = auctions.map(auc => `
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col justify-between">
+          <div>
+            <div class="h-56 bg-slate-100 relative">
+              <img src="${auc.images?.[0] || ''}" class="w-full h-full object-cover">
+              <span class="absolute top-3 left-3 bg-red-600 text-white font-bold text-xs px-2.5 py-1 rounded shadow">LIVE AUCTION</span>
+            </div>
+            <div class="p-4 space-y-2">
+              <span class="text-xs font-bold uppercase bg-red-50 text-red-600 px-2 py-0.5 rounded">${auc.species}</span>
+              <h3 class="font-bold text-slate-900 text-base">${auc.title}</h3>
+              <p class="text-xs text-slate-500">ผู้เปิดประมูล: <span class="font-semibold text-slate-700">${auc.seller_name}</span></p>
+              <div class="bg-emerald-50 p-3 rounded-xl border border-emerald-100 flex justify-between items-center mt-2">
+                <div>
+                  <p class="text-[10px] text-emerald-700">ราคาปัจจุบัน</p>
+                  <p class="text-xl font-black text-emerald-800">฿${Number(auc.current_price).toLocaleString()}</p>
+                </div>
+                ${auc.buyout_price ? `<div class="text-right"><p class="text-[10px] text-blue-600">ซื้อทันที</p><p class="text-sm font-bold text-blue-700">฿${Number(auc.buyout_price).toLocaleString()}</p></div>` : ''}
+              </div>
+            </div>
+          </div>
+          <div class="p-4 pt-0">
+            <button onclick="alert('ระบบห้องประมูลเดี่ยว กำลังเชื่อมโยง Realtime')" class="w-full bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-xl text-xs font-bold shadow transition">
+              🔨 เข้าร่วมห้องประมูล
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    document.getElementById('auth-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('auth-email').value.trim();
+      const password = document.getElementById('auth-password').value;
+      try {
+        const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        updateAuthUI(data.user);
+        document.getElementById('auth-modal').classList.add('hidden');
+      } catch (err) {
+        alert(`เข้าสู่ระบบไม่สำเร็จ: ${err.message}`);
+      }
+    });
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      fetchAuctions();
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      updateAuthUI(session ? session.user : null);
+    });
+  </script>
+</body>
+</html>
