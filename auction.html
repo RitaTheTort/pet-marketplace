@@ -290,7 +290,6 @@
       if (user) {
         const displayName = user.user_metadata?.full_name || user.email.split('@')[0];
 
-        // ดึง role จากตาราง profiles ให้ตรงกับหน้า index.html
         const { data: profileData } = await supabaseClient
           .from('profiles')
           .select('role')
@@ -426,7 +425,6 @@
       }
 
       grid.innerHTML = auctions.map(auc => {
-        // ตรวจสอบสิทธิ์จาก role ในตาราง profiles หรือถ้าเป็นเจ้าของโพสต์เอง
         const isAdmin = currentUser && (currentUserRole === 'admin' || currentUserRole === 'super_admin' || auc.seller_id === currentUser.id);
 
         return `
@@ -477,7 +475,7 @@
       updateTimers();
     }
 
-    // ฟังก์ชันลบโพสต์ประมูลแบบเบ็ดเสร็จ
+    // ฟังก์ชันลบโพสต์ประมูลแบบเบ็ดเสร็จ (เอา alert ออก เพื่อให้รีเฟรชและหายไปทันที)
     window.deleteAuction = async function(aucId, imageUrl) {
       if (!confirm('⚠️ คำเตือน: คุณต้องการลบโพสต์ประมูลนี้ รวมถึงประวัติการสู้ราคาและรูปภาพทั้งหมดอย่างถาวรใช่หรือไม่?')) return;
 
@@ -495,7 +493,6 @@
         const { error } = await supabaseClient.from('auctions').delete().eq('id', aucId);
         if (error) throw error;
 
-        alert('🗑️ ลบโพสต์ประมูลและข้อมูลที่เกี่ยวข้องทั้งหมดสำเร็จแล้ว');
         fetchAuctions();
       } catch (err) {
         alert('เกิดข้อผิดพลาดในการลบโพสต์: ' + err.message);
