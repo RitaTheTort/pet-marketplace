@@ -450,21 +450,7 @@
 
     // --- ระบบห้องประมูลเดี่ยว (Single Auction Room Logic) ---
     window.openSingleAuctionModal = async function(aucId) {
-      // ดึงข้อมูลล่าสุดจาก Supabase โดยตรงทันทีเพื่อความแม่นยำสูงสุด
-      try {
-        const { data, error } = await supabaseClient
-          .from('auctions')
-          .select('*')
-          .eq('id', aucId)
-          .single();
-
-        if (error) throw error;
-        activeAuction = data;
-      } catch (err) {
-        // Fallback ใช้ข้อมูลจากอาเรย์ถ้าดึงไม่สำเร็จ
-        activeAuction = globalAuctions.find(a => a.id === aucId);
-      }
-
+      await refreshActiveAuctionData(aucId);
       if (!activeAuction) return;
 
       setupDynamicIncrements(Number(activeAuction.current_price));
@@ -484,9 +470,7 @@
         buyoutBox.classList.add('hidden');
       }
 
-      // แสดงประวัติจากฐานข้อมูลโดยตรง
       renderAuctionHistory(activeAuction);
-
       updateBidButtonState();
       updateSingleRoomTimer();
 
@@ -496,6 +480,22 @@
       document.getElementById('single-auction-modal').classList.remove('hidden');
       document.getElementById('single-auction-modal').classList.add('flex');
     };
+
+    // ฟังก์ชันดึงข้อมูลล่าสุดจาก Supabase เพื่อให้ข้อมูลสดเสมอ
+    async function refreshActiveAuctionData(aucId) {
+      try {
+        const { data, error } = await supabaseClient
+          .from('auctions')
+          .select('*')
+          .eq('id', aucId)
+          .single();
+
+        if (error) throw error;
+        activeAuction = data;
+      } catch (err) {
+        activeAuction = globalAuctions.find(a => a.id === aucId);
+      }
+    }
 
     function renderAuctionHistory(auc) {
       const historyList = document.getElementById('sa-history-list');
@@ -653,12 +653,11 @@
 
         if (error) throw error;
 
-        activeAuction.current_price = newPrice;
-        activeAuction.last_bidder_id = currentUser.id;
-        activeAuction.last_bidder_name = bidderName;
+        // ดึงข้อมูลล่าสุดจากเซิร์ฟเวอร์ทันทีหลังอัปเดตสำเร็จ เพื่อซิงค์ค่าให้ตรงกัน 100%
+        await refreshActiveAuctionData(activeAuction.id);
 
-        document.getElementById('sa-current-price').innerText = `฿${newPrice.toLocaleString()}`;
-        setupDynamicIncrements(newPrice);
+        document.getElementById('sa-current-price').innerText = `฿${Number(activeAuction.current_price).toLocaleString()}`;
+        setupDynamicIncrements(Number(activeAuction.current_price));
         renderAuctionHistory(activeAuction);
 
         updateBidButtonState();
