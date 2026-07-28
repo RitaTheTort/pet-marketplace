@@ -315,13 +315,13 @@
       }
       if (activeAuction) updateBidButtonState();
       
-      if (globalAuctions.length > 0) {
-        renderAuctions(globalAuctions);
-      }
+      // ดึงข้อมูลและเรนเดอร์ใหม่หลังเช็คสิทธิ์เสร็จสมบูรณ์
+      fetchAuctions();
     }
 
     window.handleSignOut = async function() {
       await supabaseClient.auth.signOut();
+      currentUserRole = 'user';
       updateAuthUI(null);
     };
 
@@ -425,7 +425,7 @@
       }
 
       grid.innerHTML = auctions.map(auc => {
-        // ให้สิทธิ์ Admin / Super Admin หรือเจ้าของโพสต์ สามารถลบได้ทันที
+        // ให้สิทธิ์ Admin, Super Admin หรือเจ้าของโพสต์ สามารถกดลบได้ทุกโพสต์
         const isAdmin = currentUser && (currentUserRole === 'admin' || currentUserRole === 'super_admin' || auc.seller_id === currentUser.id);
 
         return `
@@ -476,7 +476,7 @@
       updateTimers();
     }
 
-    // ฟังก์ชันลบโพสต์ประมูลแบบเบ็ดเสร็จ (เช็คสิทธิ์ซ้ำเพื่อความปลอดภัย และลบสำเร็จทันทีโดยไม่มี alert ขัดจังหวะ)
+    // ฟังก์ชันลบโพสต์ประมูล (ตรวจสอบสิทธิ์ Admin / Super Admin / เจ้าของโพสต์ แบบเบ็ดเสร็จ)
     window.deleteAuction = async function(aucId, imageUrl) {
       if (!currentUser) return;
       
@@ -876,9 +876,12 @@
     });
 
     document.addEventListener('DOMContentLoaded', async () => {
-      fetchAuctions();
       const { data: { session } } = await supabaseClient.auth.getSession();
-      updateAuthUI(session ? session.user : null);
+      if (session) {
+        updateAuthUI(session.user);
+      } else {
+        updateAuthUI(null);
+      }
     });
   </script>
 </body>
