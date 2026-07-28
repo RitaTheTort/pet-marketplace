@@ -127,7 +127,7 @@
         </div>
       </div>
 
-      <!-- Modal: ยืนยันการเสนอราคา (ย้ายมาไว้ข้างในห้องประมูลเพื่อแก้ปัญหา Z-Index) -->
+      <!-- Modal: ยืนยันการเสนอราคา -->
       <div id="bid-confirm-modal" class="absolute inset-0 bg-slate-900/80 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden p-6 text-center space-y-4">
           <div class="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-2xl font-bold">
@@ -218,6 +218,25 @@
           <button type="submit" id="auc-submit-btn" class="px-5 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold shadow transition">ยืนยันเปิดประมูล</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- Modal: ยืนยันขั้นเด็ดขาดก่อนเปิดประมูล (Pre-auction Final Confirmation) -->
+  <div id="auction-confirm-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm hidden items-center justify-center z-[60] p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden p-6 text-center space-y-4">
+      <div class="w-14 h-14 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto text-2xl font-bold">
+        ⚠️
+      </div>
+      <h3 class="text-lg font-extrabold text-slate-900">ยืนยันการเปิดห้องประมูล</h3>
+      <p class="text-xs text-slate-600">เมื่อกดยืนยันแล้ว <strong class="text-red-600">จะไม่สามารถแก้ไขรายละเอียดหรือราคาเริ่มต้นได้อีก</strong> หากต้องการเปลี่ยนแปลงจะต้องลบและสร้างโพสต์ใหม่เท่านั้น</p>
+      <div class="grid grid-cols-2 gap-3 pt-2">
+        <button type="button" onclick="closeAuctionConfirmModal()" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 py-3 rounded-xl font-bold text-sm transition">
+          ตรวจสอบอีกครั้ง
+        </button>
+        <button type="button" onclick="executeCreateAuction()" id="final-submit-auc-btn" class="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl font-bold text-sm shadow-lg transition">
+          ยืนยันเปิดประมูล
+        </button>
+      </div>
     </div>
   </div>
 
@@ -315,7 +334,6 @@
       }
       if (activeAuction) updateBidButtonState();
       
-      // ดึงข้อมูลและเรนเดอร์ใหม่หลังเช็คสิทธิ์เสร็จสมบูรณ์
       fetchAuctions();
     }
 
@@ -334,6 +352,11 @@
     window.closeCreateAuctionModal = function() {
       document.getElementById('create-auction-modal').classList.add('hidden');
       document.getElementById('create-auction-modal').classList.remove('flex');
+    };
+
+    window.closeAuctionConfirmModal = function() {
+      document.getElementById('auction-confirm-modal').classList.add('hidden');
+      document.getElementById('auction-confirm-modal').classList.remove('flex');
     };
 
     const aucImageFileInput = document.getElementById('auc-image-file');
@@ -358,13 +381,10 @@
       }
     });
 
-    document.getElementById('create-auction-form').addEventListener('submit', async (e) => {
+    // เมื่อกดปุ่มในฟอร์ม ให้เด้ง Modal ยืนยันขั้นเด็ดขาดขึ้นมาก่อน แทนการบันทึกทันที
+    document.getElementById('create-auction-form').addEventListener('submit', (e) => {
       e.preventDefault();
       if (!currentUser) return;
-      const title = document.getElementById('auc-title').value.trim();
-      const species = document.getElementById('auc-species').value;
-      const startPrice = parseFloat(document.getElementById('auc-start-price').value);
-      const buyoutPrice = document.getElementById('auc-buyout-price').value ? parseFloat(document.getElementById('auc-buyout-price').value) : null;
       
       const days = parseInt(document.getElementById('auc-days').value) || 0;
       const hours = parseInt(document.getElementById('auc-hours').value) || 0;
@@ -377,11 +397,36 @@
       }
 
       const imageUrl = document.getElementById('auc-image-url').value;
+      if (!imageUrl) { alert('กรุณารออัปโหลดรูปภาพให้เสร็จสิ้นก่อนครับ'); return; }
+
+      // เปิด Modal ยืนยันก่อนบันทึกจริง
+      document.getElementById('auction-confirm-modal').classList.remove('hidden');
+      document.getElementById('auction-confirm-modal').classList.add('flex');
+    });
+
+    // ฟังก์ชันดำเนินการบันทึกข้อมูลลงฐานข้อมูลจริง หลังจากกดยืนยันใน Modal
+    window.executeCreateAuction = async function() {
+      closeAuctionConfirmModal();
+      if (!currentUser) return;
+
+      const title = document.getElementById('auc-title').value.trim();
+      const species = document.getElementById('auc-species').value;
+      const startPrice = parseFloat(document.getElementById('auc-start-price').value);
+      const buyoutPrice = document.getElementById('auc-buyout-price').value ? parseFloat(document.getElementById('auc-buyout-price').value) : null;
+      
+      const days = parseInt(document.getElementById('auc-days').value) || 0;
+      const hours = parseInt(document.getElementById('auc-hours').value) || 0;
+      const minutes = parseInt(document.getElementById('auc-minutes').value) || 0;
+      const totalMilliseconds = ((days * 24 + hours) * 60 + minutes) * 60 * 1000;
+
+      const imageUrl = document.getElementById('auc-image-url').value;
       const description = document.getElementById('auc-description').value.trim();
       const sellerName = currentUser.user_metadata?.full_name || currentUser.email.split('@')[0];
-
-      if (!imageUrl) { alert('กรุณารออัปโหลดรูปภาพให้เสร็จสิ้นก่อนครับ'); return; }
       const expiresAt = new Date(Date.now() + totalMilliseconds).toISOString();
+
+      const finalSubmitBtn = document.getElementById('final-submit-auc-btn');
+      finalSubmitBtn.disabled = true;
+      finalSubmitBtn.innerText = 'กำลังเปิดประมูล...';
 
       const payload = {
         title, species, start_price: startPrice, current_price: startPrice, buyout_price: buyoutPrice,
@@ -395,11 +440,16 @@
         if (error) throw error;
         alert('เปิดประมูลสินค้าสำเร็จเรียบร้อยแล้ว!');
         closeCreateAuctionModal();
+        document.getElementById('create-auction-form').reset();
+        document.getElementById('auc-image-url').value = '';
         fetchAuctions();
       } catch (err) {
         alert(`เกิดข้อผิดพลาด: ${err.message}`);
+      } finally {
+        finalSubmitBtn.disabled = false;
+        finalSubmitBtn.innerText = 'ยืนยันเปิดประมูล';
       }
-    });
+    };
 
     async function fetchAuctions() {
       const grid = document.getElementById('auction-grid');
@@ -425,7 +475,6 @@
       }
 
       grid.innerHTML = auctions.map(auc => {
-        // ให้สิทธิ์ Admin, Super Admin หรือเจ้าของโพสต์ สามารถกดลบได้ทุกโพสต์
         const isAdmin = currentUser && (currentUserRole === 'admin' || currentUserRole === 'super_admin' || auc.seller_id === currentUser.id);
 
         return `
@@ -476,7 +525,6 @@
       updateTimers();
     }
 
-    // ฟังก์ชันลบโพสต์ประมูล (ตรวจสอบสิทธิ์ Admin / Super Admin / เจ้าของโพสต์ แบบเบ็ดเสร็จ)
     window.deleteAuction = async function(aucId, imageUrl) {
       if (!currentUser) return;
       
@@ -539,7 +587,6 @@
       }, 1000);
     }
 
-    // --- ระบบห้องประมูลเดี่ยว (Single Auction Room Logic + Unfiltered Realtime) ---
     window.openSingleAuctionModal = async function(aucId) {
       await refreshActiveAuctionData(aucId);
       if (!activeAuction) return;
@@ -568,7 +615,6 @@
       if (singleRoomInterval) clearInterval(singleRoomInterval);
       singleRoomInterval = setInterval(updateSingleRoomTimer, 1000);
 
-      // เปิดระบบ Realtime แบบเปิดกว้าง (Unfiltered Listen) เพื่อรับสัญญาณจากทุกเครื่องทันที
       setupRealtimeSubscription(activeAuction.id);
 
       document.getElementById('single-auction-modal').classList.remove('hidden');
@@ -590,7 +636,6 @@
       }
     }
 
-    // ฟังก์ชัน Realtime ไร้รอยต่อ รับทุกการเปลี่ยนแปลงในตารางทันที
     function setupRealtimeSubscription(aucId) {
       if (activeSubscription) {
         supabaseClient.removeChannel(activeSubscription);
@@ -627,7 +672,6 @@
         .subscribe();
     }
 
-    // ฟังก์ชันดึงและแสดงประวัติแบบยุบรวมชื่อซ้ำ (แสดงเฉพาะราคาสูงสุด/ล่าสุดของแต่ละท่าน)
     async function loadBidHistory(aucId) {
       const historyList = document.getElementById('sa-history-list');
       try {
@@ -647,7 +691,6 @@
             </div>
           `;
         } else {
-          // กรองข้อมูลให้แสดงเฉพาะรายการล่าสุดของแต่ละผู้ประมูล (ยุบชื่อซ้ำ)
           const seenBidders = new Set();
           const consolidatedBids = [];
           for (const bid of data) {
@@ -782,7 +825,6 @@
       }
     }
 
-    // ฟังก์ชันเปิดป๊อปอัปยืนยันก่อนเสนอราคา
     window.confirmBidPrompt = function() {
       if (!currentUser) {
         alert('กรุณาเข้าสู่ระบบก่อนเสนอราคาครับ');
