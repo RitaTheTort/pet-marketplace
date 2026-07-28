@@ -50,6 +50,89 @@
     </div>
   </main>
 
+  <!-- Modal: ห้องประมูลเดี่ยว (Single Auction Room) -->
+  <div id="single-auction-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-4xl overflow-hidden my-6 relative">
+      <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center">
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping"></span>
+          <h3 class="font-bold text-base md:text-lg">🔨 ห้องประมูลสด (Live Auction Room)</h3>
+        </div>
+        <button onclick="closeSingleAuctionModal()" class="text-slate-400 hover:text-white text-xl font-bold">&times;</button>
+      </div>
+
+      <div class="p-4 md:p-6 grid grid-cols-1 lg:grid-cols-3 gap-6 max-h-[80vh] overflow-y-auto">
+        <!-- ด้านซ้าย: รายละเอียดสินค้า & ปุ่มกดสู้ราคา -->
+        <div class="lg:col-span-2 space-y-4">
+          <div class="relative h-64 bg-slate-100 rounded-xl overflow-hidden">
+            <img id="sa-image" src="" class="w-full h-full object-cover">
+            <span class="absolute top-3 left-3 bg-red-600 text-white font-bold text-xs px-2.5 py-1 rounded shadow">LIVE AUCTION</span>
+          </div>
+
+          <div>
+            <div class="flex justify-between items-start mb-1">
+              <span id="sa-species" class="text-xs font-bold uppercase bg-red-50 text-red-600 px-2.5 py-0.5 rounded">SPECIES</span>
+              <span class="text-xs text-slate-500">ผู้เปิดประมูล: <strong id="sa-seller" class="text-slate-700">-</strong></span>
+            </div>
+            <h2 id="sa-title" class="text-lg md:text-xl font-extrabold text-slate-900">ชื่อสินค้า</h2>
+            <p id="sa-desc" class="text-xs text-slate-500 mt-1 whitespace-pre-wrap">รายละเอียดเพิ่มเติม...</p>
+          </div>
+
+          <!-- กล่องราคาและเวลา -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div class="bg-slate-900 text-red-400 p-3.5 rounded-xl border border-slate-800 text-center shadow-inner">
+              <p class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mb-1">เวลาประมูลคงเหลือ</p>
+              <div id="sa-timer" class="text-2xl font-mono font-black tracking-widest text-red-500">
+                00:00:00
+              </div>
+            </div>
+            <div class="bg-emerald-50 p-3.5 rounded-xl border border-emerald-200 flex flex-col justify-between">
+              <p class="text-[10px] text-emerald-700 font-semibold uppercase tracking-wider">ราคาประมูลปัจจุบัน</p>
+              <div class="flex items-baseline justify-between mt-1">
+                <p id="sa-current-price" class="text-2xl font-black text-emerald-800">฿0</p>
+                <div id="sa-buyout-box" class="text-right hidden">
+                  <p class="text-[9px] text-blue-600 font-bold">ซื้อทันที (Buyout)</p>
+                  <p id="sa-buyout-price" class="text-xs font-extrabold text-blue-700">฿0</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ปุ่มเลือกเสนอราคาเพิ่ม -->
+          <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-2">
+            <p class="text-xs font-bold text-slate-700">เลือกจำนวนเงินที่จะเพิ่มจากราคาปัจจุบัน:</p>
+            <div class="grid grid-cols-3 sm:grid-cols-6 gap-1.5">
+              <button onclick="setSingleIncrement(10, this)" class="sa-inc-btn py-1.5 rounded-lg text-xs font-bold border bg-white text-slate-700 border-slate-200 hover:border-emerald-600 transition">+10</button>
+              <button onclick="setSingleIncrement(20, this)" class="sa-inc-btn py-1.5 rounded-lg text-xs font-bold border bg-white text-slate-700 border-slate-200 hover:border-emerald-600 transition">+20</button>
+              <button onclick="setSingleIncrement(50, this)" class="sa-inc-btn py-1.5 rounded-lg text-xs font-bold border bg-white text-slate-700 border-slate-200 hover:border-emerald-600 transition">+50</button>
+              <button onclick="setSingleIncrement(100, this)" class="sa-inc-btn py-1.5 rounded-lg text-xs font-bold border bg-emerald-600 text-white border-emerald-600 transition">+100</button>
+              <button onclick="setSingleIncrement(500, this)" class="sa-inc-btn py-1.5 rounded-lg text-xs font-bold border bg-white text-slate-700 border-slate-200 hover:border-emerald-600 transition">+500</button>
+              <button onclick="setSingleIncrement(1000, this)" class="sa-inc-btn py-1.5 rounded-lg text-xs font-bold border bg-white text-slate-700 border-slate-200 hover:border-emerald-600 transition">+1,000</button>
+            </div>
+          </div>
+
+          <!-- ปุ่มยืนยันเสนอราคา -->
+          <button onclick="submitBid()" id="sa-bid-btn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3.5 rounded-xl font-bold text-sm md:text-base shadow-lg transition flex items-center justify-center gap-2">
+            🔨 ยืนยันการเสนอราคา (เสนอ <span id="sa-next-price">0</span> บาท)
+          </button>
+        </div>
+
+        <!-- ด้านขวา: ประวัติเสนอราคาสด -->
+        <div class="bg-slate-50 rounded-xl border border-slate-200 p-4 flex flex-col h-[350px] lg:h-auto">
+          <h4 class="font-bold text-xs md:text-sm text-slate-900 mb-3 flex items-center gap-1.5 border-b pb-2 border-slate-200">
+            <span>📋 ประวัติการเสนอราคาสด</span>
+          </h4>
+          <div id="sa-history-list" class="flex-1 overflow-y-auto space-y-2 pr-1 divide-y divide-slate-200 text-xs">
+            <div class="text-center text-slate-400 py-6">ยังไม่มีประวัติการเสนอราคา</div>
+          </div>
+          <p class="text-[10px] text-slate-400 text-center pt-2 border-t border-slate-200 mt-2">
+            ระบบอัปเดตราคาล่าสุดทันทีผ่าน Supabase
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Modal: เปิดประมูลสินค้า -->
   <div id="create-auction-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4 overflow-y-auto">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden my-8">
@@ -83,7 +166,6 @@
           <input type="number" id="auc-buyout-price" placeholder="ไม่บังคับ เช่น 25000" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:outline-none">
         </div>
 
-        <!-- แบ่งระยะเวลาประมูลเป็น วัน, ชั่วโมง, นาที -->
         <div>
           <label class="block text-xs font-bold text-slate-700 mb-1">ระยะเวลาประมูล *</label>
           <div class="grid grid-cols-3 gap-2">
@@ -172,6 +254,9 @@
 
     let currentUser = null;
     let globalAuctions = [];
+    let activeAuction = null;
+    let selectedIncrement = 100;
+    let singleRoomInterval = null;
 
     async function updateAuthUI(user) {
       currentUser = user;
@@ -183,13 +268,13 @@
         container.innerHTML = `
           <div class="flex items-center space-x-2 bg-slate-800 px-3 py-1.5 rounded-lg text-xs text-white">
             <span>คุณ ${displayName}</span>
-            <button onclick="handleSignOut()" class="text-red-400 font-bold">ออก</button>
+            <button onclick="handleSignOut()" class="text-red-400 font-bold ml-1">ออก</button>
           </div>
         `;
         if (createAucBtn) createAucBtn.classList.remove('hidden');
       } else {
         container.innerHTML = `
-          <button onclick="document.getElementById('auth-modal').classList.remove('hidden'); document.getElementById('auth-modal').classList.add('flex');" class="bg-blue-600 text-white px-3.5 py-1.5 rounded-lg text-xs font-bold">เข้าสู่ระบบ</button>
+          <button onclick="document.getElementById('auth-modal').classList.remove('hidden'); document.getElementById('auth-modal').classList.add('flex');" class="bg-blue-600 text-white px-3.5 py-1.5 rounded-lg text-xs font-bold shadow">เข้าสู่ระบบ</button>
         `;
         if (createAucBtn) createAucBtn.classList.add('hidden');
       }
@@ -296,7 +381,7 @@
         return;
       }
       grid.innerHTML = auctions.map(auc => `
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col justify-between">
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col justify-between hover:shadow-md transition">
           <div>
             <div class="h-56 bg-slate-100 relative">
               <img src="${auc.images?.[0] || ''}" class="w-full h-full object-cover">
@@ -307,28 +392,28 @@
                 <span class="text-xs font-bold uppercase bg-red-50 text-red-600 px-2.5 py-0.5 rounded">${auc.species}</span>
               </div>
               
-              <!-- ป้ายเวลาขนาดใหญ่สไตล์ป้ายเที่ยวบิน -->
-              <div class="bg-slate-900 text-red-400 p-3.5 rounded-xl border border-slate-800 text-center shadow-inner">
-                <p class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mb-1">เวลาประมูลคงเหลือ (Time Remaining)</p>
-                <div id="timer-${auc.id}" class="text-2xl font-mono font-black tracking-widest text-red-500">
+              <!-- ป้ายเวลาสไตล์ไฟลท์บอร์ด -->
+              <div class="bg-slate-900 text-red-400 p-3 rounded-xl border border-slate-800 text-center shadow-inner">
+                <p class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mb-0.5">เวลาประมูลคงเหลือ</p>
+                <div id="timer-${auc.id}" class="text-xl font-mono font-black tracking-widest text-red-500">
                   00:00:00
                 </div>
               </div>
 
-              <h3 class="font-bold text-slate-900 text-base">${auc.title}</h3>
+              <h3 class="font-bold text-slate-900 text-base line-clamp-1">${auc.title}</h3>
               <p class="text-xs text-slate-500">ผู้เปิดประมูล: <span class="font-semibold text-slate-700">${auc.seller_name}</span></p>
               
               <div class="bg-emerald-50 p-3 rounded-xl border border-emerald-100 flex justify-between items-center mt-2">
                 <div>
-                  <p class="text-[10px] text-emerald-700">ราคาปัจจุบัน</p>
+                  <p class="text-[10px] text-emerald-700 font-medium">ราคาปัจจุบัน</p>
                   <p class="text-xl font-black text-emerald-800">฿${Number(auc.current_price).toLocaleString()}</p>
                 </div>
-                ${auc.buyout_price ? `<div class="text-right"><p class="text-[10px] text-blue-600">ซื้อทันที</p><p class="text-sm font-bold text-blue-700">฿${Number(auc.buyout_price).toLocaleString()}</p></div>` : ''}
+                ${auc.buyout_price ? `<div class="text-right"><p class="text-[10px] text-blue-600 font-medium">ซื้อทันที</p><p class="text-sm font-bold text-blue-700">฿${Number(auc.buyout_price).toLocaleString()}</p></div>` : ''}
               </div>
             </div>
           </div>
           <div class="p-4 pt-0">
-            <button onclick="alert('ระบบห้องประมูลเดี่ยว กำลังเชื่อมโยง Realtime')" class="w-full bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-xl text-xs font-bold shadow transition">
+            <button onclick="openSingleAuctionModal('${auc.id}')" class="w-full bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-xl text-xs font-bold shadow transition flex items-center justify-center gap-1">
               🔨 เข้าร่วมห้องประมูล
             </button>
           </div>
@@ -338,7 +423,6 @@
       updateTimers();
     }
 
-    // ฟังก์ชันคำนวณและอัปเดตเวลานับถอยหลังสไตล์ป้ายเที่ยวบิน
     function updateTimers() {
       setInterval(() => {
         globalAuctions.forEach(auc => {
@@ -350,7 +434,7 @@
 
           if (distance < 0) {
             timerEl.innerHTML = "CLOSED";
-            timerEl.className = "text-xl font-mono font-bold text-slate-400 tracking-wider";
+            timerEl.className = "text-lg font-mono font-bold text-slate-400 tracking-wider";
           } else {
             const days = Math.floor(distance / (1000 * 60 * 60 * 24));
             const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
@@ -366,6 +450,142 @@
         });
       }, 1000);
     }
+
+    // --- ระบบห้องประมูลเดี่ยว (Single Auction Room Logic) ---
+    window.openSingleAuctionModal = function(aucId) {
+      const auc = globalAuctions.find(a => a.id === aucId);
+      if (!auc) return;
+
+      activeAuction = auc;
+      selectedIncrement = 100;
+
+      document.getElementById('sa-title').innerText = auc.title;
+      document.getElementById('sa-species').innerText = auc.species;
+      document.getElementById('sa-seller').innerText = auc.seller_name || 'ผู้ขายทั่วไป';
+      document.getElementById('sa-desc').innerText = auc.description || 'ไม่มีรายละเอียดเพิ่มเติม';
+      document.getElementById('sa-image').src = auc.images?.[0] || '';
+      document.getElementById('sa-current-price').innerText = `฿${Number(auc.current_price).toLocaleString()}`;
+
+      const buyoutBox = document.getElementById('sa-buyout-box');
+      if (auc.buyout_price) {
+        document.getElementById('sa-buyout-price').innerText = `฿${Number(auc.buyout_price).toLocaleString()}`;
+        buyoutBox.classList.remove('hidden');
+      } else {
+        buyoutBox.classList.add('hidden');
+      }
+
+      updateNextBidPrice();
+      updateSingleRoomTimer();
+
+      if (singleRoomInterval) clearInterval(singleRoomInterval);
+      singleRoomInterval = setInterval(updateSingleRoomTimer, 1000);
+
+      document.getElementById('single-auction-modal').classList.remove('hidden');
+      document.getElementById('single-auction-modal').classList.add('flex');
+    };
+
+    window.closeSingleAuctionModal = function() {
+      document.getElementById('single-auction-modal').classList.add('hidden');
+      document.getElementById('single-auction-modal').classList.remove('flex');
+      if (singleRoomInterval) clearInterval(singleRoomInterval);
+      activeAuction = null;
+    };
+
+    function updateSingleRoomTimer() {
+      if (!activeAuction) return;
+      const timerEl = document.getElementById('sa-timer');
+      if (!timerEl) return;
+
+      const now = new Date().getTime();
+      const distance = new Date(activeAuction.expires_at).getTime() - now;
+
+      if (distance < 0) {
+        timerEl.innerHTML = "CLOSED";
+        timerEl.className = "text-xl font-mono font-bold text-slate-500 tracking-wider";
+        document.getElementById('sa-bid-btn').disabled = true;
+        document.getElementById('sa-bid-btn').innerText = "🔴 ปิดการประมูลเรียบร้อยแล้ว";
+        document.getElementById('sa-bid-btn').className = "w-full bg-slate-300 text-slate-500 py-3.5 rounded-xl font-bold text-sm cursor-not-allowed";
+      } else {
+        const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+        if (days > 0) {
+          timerEl.innerHTML = `${days}D ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        } else {
+          timerEl.innerHTML = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+      }
+    }
+
+    window.setSingleIncrement = function(amount, btnEl) {
+      selectedIncrement = amount;
+      document.querySelectorAll('.sa-inc-btn').forEach(b => {
+        b.className = "sa-inc-btn py-1.5 rounded-lg text-xs font-bold border bg-white text-slate-700 border-slate-200 hover:border-emerald-600 transition";
+      });
+      btnEl.className = "sa-inc-btn py-1.5 rounded-lg text-xs font-bold border bg-emerald-600 text-white border-emerald-600 transition";
+      updateNextBidPrice();
+    };
+
+    function updateNextBidPrice() {
+      if (!activeAuction) return;
+      const nextPrice = Number(activeAuction.current_price) + selectedIncrement;
+      document.getElementById('sa-next-price').innerText = nextPrice.toLocaleString();
+    }
+
+    window.submitBid = async function() {
+      if (!currentUser) {
+        alert('กรุณาเข้าสู่ระบบก่อนเสนอราคาครับ');
+        document.getElementById('auth-modal').classList.remove('hidden');
+        document.getElementById('auth-modal').classList.add('flex');
+        return;
+      }
+
+      if (!activeAuction) return;
+
+      const newPrice = Number(activeAuction.current_price) + selectedIncrement;
+      const bidderName = currentUser.user_metadata?.full_name || currentUser.email.split('@')[0];
+
+      const submitBtn = document.getElementById('sa-bid-btn');
+      submitBtn.disabled = true;
+      submitBtn.innerText = 'กำลังเสนอราคา...';
+
+      try {
+        const { error } = await supabaseClient
+          .from('auctions')
+          .update({ current_price: newPrice })
+          .eq('id', activeAuction.id);
+
+        if (error) throw error;
+
+        activeAuction.current_price = newPrice;
+        document.getElementById('sa-current-price').innerText = `฿${newPrice.toLocaleString()}`;
+        updateNextBidPrice();
+
+        // เพิ่มบันทึกประวัติสู้ราคาลงตาราง UI
+        const historyList = document.getElementById('sa-history-list');
+        if (historyList.innerHTML.includes('ยังไม่มีประวัติการเสนอราคา')) {
+          historyList.innerHTML = '';
+        }
+
+        const newRow = document.createElement('div');
+        newRow.className = "flex justify-between items-center py-2 font-bold text-emerald-700";
+        newRow.innerHTML = `
+          <span>฿${newPrice.toLocaleString()}</span>
+          <span class="text-slate-500 font-medium">${bidderName} (เมื่อสักครู่)</span>
+        `;
+        historyList.prepend(newRow);
+
+        alert(`🎉 เสนอราคาสำเร็จที่ ฿${newPrice.toLocaleString()} บาท!`);
+        fetchAuctions(); // อัปเดตรายการหน้าหลัก
+      } catch (err) {
+        alert(`เสนอราคาไม่สำเร็จ: ${err.message}`);
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = `🔨 ยืนยันการเสนอราคา (เสนอ <span id="sa-next-price">${(newPrice + selectedIncrement).toLocaleString()}</span> บาท)`;
+      }
+    };
 
     document.getElementById('auth-form').addEventListener('submit', async (e) => {
       e.preventDefault();
