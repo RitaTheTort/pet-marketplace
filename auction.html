@@ -389,7 +389,7 @@
             </div>
             <div class="p-4 space-y-3">
               <div class="flex justify-between items-center">
-                <span class="text-xs font-bold uppercase bg-red-50 text-red-600 px-2.5 py-0.5 rounded">${auc.species}</span>
+                <span class="text-xs font-bold uppercase bg-red-50 text-red-600 px-2 py-0.5 rounded">${auc.species}</span>
               </div>
               
               <!-- ป้ายเวลาสไตล์ไฟลท์บอร์ด -->
@@ -502,9 +502,12 @@
       if (distance < 0) {
         timerEl.innerHTML = "CLOSED";
         timerEl.className = "text-xl font-mono font-bold text-slate-500 tracking-wider";
-        document.getElementById('sa-bid-btn').disabled = true;
-        document.getElementById('sa-bid-btn').innerText = "🔴 ปิดการประมูลเรียบร้อยแล้ว";
-        document.getElementById('sa-bid-btn').className = "w-full bg-slate-300 text-slate-500 py-3.5 rounded-xl font-bold text-sm cursor-not-allowed";
+        const bidBtn = document.getElementById('sa-bid-btn');
+        if (bidBtn) {
+          bidBtn.disabled = true;
+          bidBtn.innerText = "🔴 ปิดการประมูลเรียบร้อยแล้ว";
+          bidBtn.className = "w-full bg-slate-300 text-slate-500 py-3.5 rounded-xl font-bold text-sm cursor-not-allowed";
+        }
       } else {
         const days = Math.floor(distance / (1000 * 60 * 60 * 24));
         const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
@@ -531,7 +534,10 @@
     function updateNextBidPrice() {
       if (!activeAuction) return;
       const nextPrice = Number(activeAuction.current_price) + selectedIncrement;
-      document.getElementById('sa-next-price').innerText = nextPrice.toLocaleString();
+      const nextPriceEl = document.getElementById('sa-next-price');
+      if (nextPriceEl) {
+        nextPriceEl.innerText = nextPrice.toLocaleString();
+      }
     }
 
     window.submitBid = async function() {
@@ -583,7 +589,9 @@
         alert(`เสนอราคาไม่สำเร็จ: ${err.message}`);
       } finally {
         submitBtn.disabled = false;
-        submitBtn.innerHTML = `🔨 ยืนยันการเสนอราคา (เสนอ <span id="sa-next-price">${(newPrice + selectedIncrement).toLocaleString()}</span> บาท)`;
+        // คืนค่าปุ่มพร้อมอัปเดตราคาถัดไปอย่างปลอดภัย
+        const nextPriceVal = Number(activeAuction.current_price) + selectedIncrement;
+        submitBtn.innerHTML = `🔨 ยืนยันการเสนอราคา (เสนอ <span id="sa-next-price">${nextPriceVal.toLocaleString()}</span> บาท)`;
       }
     };
 
