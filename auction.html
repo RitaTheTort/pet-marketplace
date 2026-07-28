@@ -118,7 +118,7 @@
             <span>📋 ประวัติการเสนอราคาสด</span>
           </h4>
           <div id="sa-history-list" class="flex-1 overflow-y-auto space-y-2 pr-1 divide-y divide-slate-200 text-xs">
-            <div class="text-center text-slate-400 py-6">กำลังโหลดประวัติ...</div>
+            <div class="text-center text-slate-400 py-6">กำลังโหลดข้อมูลล่าสุด...</div>
           </div>
           <p class="text-[10px] text-slate-400 text-center pt-2 border-t border-slate-200 mt-2">
             ระบบอัปเดตราคาล่าสุดทันทีผ่าน Supabase
@@ -449,29 +449,55 @@
     }
 
     // --- ระบบห้องประมูลเดี่ยว (Single Auction Room Logic) ---
-    window.openSingleAuctionModal = function(aucId) {
-      const auc = globalAuctions.find(a => a.id === aucId);
-      if (!auc) return;
+    window.openSingleAuctionModal = async function(aucId) {
+      // ดึงข้อมูลล่าสุดจาก Supabase โดยตรงทันทีเพื่อความแม่นยำสูงสุด
+      try {
+        const { data, error } = await supabaseClient
+          .from('auctions')
+          .select('*')
+          .eq('id', aucId)
+          .single();
 
-      activeAuction = auc;
-      setupDynamicIncrements(Number(auc.current_price));
+        if (error) throw error;
+        activeAuction = data;
+      } catch (err) {
+        // Fallback ใช้ข้อมูลจากอาเรย์ถ้าดึงไม่สำเร็จ
+        activeAuction = globalAuctions.find(a => a.id === aucId);
+      }
 
-      document.getElementById('sa-title').innerText = auc.title;
-      document.getElementById('sa-species').innerText = auc.species;
-      document.getElementById('sa-seller').innerText = auc.seller_name || 'ผู้ขายทั่วไป';
-      document.getElementById('sa-desc').innerText = auc.description || 'ไม่มีรายละเอียดเพิ่มเติม';
-      document.getElementById('sa-image').src = auc.images?.[0] || '';
-      document.getElementById('sa-current-price').innerText = `฿${Number(auc.current_price).toLocaleString()}`;
+      if (!activeAuction) return;
+
+      setupDynamicIncrements(Number(activeAuction.current_price));
+
+      document.getElementById('sa-title').innerText = activeAuction.title;
+      document.getElementById('sa-species').innerText = activeAuction.species;
+      document.getElementById('sa-seller').innerText = activeAuction.seller_name || 'ผู้ขายทั่วไป';
+      document.getElementById('sa-desc').innerText = activeAuction.description || 'ไม่มีรายละเอียดเพิ่มเติม';
+      document.getElementById('sa-image').src = activeAuction.images?.[0] || '';
+      document.getElementById('sa-current-price').innerText = `฿${Number(activeAuction.current_price).toLocaleString()}`;
 
       const buyoutBox = document.getElementById('sa-buyout-box');
-      if (auc.buyout_price) {
-        document.getElementById('sa-buyout-price').innerText = `฿${Number(auc.buyout_price).toLocaleString()}`;
+      if (activeAuction.buyout_price) {
+        document.getElementById('sa-buyout-price').innerText = `฿${Number(activeAuction.buyout_price).toLocaleString()}`;
         buyoutBox.classList.remove('hidden');
       } else {
         buyoutBox.classList.add('hidden');
       }
 
       // แสดงประวัติจากฐานข้อมูลโดยตรง
+      renderAuctionHistory(activeAuction);
+
+      updateBidButtonState();
+      updateSingleRoomTimer();
+
+      if (singleRoomInterval) clearInterval(singleRoomInterval);
+      singleRoomInterval = setInterval(updateSingleRoomTimer, 1000);
+
+      document.getElementById('single-auction-modal').classList.remove('hidden');
+      document.getElementById('single-auction-modal').classList.add('flex');
+    };
+
+    function renderAuctionHistory(auc) {
       const historyList = document.getElementById('sa-history-list');
       if (auc.last_bidder_name) {
         historyList.innerHTML = `
@@ -488,16 +514,7 @@
           </div>
         `;
       }
-
-      updateBidButtonState();
-      updateSingleRoomTimer();
-
-      if (singleRoomInterval) clearInterval(singleRoomInterval);
-      singleRoomInterval = setInterval(updateSingleRoomTimer, 1000);
-
-      document.getElementById('single-auction-modal').classList.remove('hidden');
-      document.getElementById('single-auction-modal').classList.add('flex');
-    };
+    }
 
     window.closeSingleAuctionModal = function() {
       document.getElementById('single-auction-modal').classList.add('hidden');
@@ -642,14 +659,7 @@
 
         document.getElementById('sa-current-price').innerText = `฿${newPrice.toLocaleString()}`;
         setupDynamicIncrements(newPrice);
-
-        const historyList = document.getElementById('sa-history-list');
-        historyList.innerHTML = `
-          <div class="flex justify-between items-center py-2 font-bold text-emerald-700">
-            <span>฿${newPrice.toLocaleString()}</span>
-            <span class="text-slate-500 font-medium">${bidderName} (ผู้นำล่าสุด)</span>
-          </div>
-        `;
+        renderAuctionHistory(activeAuction);
 
         updateBidButtonState();
         alert(`🎉 เสนอราคาสำเร็จที่ ฿${newPrice.toLocaleString()} บาท!`);
