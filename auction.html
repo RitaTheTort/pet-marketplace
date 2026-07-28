@@ -98,16 +98,14 @@
             </div>
           </div>
 
-          <!-- ปุ่มเลือกเสนอราคาเพิ่ม -->
+          <!-- ปุ่มเลือกเสนอราคาเพิ่ม (Dynamic Increments) -->
           <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-2">
-            <p class="text-xs font-bold text-slate-700">เลือกจำนวนเงินที่จะเพิ่มจากราคาปัจจุบัน:</p>
-            <div class="grid grid-cols-3 sm:grid-cols-6 gap-1.5">
-              <button onclick="setSingleIncrement(10, this)" class="sa-inc-btn py-1.5 rounded-lg text-xs font-bold border bg-white text-slate-700 border-slate-200 hover:border-emerald-600 transition">+10</button>
-              <button onclick="setSingleIncrement(20, this)" class="sa-inc-btn py-1.5 rounded-lg text-xs font-bold border bg-white text-slate-700 border-slate-200 hover:border-emerald-600 transition">+20</button>
-              <button onclick="setSingleIncrement(50, this)" class="sa-inc-btn py-1.5 rounded-lg text-xs font-bold border bg-white text-slate-700 border-slate-200 hover:border-emerald-600 transition">+50</button>
-              <button onclick="setSingleIncrement(100, this)" class="sa-inc-btn py-1.5 rounded-lg text-xs font-bold border bg-emerald-600 text-white border-emerald-600 transition">+100</button>
-              <button onclick="setSingleIncrement(500, this)" class="sa-inc-btn py-1.5 rounded-lg text-xs font-bold border bg-white text-slate-700 border-slate-200 hover:border-emerald-600 transition">+500</button>
-              <button onclick="setSingleIncrement(1000, this)" class="sa-inc-btn py-1.5 rounded-lg text-xs font-bold border bg-white text-slate-700 border-slate-200 hover:border-emerald-600 transition">+1,000</button>
+            <div class="flex justify-between items-center">
+              <p class="text-xs font-bold text-slate-700">เลือกจำนวนเงินที่จะเพิ่ม:</p>
+              <span id="min-increment-hint" class="text-[10px] text-slate-400">เรทราคาขั้นต่ำตามเรทตลาด</span>
+            </div>
+            <div id="increment-buttons-container" class="grid grid-cols-3 sm:grid-cols-6 gap-1.5">
+              <!-- สร้างปุ่มแบบ Dynamic ตามราคาปัจจุบัน -->
             </div>
           </div>
 
@@ -346,7 +344,8 @@
       const payload = {
         title, species, start_price: startPrice, current_price: startPrice, buyout_price: buyoutPrice,
         images: [imageUrl], description, seller_id: currentUser.id, seller_name: sellerName,
-        expires_at: expiresAt, status: 'active'
+        expires_at: expiresAt, status: 'active',
+        last_bidder_id: null, last_bidder_name: null
       };
 
       try {
@@ -457,7 +456,9 @@
       if (!auc) return;
 
       activeAuction = auc;
-      selectedIncrement = 100;
+      
+      // กำหนดค่าเริ่มต้นปุ่มเพิ่มราคาตามเรทราคาปัจจุบัน
+      setupDynamicIncrements(Number(auc.current_price));
 
       document.getElementById('sa-title').innerText = auc.title;
       document.getElementById('sa-species').innerText = auc.species;
@@ -474,7 +475,7 @@
         buyoutBox.classList.add('hidden');
       }
 
-      updateNextBidPrice();
+      updateBidButtonState();
       updateSingleRoomTimer();
 
       if (singleRoomInterval) clearInterval(singleRoomInterval);
@@ -522,6 +523,30 @@
       }
     }
 
+    // สร้างปุ่มเพิ่มราคาแบบ Dynamic ตามเรทราคาปัจจุบัน
+    function setupDynamicIncrements(currentPrice) {
+      const container = document.getElementById('increment-buttons-container');
+      let options = [];
+
+      if (currentPrice < 1000) {
+        options = [10, 20, 50, 100, 200, 500];
+      } else if (currentPrice < 10000) {
+        options = [50, 100, 200, 500, 1000, 2000];
+      } else {
+        options = [500, 1000, 2000, 5000, 10000, 20000];
+      }
+
+      selectedIncrement = options[0]; // ตั้งค่าเริ่มต้นเป็นปุ่มแรก
+
+      container.innerHTML = options.map((amt, idx) => `
+        <button onclick="setSingleIncrement(${amt}, this)" class="sa-inc-btn py-1.5 rounded-lg text-xs font-bold border ${idx === 0 ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white text-slate-700 border-slate-200 hover:border-emerald-600'} transition">
+          +${amt.toLocaleString()}
+        </button>
+      `).join('');
+
+      updateNextBidPrice();
+    }
+
     window.setSingleIncrement = function(amount, btnEl) {
       selectedIncrement = amount;
       document.querySelectorAll('.sa-inc-btn').forEach(b => {
@@ -538,6 +563,33 @@
       if (nextPriceEl) {
         nextPriceEl.innerText = nextPrice.toLocaleString();
       }
+      updateBidButtonState();
+    }
+
+    // ตรวจสอบสิทธิ์ปุ่มสู้ราคา (ห้ามสู้ราคากับตัวเอง)
+    function updateBidButtonState() {
+      const bidBtn = document.getElementById('sa-bid-btn');
+      if (!bidBtn || !activeAuction) return;
+
+      const nextPrice = Number(activeAuction.current_price) + selectedIncrement;
+
+      if (!currentUser) {
+        bidBtn.disabled = false;
+        bidBtn.className = "w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3.5 rounded-xl font-bold text-sm md:text-base shadow-lg transition flex items-center justify-center gap-2";
+        bidBtn.innerHTML = `🔨 ยืนยันการเสนอราคา (เสนอ <span id="sa-next-price">${nextPrice.toLocaleString()}</span> บาท)`;
+        return;
+      }
+
+      // เช็คว่าผู้ใช้ปัจจุบันคือผู้เสนอราคาสูงสุดล่าสุดหรือไม่
+      if (activeAuction.last_bidder_id === currentUser.id) {
+        bidBtn.disabled = true;
+        bidBtn.className = "w-full bg-amber-100 border border-amber-300 text-amber-800 py-3.5 rounded-xl font-bold text-xs md:text-sm cursor-not-allowed flex items-center justify-center gap-1";
+        bidBtn.innerHTML = `⚠️ คุณเป็นผู้เสนอราคาสูงสุดในขณะนี้แล้ว`;
+      } else {
+        bidBtn.disabled = false;
+        bidBtn.className = "w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3.5 rounded-xl font-bold text-sm md:text-base shadow-lg transition flex items-center justify-center gap-2";
+        bidBtn.innerHTML = `🔨 ยืนยันการเสนอราคา (เสนอ <span id="sa-next-price">${nextPrice.toLocaleString()}</span> บาท)`;
+      }
     }
 
     window.submitBid = async function() {
@@ -550,6 +602,11 @@
 
       if (!activeAuction) return;
 
+      if (activeAuction.last_bidder_id === currentUser.id) {
+        alert('คุณเป็นผู้เสนอราคาสูงสุดในขณะนี้แล้ว ไม่สามารถเสนอราคาทับตัวเองได้ครับ');
+        return;
+      }
+
       const newPrice = Number(activeAuction.current_price) + selectedIncrement;
       const bidderName = currentUser.user_metadata?.full_name || currentUser.email.split('@')[0];
 
@@ -560,14 +617,23 @@
       try {
         const { error } = await supabaseClient
           .from('auctions')
-          .update({ current_price: newPrice })
+          .update({ 
+            current_price: newPrice,
+            last_bidder_id: currentUser.id,
+            last_bidder_name: bidderName
+          })
           .eq('id', activeAuction.id);
 
         if (error) throw error;
 
         activeAuction.current_price = newPrice;
+        activeAuction.last_bidder_id = currentUser.id;
+        activeAuction.last_bidder_name = bidderName;
+
         document.getElementById('sa-current-price').innerText = `฿${newPrice.toLocaleString()}`;
-        updateNextBidPrice();
+        
+        // อัปเดตปุ่มเพิ่มราคาตามเรทใหม่ทันที
+        setupDynamicIncrements(newPrice);
 
         // เพิ่มบันทึกประวัติสู้ราคาลงตาราง UI
         const historyList = document.getElementById('sa-history-list');
@@ -587,11 +653,7 @@
         fetchAuctions(); // อัปเดตรายการหน้าหลัก
       } catch (err) {
         alert(`เสนอราคาไม่สำเร็จ: ${err.message}`);
-      } finally {
-        submitBtn.disabled = false;
-        // คืนค่าปุ่มพร้อมอัปเดตราคาถัดไปอย่างปลอดภัย
-        const nextPriceVal = Number(activeAuction.current_price) + selectedIncrement;
-        submitBtn.innerHTML = `🔨 ยืนยันการเสนอราคา (เสนอ <span id="sa-next-price">${nextPriceVal.toLocaleString()}</span> บาท)`;
+        updateBidButtonState();
       }
     };
 
@@ -604,6 +666,7 @@
         if (error) throw error;
         updateAuthUI(data.user);
         document.getElementById('auth-modal').classList.add('hidden');
+        if (activeAuction) updateBidButtonState();
       } catch (err) {
         alert(`เข้าสู่ระบบไม่สำเร็จ: ${err.message}`);
       }
