@@ -481,7 +481,6 @@
       document.getElementById('single-auction-modal').classList.add('flex');
     };
 
-    // ฟังก์ชันดึงข้อมูลล่าสุดจาก Supabase เพื่อให้ข้อมูลสดเสมอ
     async function refreshActiveAuctionData(aucId) {
       try {
         const { data, error } = await supabaseClient
@@ -608,7 +607,8 @@
         return;
       }
 
-      if (activeAuction.last_bidder_id === currentUser.id) {
+      // ป้องกันการล็อคผิดพลาด: หากยังไม่มีผู้ประมูลล่าสุด (last_bidder_id เป็นค่าว่าง) หรือผู้ใช้ไม่ใช่คนล่าสุด ให้ปลดล็อคเสมอ
+      if (activeAuction.last_bidder_id && activeAuction.last_bidder_id === currentUser.id) {
         bidBtn.disabled = true;
         bidBtn.className = "w-full bg-amber-100 border border-amber-300 text-amber-800 py-3.5 rounded-xl font-bold text-xs md:text-sm cursor-not-allowed flex items-center justify-center gap-1";
         bidBtn.innerHTML = `⚠️ คุณเป็นผู้เสนอราคาสูงสุดในขณะนี้แล้ว`;
@@ -629,7 +629,7 @@
 
       if (!activeAuction) return;
 
-      if (activeAuction.last_bidder_id === currentUser.id) {
+      if (activeAuction.last_bidder_id && activeAuction.last_bidder_id === currentUser.id) {
         alert('คุณเป็นผู้เสนอราคาสูงสุดในขณะนี้แล้ว ไม่สามารถเสนอราคาทับตัวเองได้ครับ');
         return;
       }
@@ -653,7 +653,6 @@
 
         if (error) throw error;
 
-        // ดึงข้อมูลล่าสุดจากเซิร์ฟเวอร์ทันทีหลังอัปเดตสำเร็จ เพื่อซิงค์ค่าให้ตรงกัน 100%
         await refreshActiveAuctionData(activeAuction.id);
 
         document.getElementById('sa-current-price').innerText = `฿${Number(activeAuction.current_price).toLocaleString()}`;
