@@ -97,9 +97,10 @@
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div class="bg-slate-900 text-red-400 p-3.5 rounded-xl border border-slate-800 text-center shadow-inner">
-              <p class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mb-1">เวลาประมูลคงเหลือ</p>
-              <div id="sa-timer" class="text-2xl font-mono font-black tracking-widest text-red-500">
+            <!-- ปรับดีไซน์กล่องเวลาในหน้าห้องเดี่ยวให้เป็นแบบโปร่งแสงเข้าชุดกัน -->
+            <div class="bg-red-50/80 backdrop-blur-sm text-red-600 p-3.5 rounded-xl border border-red-200 text-center shadow-sm">
+              <p class="text-[10px] text-red-700/80 font-bold uppercase tracking-wider mb-1">เวลาประมูลคงเหลือ</p>
+              <div id="sa-timer" class="text-2xl font-mono font-black tracking-widest text-red-600">
                 00:00:00
               </div>
             </div>
@@ -567,7 +568,6 @@
                   <span class="text-xs font-bold uppercase bg-red-50 text-red-600 px-2 py-0.5 rounded">${auc.species}</span>
                 </div>
 
-                <!-- ปรับดีไซน์กล่องเวลาเป็นแบบโปร่งแสงละมุนตา พร้อมขยายตัวเลขให้ใหญ่และหนาขึ้น -->
                 <div class="bg-red-50/80 backdrop-blur-sm text-red-600 p-3 rounded-xl border border-red-200 text-center shadow-sm">
                   <p class="text-[10px] text-red-700/80 font-bold uppercase tracking-wider mb-0.5">เวลาประมูลคงเหลือ</p>
                   <div id="sub-timer-${auc.id}" class="text-xl font-mono font-black tracking-widest text-red-600">
