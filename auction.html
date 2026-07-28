@@ -304,7 +304,11 @@
         if (createAucBtn) createAucBtn.classList.add('hidden');
       }
       if (activeAuction) updateBidButtonState();
-      renderAuctions(globalAuctions); // เรนเดอร์ใหม่เพื่อให้ปุ่มลบอัปเดตตามสิทธิ์ Admin
+      
+      // สั่งเรนเดอร์การ์ดใหม่ทุกครั้งที่สถานะ Auth เปลี่ยนแปลง เพื่อให้ปุ่มลบ Admin แสดงผลทันที
+      if (globalAuctions.length > 0) {
+        renderAuctions(globalAuctions);
+      }
     }
 
     window.handleSignOut = async function() {
@@ -419,7 +423,7 @@
             <div class="h-56 bg-slate-100 relative">
               <img src="${auc.images?.[0] || ''}" class="w-full h-full object-cover">
               <span class="absolute top-3 left-3 bg-red-600 text-white font-bold text-xs px-2.5 py-1 rounded shadow">LIVE AUCTION</span>
-              ${isAdmin ? `<button onclick="deleteAuction('${auc.id}', '${auc.images?.[0] || ''}')" class="absolute top-3 right-3 bg-slate-900/80 hover:bg-red-600 text-white p-2 rounded-lg text-xs font-bold shadow transition" title="ลบโพสต์ (Admin)">🗑️</button>` : ''}
+              ${isAdmin ? `<button onclick="deleteAuction('${auc.id}', '${auc.images?.[0] || ''}')" class="absolute top-3 right-3 bg-slate-900/80 hover:bg-red-600 text-white p-2 rounded-lg text-xs font-bold shadow transition z-10" title="ลบโพสต์ (Admin)">🗑️</button>` : ''}
             </div>
             <div class="p-4 space-y-3">
               <div class="flex justify-between items-center">
