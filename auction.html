@@ -118,7 +118,7 @@
             <span>📋 ประวัติการเสนอราคาสด</span>
           </h4>
           <div id="sa-history-list" class="flex-1 overflow-y-auto space-y-2 pr-1 divide-y divide-slate-200 text-xs">
-            <div class="text-center text-slate-400 py-6">ยังไม่มีประวัติการเสนอราคา</div>
+            <div class="text-center text-slate-400 py-6">กำลังโหลดประวัติ...</div>
           </div>
           <p class="text-[10px] text-slate-400 text-center pt-2 border-t border-slate-200 mt-2">
             ระบบอัปเดตราคาล่าสุดทันทีผ่าน Supabase
@@ -342,7 +342,8 @@
       const payload = {
         title, species, start_price: startPrice, current_price: startPrice, buyout_price: buyoutPrice,
         images: [imageUrl], description, seller_id: currentUser.id, seller_name: sellerName,
-        expires_at: expiresAt, status: 'active'
+        expires_at: expiresAt, status: 'active',
+        last_bidder_id: null, last_bidder_name: null
       };
 
       try {
@@ -470,13 +471,23 @@
         buyoutBox.classList.add('hidden');
       }
 
-      // รีเซ็ตประวัติใน UI เมื่อเปิดห้องใหม่
-      document.getElementById('sa-history-list').innerHTML = `
-        <div class="flex justify-between items-center py-2 font-bold text-emerald-700">
-          <span>฿${Number(auc.current_price).toLocaleString()}</span>
-          <span class="text-slate-500 font-medium">ราคาเริ่มต้น / ปัจจุบัน</span>
-        </div>
-      `;
+      // แสดงประวัติจากฐานข้อมูลโดยตรง
+      const historyList = document.getElementById('sa-history-list');
+      if (auc.last_bidder_name) {
+        historyList.innerHTML = `
+          <div class="flex justify-between items-center py-2 font-bold text-emerald-700">
+            <span>฿${Number(auc.current_price).toLocaleString()}</span>
+            <span class="text-slate-500 font-medium">${auc.last_bidder_name} (ผู้นำล่าสุด)</span>
+          </div>
+        `;
+      } else {
+        historyList.innerHTML = `
+          <div class="flex justify-between items-center py-2 font-bold text-emerald-700">
+            <span>฿${Number(auc.current_price).toLocaleString()}</span>
+            <span class="text-slate-500 font-medium">ราคาเริ่มต้น</span>
+          </div>
+        `;
+      }
 
       updateBidButtonState();
       updateSingleRoomTimer();
@@ -526,7 +537,6 @@
       }
     }
 
-    // สร้างปุ่มเพิ่มราคาตามเรทปัจจุบัน (Dynamic Increments)
     function setupDynamicIncrements(currentPrice) {
       const container = document.getElementById('increment-buttons-container');
       let options = [];
@@ -568,7 +578,6 @@
       }
     }
 
-    // ตรวจสอบสถานะปุ่มและป้องกันการประมูลทับตัวเอง
     function updateBidButtonState() {
       const bidBtn = document.getElementById('sa-bid-btn');
       if (!bidBtn || !activeAuction) return;
@@ -582,8 +591,7 @@
         return;
       }
 
-      // เช็คว่าเราเป็นผู้ให้ราคาสุดท้ายหรือไม่จากรายการในหน้าจอ
-      if (activeAuction.lastBidderId === currentUser.id) {
+      if (activeAuction.last_bidder_id === currentUser.id) {
         bidBtn.disabled = true;
         bidBtn.className = "w-full bg-amber-100 border border-amber-300 text-amber-800 py-3.5 rounded-xl font-bold text-xs md:text-sm cursor-not-allowed flex items-center justify-center gap-1";
         bidBtn.innerHTML = `⚠️ คุณเป็นผู้เสนอราคาสูงสุดในขณะนี้แล้ว`;
@@ -604,7 +612,7 @@
 
       if (!activeAuction) return;
 
-      if (activeAuction.lastBidderId === currentUser.id) {
+      if (activeAuction.last_bidder_id === currentUser.id) {
         alert('คุณเป็นผู้เสนอราคาสูงสุดในขณะนี้แล้ว ไม่สามารถเสนอราคาทับตัวเองได้ครับ');
         return;
       }
@@ -619,30 +627,29 @@
       try {
         const { error } = await supabaseClient
           .from('auctions')
-          .update({ current_price: newPrice })
+          .update({ 
+            current_price: newPrice,
+            last_bidder_id: currentUser.id,
+            last_bidder_name: bidderName
+          })
           .eq('id', activeAuction.id);
 
         if (error) throw error;
 
         activeAuction.current_price = newPrice;
-        activeAuction.lastBidderId = currentUser.id;
+        activeAuction.last_bidder_id = currentUser.id;
+        activeAuction.last_bidder_name = bidderName;
 
         document.getElementById('sa-current-price').innerText = `฿${newPrice.toLocaleString()}`;
         setupDynamicIncrements(newPrice);
 
-        // เพิ่มบันทึกประวัติสู้ราคาลงตาราง UI ทันที
         const historyList = document.getElementById('sa-history-list');
-        if (historyList.innerHTML.includes('ยังไม่มีประวัติการเสนอราคา') || historyList.innerHTML.includes('ราคาเริ่มต้น')) {
-          historyList.innerHTML = '';
-        }
-
-        const newRow = document.createElement('div');
-        newRow.className = "flex justify-between items-center py-2 font-bold text-emerald-700";
-        newRow.innerHTML = `
-          <span>฿${newPrice.toLocaleString()}</span>
-          <span class="text-slate-500 font-medium">${bidderName} (เมื่อสักครู่)</span>
+        historyList.innerHTML = `
+          <div class="flex justify-between items-center py-2 font-bold text-emerald-700">
+            <span>฿${newPrice.toLocaleString()}</span>
+            <span class="text-slate-500 font-medium">${bidderName} (ผู้นำล่าสุด)</span>
+          </div>
         `;
-        historyList.prepend(newRow);
 
         updateBidButtonState();
         alert(`🎉 เสนอราคาสำเร็จที่ ฿${newPrice.toLocaleString()} บาท!`);
