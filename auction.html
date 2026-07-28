@@ -563,8 +563,19 @@
                 ${isAdmin ? `<button onclick="deleteAuction('${auc.id}', '${auc.images?.[0] || ''}')" class="absolute top-3 right-3 bg-slate-900/90 hover:bg-red-600 text-white p-2 rounded-lg text-xs font-bold shadow transition z-10" title="ลบโพสต์">🗑️</button>` : ''}
               </div>
               <div class="p-4 space-y-3">
-                <span class="text-xs font-bold uppercase bg-red-50 text-red-600 px-2 py-0.5 rounded">${auc.species}</span>
+                <div class="flex justify-between items-center">
+                  <span class="text-xs font-bold uppercase bg-red-50 text-red-600 px-2 py-0.5 rounded">${auc.species}</span>
+                </div>
+
+                <div class="bg-slate-900 text-red-400 p-2.5 rounded-xl border border-slate-800 text-center shadow-inner">
+                  <p class="text-[9px] text-slate-400 font-semibold uppercase tracking-wider mb-0.5">เวลาประมูลคงเหลือ</p>
+                  <div id="sub-timer-${auc.id}" class="text-base font-mono font-black tracking-widest text-red-500">
+                    00:00:00
+                  </div>
+                </div>
+
                 <h3 class="font-bold text-slate-900 text-base line-clamp-1">${auc.title}</h3>
+                
                 <div class="bg-emerald-50 p-3 rounded-xl border border-emerald-100 flex justify-between items-center">
                   <div>
                     <p class="text-[10px] text-emerald-700 font-medium">ราคาปัจจุบัน</p>
@@ -589,6 +600,7 @@
       lockBodyScroll();
       document.getElementById('seller-rooms-modal').classList.remove('hidden');
       document.getElementById('seller-rooms-modal').classList.add('flex');
+      updateTimers();
     };
 
     window.closeSellerRoomsModal = function() {
@@ -804,6 +816,39 @@
           timerEl.innerHTML = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
         }
       }
+    }
+
+    function updateTimers() {
+      if (mainTimerInterval) clearInterval(mainTimerInterval);
+      mainTimerInterval = setInterval(() => {
+        globalAuctions.forEach(auc => {
+          // อัปเดต Timer ทั้งในการ์ดหน้าร้านหลัก และในการ์ดภายใน Modal ห้องย่อย
+          const timerEl = document.getElementById(`timer-${auc.id}`);
+          const subTimerEl = document.getElementById(`sub-timer-${auc.id}`);
+
+          [timerEl, subTimerEl].forEach(el => {
+            if (!el) return;
+            const now = new Date().getTime();
+            const distance = new Date(auc.expires_at).getTime() - now;
+
+            if (distance < 0) {
+              el.innerHTML = "CLOSED";
+              el.className = "text-sm font-mono font-bold text-slate-400 tracking-wider";
+            } else {
+              const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+              const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+              const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+              const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+              if (days > 0) {
+                el.innerHTML = `${days}D ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+              } else {
+                el.innerHTML = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+              }
+            }
+          });
+        });
+      }, 1000);
     }
 
     function setupDynamicIncrements(currentPrice) {
