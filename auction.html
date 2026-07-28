@@ -76,7 +76,7 @@
             </div>
             <h2 id="sa-title" class="text-lg md:text-xl font-extrabold text-slate-900">ชื่อสินค้า</h2>
             <p id="sa-desc" class="text-xs text-slate-500 mt-1 whitespace-pre-wrap">รายละเอียดเพิ่มเติม...</p>
-            <p id="sa-retention-info" class="text-[10px] text-slate-400 mt-2 italic">ℹ️ ข้อมูลการประมูลนี้จะถูกจัดเก็บรักษาไว้เป็นเวลา 90 วันหลังสิ้นสุดการประมูล</p>
+            <p id="sa-retention-info" class="text-[10px] text-slate-400 mt-2 italic">ℹ️ ข้อมูลการประมูลนี้จะถูกจัดเก็บรักษาไว้เป็นเวลา 90 วันหลังสิ้นสุดการประมูล[span_0](start_span)[span_0](end_span)</p>
           </div>
 
           <!-- กล่องราคาและเวลา -->
@@ -108,7 +108,7 @@
           </div>
 
           <!-- ปุ่มยืนยันเสนอราคา -->
-          <button onclick="submitBid()" id="sa-bid-btn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3.5 rounded-xl font-bold text-sm md:text-base shadow-lg transition flex items-center justify-center gap-2">
+          <button onclick="confirmBidPrompt()" id="sa-bid-btn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3.5 rounded-xl font-bold text-sm md:text-base shadow-lg transition flex items-center justify-center gap-2">
             🔨 ยืนยันการเสนอราคา (เสนอ <span id="sa-next-price">0</span> บาท)
           </button>
         </div>
@@ -116,15 +116,38 @@
         <!-- ด้านขวา: ประวัติเสนอราคาสด -->
         <div class="bg-slate-50 rounded-xl border border-slate-200 p-4 flex flex-col h-[350px] lg:h-auto">
           <h4 class="font-bold text-xs md:text-sm text-slate-900 mb-3 flex items-center gap-1.5 border-b pb-2 border-slate-200">
-            <span>📋 ประวัติการเสนอราคาสด (แสดงเฉพาะราคาสูงสุดของแต่ละท่าน)</span>
+            <span>📋 ประวัติการเสนอราคาสด (แสดงเฉพาะราคาสูงสุดของแต่ละท่าน)[span_1](start_span)[span_1](end_span)</span>
           </h4>
           <div id="sa-history-list" class="flex-1 overflow-y-auto space-y-2 pr-1 divide-y divide-slate-200 text-xs">
             <div class="text-center text-slate-400 py-6">กำลังโหลดประวัติ...</div>
           </div>
           <p class="text-[10px] text-slate-400 text-center pt-2 border-t border-slate-200 mt-2">
-            ระบบอัปเดตราคาแบบเรียลไทม์ผ่าน Supabase
+            ระบบอัปเดตราคาแบบเรียลไทม์ผ่าน Supabase[span_2](start_span)[span_2](end_span)
           </p>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: ยืนยันการเสนอราคา (Confirmation Prompt Modal) -->
+  <div id="bid-confirm-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden items-center justify-center z-60 p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden p-6 text-center space-y-4 animate-scaleUp">
+      <div class="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-2xl font-bold">
+        🔨
+      </div>
+      <h3 class="text-lg font-extrabold text-slate-900">ยืนยันการเสนอราคาของคุณ</h3>
+      <p class="text-xs text-slate-600">คุณกำลังจะเสนอราคาประมูลใหม่ที่ยอดเงิน:</p>
+      <div class="bg-emerald-50 border border-emerald-200 py-3 rounded-xl">
+        <span id="confirm-bid-amount" class="text-3xl font-black text-emerald-800">฿0</span>
+      </div>
+      <p class="text-[11px] text-amber-600 font-medium">⚠️ เมื่อยืนยันแล้วจะไม่สามารถยกเลิกได้ โปรดตรวจสอบความถูกต้อง</p>
+      <div class="grid grid-cols-2 gap-3 pt-2">
+        <button onclick="closeConfirmModal()" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 py-3 rounded-xl font-bold text-sm transition">
+          ยกเลิก
+        </button>
+        <button onclick="submitBid()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-xl font-bold text-sm shadow-lg transition">
+          ใช่ (ยืนยัน)
+        </button>
       </div>
     </div>
   </div>
@@ -696,7 +719,8 @@
       }
     }
 
-    window.submitBid = async function() {
+    // ฟังก์ชันเปิดป๊อปอัปยืนยันก่อนเสนอราคา
+    window.confirmBidPrompt = function() {
       if (!currentUser) {
         alert('กรุณาเข้าสู่ระบบก่อนเสนอราคาครับ');
         document.getElementById('auth-modal').classList.remove('hidden');
@@ -710,6 +734,24 @@
         alert('คุณเป็นผู้เสนอราคาสูงสุดในขณะนี้แล้ว ไม่สามารถเสนอราคาทับตัวเองได้ครับ');
         return;
       }
+
+      const newPrice = Number(activeAuction.current_price) + selectedIncrement;
+      document.getElementById('confirm-bid-amount').innerText = `฿${newPrice.toLocaleString()}`;
+      
+      const modal = document.getElementById('bid-confirm-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    };
+
+    window.closeConfirmModal = function() {
+      const modal = document.getElementById('bid-confirm-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    };
+
+    window.submitBid = async function() {
+      closeConfirmModal();
+      if (!currentUser || !activeAuction) return;
 
       const newPrice = Number(activeAuction.current_price) + selectedIncrement;
       const bidderName = currentUser.user_metadata?.full_name || currentUser.email.split('@')[0];
