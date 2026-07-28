@@ -70,7 +70,7 @@
     </div>
   </main>
 
-  <div id="seller-rooms-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden items-center justify-center z-50 p-3 md:p-6 overflow-hidden">
+  <div id="seller-rooms-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden items-center justify-center z-50 p-3 md:p-6 overflow-y-auto">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-5xl overflow-hidden my-auto relative flex flex-col max-h-[90vh]">
       <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center shrink-0 sticky top-0 z-20 shadow">
         <div class="flex items-center gap-2 min-w-0 pr-2">
@@ -79,14 +79,14 @@
         </div>
         <button onclick="closeSellerRoomsModal()" class="text-slate-400 hover:text-white text-2xl font-bold px-2 py-0.5 rounded-lg transition">&times;</button>
       </div>
-      <div class="p-4 md:p-6 bg-slate-50 overflow-y-auto flex-1 overscroll-contain">
+      <div class="p-4 md:p-6 bg-slate-50 overflow-y-auto flex-1">
         <div id="seller-rooms-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-6">
           </div>
       </div>
     </div>
   </div>
 
-  <div id="single-auction-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden items-center justify-center z-50 p-3 md:p-6 overflow-hidden">
+  <div id="single-auction-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden items-center justify-center z-50 p-3 md:p-6 overflow-y-auto">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl overflow-hidden my-auto relative flex flex-col max-h-[90vh]">
       <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center shrink-0 sticky top-0 z-20 shadow">
         <div class="flex items-center gap-2">
@@ -96,7 +96,7 @@
         <button onclick="closeSingleAuctionModal()" class="text-slate-400 hover:text-white text-2xl font-bold px-2 py-0.5 rounded-lg transition">&times;</button>
       </div>
 
-      <div class="p-4 md:p-6 grid grid-cols-1 lg:grid-cols-3 gap-6 overflow-y-auto relative flex-1 overscroll-contain">
+      <div class="p-4 md:p-6 grid grid-cols-1 lg:grid-cols-3 gap-6 overflow-y-auto relative flex-1">
         <div class="lg:col-span-2 space-y-4">
           <div class="relative h-64 bg-slate-100 rounded-xl overflow-hidden">
             <img id="sa-image" src="" class="w-full h-full object-cover">
@@ -327,12 +327,13 @@
     let userFavorites = [];
     let currentAuctionCategory = 'ALL'; // ตัวแปรเก็บแท็บหมวดหมู่ปัจจุบัน
 
+    // 🛠️ แก้ไขให้ล็อกการเลื่อนเฉพาะพื้นหลัง แต่ไม่บล็อกทัชสกรีนบนมือถือ
     function lockBodyScroll() {
-      document.getElementById('page-body').classList.add('overflow-hidden', 'fixed', 'inset-0');
+      document.body.style.overflow = 'hidden';
     }
 
     function unlockBodyScroll() {
-      document.getElementById('page-body').classList.remove('overflow-hidden', 'fixed', 'inset-0');
+      document.body.style.overflow = '';
     }
 
     async function updateAuthUI(user) {
@@ -571,7 +572,6 @@
       }
     }
 
-    // 🌟 ฟังก์ชันเรนเดอร์หน้าร้าน: แบ่ง Grid รูปภาพสินค้าทุกชิ้นในร้านแบบย่อส่วนเท่า ๆ กัน
     function renderSellerHubs(auctions) {
       const countEl = document.getElementById('auction-count');
       const grid = document.getElementById('seller-hub-grid');
@@ -616,40 +616,16 @@
       if (countEl) countEl.innerText = `หน้าร้านที่กำลังเปิดประมูล ${sellers.length} ร้าน (รวม ${auctions.length} รายการ)`;
 
       grid.innerHTML = sellers.map(seller => {
+        const coverImg = seller.items[0]?.images?.[0] || '';
         const itemCount = seller.items.length;
         const isFav = userFavorites.includes(seller.seller_id);
-        const images = seller.items.map(item => item.images?.[0]).filter(Boolean);
-
-        // ระบบ Grid รูปภาพย่อส่วนตามจำนวนสินค้า
-        let imagePreviewHTML = '';
-        if (images.length === 1) {
-          imagePreviewHTML = `<div class="h-48 bg-slate-100 relative overflow-hidden"><img src="${images[0]}" class="w-full h-full object-cover"></div>`;
-        } else if (images.length === 2) {
-          imagePreviewHTML = `
-            <div class="h-48 grid grid-cols-2 gap-0.5 bg-slate-200 overflow-hidden">
-              <img src="${images[0]}" class="w-full h-full object-cover">
-              <img src="${images[1]}" class="w-full h-full object-cover">
-            </div>`;
-        } else {
-          imagePreviewHTML = `
-            <div class="h-48 grid grid-cols-2 gap-0.5 bg-slate-200 overflow-hidden">
-              <img src="${images[0]}" class="w-full h-full object-cover">
-              <div class="grid grid-rows-2 gap-0.5 h-full">
-                <img src="${images[1]}" class="w-full h-full object-cover">
-                <div class="relative w-full h-full bg-slate-900">
-                  <img src="${images[2] || images[0]}" class="w-full h-full object-cover opacity-60">
-                  ${images.length > 3 ? `<span class="absolute inset-0 flex items-center justify-center text-white font-black text-xs bg-slate-900/50">+${images.length - 3}</span>` : ''}
-                </div>
-              </div>
-            </div>`;
-        }
 
         return `
           <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col justify-between hover:shadow-md transition relative">
             <div>
-              <div class="relative overflow-hidden">
-                ${imagePreviewHTML}
-                <div class="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-transparent to-transparent pointer-events-none"></div>
+              <div class="h-48 bg-slate-100 relative overflow-hidden">
+                <img src="${coverImg}" class="w-full h-full object-cover">
+                <div class="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-transparent to-transparent"></div>
                 <span class="absolute top-3 left-3 bg-red-600 text-white font-bold text-xs px-2.5 py-1 rounded shadow">SELLER STOREFRONT</span>
                 
                 <button onclick="toggleFavoriteSeller(event, '${seller.seller_id}')" class="absolute top-3 right-3 bg-slate-900/80 hover:bg-slate-900 text-white p-2 rounded-xl text-base shadow transition z-10" title="${isFav ? 'ยกเลิกปักหมุด' : 'ปักหมุดร้านโปรด'}">
