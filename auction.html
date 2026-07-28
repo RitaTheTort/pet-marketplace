@@ -572,7 +572,7 @@
       }
     }
 
-    // 🌟 ฟังก์ชันเรนเดอร์หน้าร้าน: แบ่ง Grid รูปภาพสินค้าทุกชิ้นในร้านแบบย่อส่วนเท่า ๆ กัน (ที่อี้อวี่ต้องการ)
+    // 🌟 ฟังก์ชันเรนเดอร์หน้าร้าน: ปรับปรุงระบบ Grid รูปภาพให้รองรับครบทุกชิ้น (1, 2, 3, 4 ชิ้นขึ้นไป)
     function renderSellerHubs(auctions) {
       const countEl = document.getElementById('auction-count');
       const grid = document.getElementById('seller-hub-grid');
@@ -621,7 +621,7 @@
         const isFav = userFavorites.includes(seller.seller_id);
         const images = seller.items.map(item => item.images?.[0]).filter(Boolean);
 
-        // ระบบ Grid รูปภาพย่อส่วนตามจำนวนสินค้า
+        // 🛠️ ปรับปรุง Grid ให้แสดงผลรูปภาพครอบคลุมตามจำนวนชิ้นจริง (1, 2, 3, 4 ชิ้นขึ้นไป)
         let imagePreviewHTML = '';
         if (images.length === 1) {
           imagePreviewHTML = `<div class="h-48 bg-slate-100 relative overflow-hidden"><img src="${images[0]}" class="w-full h-full object-cover"></div>`;
@@ -631,16 +631,23 @@
               <img src="${images[0]}" class="w-full h-full object-cover">
               <img src="${images[1]}" class="w-full h-full object-cover">
             </div>`;
-        } else {
+        } else if (images.length === 3) {
           imagePreviewHTML = `
-            <div class="h-48 grid grid-cols-2 gap-0.5 bg-slate-200 overflow-hidden">
+            <div class="h-48 grid grid-cols-3 gap-0.5 bg-slate-200 overflow-hidden">
               <img src="${images[0]}" class="w-full h-full object-cover">
-              <div class="grid grid-rows-2 gap-0.5 h-full">
-                <img src="${images[1]}" class="w-full h-full object-cover">
-                <div class="relative w-full h-full bg-slate-900">
-                  <img src="${images[2] || images[0]}" class="w-full h-full object-cover opacity-60">
-                  ${images.length > 3 ? `<span class="absolute inset-0 flex items-center justify-center text-white font-black text-xs bg-slate-900/50">+${images.length - 3}</span>` : ''}
-                </div>
+              <img src="${images[1]}" class="w-full h-full object-cover">
+              <img src="${images[2]}" class="w-full h-full object-cover">
+            </div>`;
+        } else {
+          // 4 ชิ้นขึ้นไป: แบ่งเป็น 4 ช่อง 2x2 Grid พอดีเป๊ะ
+          imagePreviewHTML = `
+            <div class="h-48 grid grid-cols-2 grid-rows-2 gap-0.5 bg-slate-200 overflow-hidden">
+              <img src="${images[0]}" class="w-full h-full object-cover">
+              <img src="${images[1]}" class="w-full h-full object-cover">
+              <img src="${images[2]}" class="w-full h-full object-cover">
+              <div class="relative w-full h-full bg-slate-900">
+                <img src="${images[3]}" class="w-full h-full object-cover opacity-60">
+                ${images.length > 4 ? `<span class="absolute inset-0 flex items-center justify-center text-white font-black text-xs bg-slate-900/50">+${images.length - 4}</span>` : ''}
               </div>
             </div>`;
         }
