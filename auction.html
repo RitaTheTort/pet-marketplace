@@ -60,7 +60,7 @@
       <form id="create-auction-form" class="p-6 space-y-4">
         <div>
           <label class="block text-xs font-bold text-slate-700 mb-1">หัวข้อการประมูล *</label>
-          <input type="text" id="auc-title" required placeholder="เช่น เต่าดาวอินเดีย สายพันธุ์คัดพิเศษ" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:outline-none">
+          <input type="text" id="auc-title" required placeholder="เช่น เต่าอัลดาบรา สุขภาพแข็งแรง กลมสวย" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:outline-none">
         </div>
         <div class="grid grid-cols-2 gap-4">
           <div>
@@ -78,16 +78,30 @@
             <input type="number" id="auc-start-price" required placeholder="เช่น 10000" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:outline-none">
           </div>
         </div>
-        <div class="grid grid-cols-2 gap-4">
-          <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">ราคาซื้อทันที (Buy-It-Now)</label>
-            <input type="number" id="auc-buyout-price" placeholder="ไม่บังคับ เช่น 25000" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:outline-none">
-          </div>
-          <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">ระยะเวลาประมูล (ชั่วโมง) *</label>
-            <input type="number" id="auc-duration" required value="24" min="1" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:outline-none">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">ราคาซื้อทันที (Buy-It-Now)</label>
+          <input type="number" id="auc-buyout-price" placeholder="ไม่บังคับ เช่น 25000" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:outline-none">
+        </div>
+
+        <!-- แบ่งระยะเวลาประมูลเป็น วัน, ชั่วโมง, นาที -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">ระยะเวลาประมูล *</label>
+          <div class="grid grid-cols-3 gap-2">
+            <div>
+              <span class="text-[10px] text-slate-500 block mb-0.5">วัน (Days)</span>
+              <input type="number" id="auc-days" value="0" min="0" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-center focus:ring-2 focus:ring-red-500 focus:outline-none">
+            </div>
+            <div>
+              <span class="text-[10px] text-slate-500 block mb-0.5">ชั่วโมง (Hours)</span>
+              <input type="number" id="auc-hours" value="24" min="0" max="23" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-center focus:ring-2 focus:ring-red-500 focus:outline-none">
+            </div>
+            <div>
+              <span class="text-[10px] text-slate-500 block mb-0.5">นาที (Minutes)</span>
+              <input type="number" id="auc-minutes" value="0" min="0" max="59" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-center focus:ring-2 focus:ring-red-500 focus:outline-none">
+            </div>
           </div>
         </div>
+
         <div>
           <label class="block text-xs font-bold text-slate-700 mb-1">รูปภาพสัตว์เลี้ยง (บีบอัดอัตโนมัติ) *</label>
           <input type="file" id="auc-image-file" accept="image/*" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-bold file:bg-red-50 file:text-red-700">
@@ -226,13 +240,23 @@
       const species = document.getElementById('auc-species').value;
       const startPrice = parseFloat(document.getElementById('auc-start-price').value);
       const buyoutPrice = document.getElementById('auc-buyout-price').value ? parseFloat(document.getElementById('auc-buyout-price').value) : null;
-      const durationHours = parseInt(document.getElementById('auc-duration').value);
+      
+      const days = parseInt(document.getElementById('auc-days').value) || 0;
+      const hours = parseInt(document.getElementById('auc-hours').value) || 0;
+      const minutes = parseInt(document.getElementById('auc-minutes').value) || 0;
+      const totalMilliseconds = ((days * 24 + hours) * 60 + minutes) * 60 * 1000;
+
+      if (totalMilliseconds <= 0) {
+        alert('กรุณากำหนดระยะเวลาประมูลให้มากกว่า 0 ครับ');
+        return;
+      }
+
       const imageUrl = document.getElementById('auc-image-url').value;
       const description = document.getElementById('auc-description').value.trim();
       const sellerName = currentUser.user_metadata?.full_name || currentUser.email.split('@')[0];
 
       if (!imageUrl) { alert('กรุณารออัปโหลดรูปภาพให้เสร็จสิ้นก่อนครับ'); return; }
-      const expiresAt = new Date(Date.now() + durationHours * 3600 * 1000).toISOString();
+      const expiresAt = new Date(Date.now() + totalMilliseconds).toISOString();
 
       const payload = {
         title, species, start_price: startPrice, current_price: startPrice, buyout_price: buyoutPrice,
@@ -278,15 +302,22 @@
               <img src="${auc.images?.[0] || ''}" class="w-full h-full object-cover">
               <span class="absolute top-3 left-3 bg-red-600 text-white font-bold text-xs px-2.5 py-1 rounded shadow">LIVE AUCTION</span>
             </div>
-            <div class="p-4 space-y-2">
+            <div class="p-4 space-y-3">
               <div class="flex justify-between items-center">
-                <span class="text-xs font-bold uppercase bg-red-50 text-red-600 px-2 py-0.5 rounded">${auc.species}</span>
-                <span id="timer-${auc.id}" class="text-xs font-mono font-bold text-red-600 bg-red-50 px-2.5 py-1 rounded-lg border border-red-100 flex items-center gap-1">
-                  ⏳ กำลังคำนวณ...
-                </span>
+                <span class="text-xs font-bold uppercase bg-red-50 text-red-600 px-2.5 py-0.5 rounded">${auc.species}</span>
               </div>
+              
+              <!-- ป้ายเวลาขนาดใหญ่สไตล์ป้ายเที่ยวบิน -->
+              <div class="bg-slate-900 text-red-400 p-3.5 rounded-xl border border-slate-800 text-center shadow-inner">
+                <p class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mb-1">เวลาประมูลคงเหลือ (Time Remaining)</p>
+                <div id="timer-${auc.id}" class="text-2xl font-mono font-black tracking-widest text-red-500">
+                  00:00:00
+                </div>
+              </div>
+
               <h3 class="font-bold text-slate-900 text-base">${auc.title}</h3>
               <p class="text-xs text-slate-500">ผู้เปิดประมูล: <span class="font-semibold text-slate-700">${auc.seller_name}</span></p>
+              
               <div class="bg-emerald-50 p-3 rounded-xl border border-emerald-100 flex justify-between items-center mt-2">
                 <div>
                   <p class="text-[10px] text-emerald-700">ราคาปัจจุบัน</p>
@@ -307,7 +338,7 @@
       updateTimers();
     }
 
-    // ฟังก์ชันคำนวณและอัปเดตเวลานับถอยหลังทุกๆ 1 วินาที
+    // ฟังก์ชันคำนวณและอัปเดตเวลานับถอยหลังสไตล์ป้ายเที่ยวบิน
     function updateTimers() {
       setInterval(() => {
         globalAuctions.forEach(auc => {
@@ -318,14 +349,19 @@
           const distance = new Date(auc.expires_at).getTime() - now;
 
           if (distance < 0) {
-            timerEl.innerHTML = "🔴 ปิดประมูลแล้ว";
-            timerEl.className = "text-xs font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-lg";
+            timerEl.innerHTML = "CLOSED";
+            timerEl.className = "text-xl font-mono font-bold text-slate-400 tracking-wider";
           } else {
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
             const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60 * 1000));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
             const seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
-            timerEl.innerHTML = `⏳ ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            if (days > 0) {
+              timerEl.innerHTML = `${days}D ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            } else {
+              timerEl.innerHTML = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }
           }
         });
       }, 1000);
