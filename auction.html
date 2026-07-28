@@ -296,6 +296,10 @@
         if (createAucBtn) createAucBtn.classList.remove('hidden');
       } else {
         container.innerHTML = `
+          <button onclick="document.getElementById('auth-modal').classList.add('hidden'); document.getElementById('auth-modal').classList.remove('hidden'); document.getElementById('auth-modal').classList.add('flex');" class="bg-blue-600 text-white px-3.5 py-1.5 rounded-lg text-xs font-bold shadow">เข้าสู่ระบบ</button>
+        `;
+        // แก้ไขบรรทัดปุ่มเข้าสู่ระบบให้ถูกต้อง
+        container.innerHTML = `
           <button onclick="document.getElementById('auth-modal').classList.remove('hidden'); document.getElementById('auth-modal').classList.add('flex');" class="bg-blue-600 text-white px-3.5 py-1.5 rounded-lg text-xs font-bold shadow">เข้าสู่ระบบ</button>
         `;
         if (createAucBtn) createAucBtn.classList.add('hidden');
@@ -432,6 +436,10 @@
                 <div>
                   <p class="text-[10px] text-emerald-700 font-medium">ราคาปัจจุบัน</p>
                   <p class="text-xl font-black text-emerald-800">฿${Number(auc.current_price).toLocaleString()}</p>
+                </div>
+                <div class="text-right">
+                  <p class="text-[10px] text-slate-500 font-medium">ผู้นำสูงสุด</p>
+                  <p class="text-xs font-bold text-slate-700 truncate max-w-[100px]">${auc.last_bidder_name || '-'}</p>
                 </div>
                 ${auc.buyout_price ? `<div class="text-right"><p class="text-[10px] text-blue-600 font-medium">ซื้อทันที</p><p class="text-sm font-bold text-blue-700">฿${Number(auc.buyout_price).toLocaleString()}</p></div>` : ''}
               </div>
