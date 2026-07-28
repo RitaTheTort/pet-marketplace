@@ -76,6 +76,7 @@
             </div>
             <h2 id="sa-title" class="text-lg md:text-xl font-extrabold text-slate-900">ชื่อสินค้า</h2>
             <p id="sa-desc" class="text-xs text-slate-500 mt-1 whitespace-pre-wrap">รายละเอียดเพิ่มเติม...</p>
+            <p id="sa-retention-info" class="text-[10px] text-slate-400 mt-2 italic">ℹ️ ข้อมูลการประมูลนี้จะถูกจัดเก็บรักษาไว้เป็นเวลา 90 วันหลังสิ้นสุดการประมูล</p>
           </div>
 
           <!-- กล่องราคาและเวลา -->
@@ -115,7 +116,7 @@
         <!-- ด้านขวา: ประวัติเสนอราคาสด -->
         <div class="bg-slate-50 rounded-xl border border-slate-200 p-4 flex flex-col h-[350px] lg:h-auto">
           <h4 class="font-bold text-xs md:text-sm text-slate-900 mb-3 flex items-center gap-1.5 border-b pb-2 border-slate-200">
-            <span>📋 ประวัติการเสนอราคาสด</span>
+            <span>📋 ประวัติการเสนอราคาสด (แสดงเฉพาะราคาสูงสุดของแต่ละท่าน)</span>
           </h4>
           <div id="sa-history-list" class="flex-1 overflow-y-auto space-y-2 pr-1 divide-y divide-slate-200 text-xs">
             <div class="text-center text-slate-400 py-6">กำลังโหลดประวัติ...</div>
@@ -253,6 +254,7 @@
     let selectedIncrement = 100;
     let singleRoomInterval = null;
     let activeSubscription = null;
+    let mainTimerInterval = null;
 
     async function updateAuthUI(user) {
       currentUser = user;
@@ -423,7 +425,32 @@
     }
 
     function updateTimers() {
-      // อัปเดตเวลาแบบเรียลไทม์
+      if (mainTimerInterval) clearInterval(mainTimerInterval);
+      mainTimerInterval = setInterval(() => {
+        globalAuctions.forEach(auc => {
+          const timerEl = document.getElementById(`timer-${auc.id}`);
+          if (!timerEl) return;
+
+          const now = new Date().getTime();
+          const distance = new Date(auc.expires_at).getTime() - now;
+
+          if (distance < 0) {
+            timerEl.innerHTML = "CLOSED";
+            timerEl.className = "text-lg font-mono font-bold text-slate-400 tracking-wider";
+          } else {
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+            if (days > 0) {
+              timerEl.innerHTML = `${days}D ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            } else {
+              timerEl.innerHTML = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }
+          }
+        });
+      }, 1000);
     }
 
     // --- ระบบห้องประมูลเดี่ยว (Single Auction Room Logic + Unfiltered Realtime) ---
@@ -514,6 +541,7 @@
         .subscribe();
     }
 
+    // ฟังก์ชันดึงและแสดงประวัติแบบยุบรวมชื่อซ้ำ (แสดงเฉพาะราคาสูงสุด/ล่าสุดของแต่ละท่าน)
     async function loadBidHistory(aucId) {
       const historyList = document.getElementById('sa-history-list');
       try {
@@ -533,10 +561,20 @@
             </div>
           `;
         } else {
-          historyList.innerHTML = data.map(bid => `
+          // กรองข้อมูลให้แสดงเฉพาะรายการล่าสุดของแต่ละผู้ประมูล (ยุบชื่อซ้ำ)
+          const seenBidders = new Set();
+          const consolidatedBids = [];
+          for (const bid of data) {
+            if (!seenBidders.has(bid.bidder_name)) {
+              seenBidders.add(bid.bidder_name);
+              consolidatedBids.push(bid);
+            }
+          }
+
+          historyList.innerHTML = consolidatedBids.map(bid => `
             <div class="flex justify-between items-center py-2 font-bold text-slate-700">
               <span class="text-emerald-700">฿${Number(bid.bid_amount).toLocaleString()}</span>
-              <span class="text-slate-500 font-medium">${bid.bidder_name} (ผู้นำล่าสุด)</span>
+              <span class="text-slate-500 font-medium">${bid.bidder_name} (สูงสุดของท่านนี้)</span>
             </div>
           `).join('');
         }
