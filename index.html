@@ -107,6 +107,7 @@
     </div>
   </main>
 
+  <!-- Modal: สมัครสมาชิก / เข้าสู่ระบบ (พร้อมปุ่ม LINE Login) -->
   <div id="auth-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4 overflow-y-auto">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden my-8">
       <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center">
@@ -115,6 +116,7 @@
       </div>
       
       <form id="auth-form" class="p-6 space-y-4">
+        <!-- ปุ่มเข้าสู่ระบบผ่าน LINE -->
         <div>
           <button type="button" onclick="handleLineLogin()" class="w-full py-2.5 bg-[#06C755] hover:bg-[#05b34c] text-white rounded-lg text-sm font-bold shadow transition flex items-center justify-center gap-2">
             <span>🟢 เข้าสู่ระบบ / สมัครสมาชิกด้วย LINE</span>
@@ -160,6 +162,7 @@
     </div>
   </div>
 
+  <!-- Modal: จัดการบัญชีผู้ใช้และอัปเดต KYC (พร้อมระบบยืนยันตัวตนผ่าน LINE OA) -->
   <div id="profile-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4 overflow-y-auto">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden my-8">
       <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center">
@@ -185,9 +188,10 @@
           </div>
         </div>
 
+        <!-- เพิ่มปุ่มยืนยันตัวตนผ่าน LINE OA -->
         <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3 space-y-2">
-          <p class="text-xs font-bold text-emerald-800 flex items-center gap-1">🟢 ยืนยันตัวตนด่วนผ่าน LINE OA:</p>
-          <p class="text-[11px] text-emerald-700">ส่งสลิปหรือหลักฐานยืนยันตัวตนผ่าน LINE Official Account ของเราเพื่อให้แอดมินอนุมัติออร่าความน่าเชื่อถือ</p>
+          <p class="text-xs font-bold text-emerald-800 flex items-center gap-1">🟢 ยืนยันตัวตนผ่าน LINE OA:</p>
+          <p class="text-[11px] text-emerald-700">ส่งหลักฐานยืนยันตัวตนผ่าน LINE Official Account เพื่อให้แอดมินตรวจสอบอนุมัติสถานะความน่าเชื่อถือ</p>
           <button type="button" onclick="handleLineKycRequest()" class="w-full py-2 bg-[#06C755] hover:bg-[#05b34c] text-white rounded-lg text-xs font-bold shadow transition">
             💬 ส่งหลักฐานยืนยันผ่าน LINE
           </button>
@@ -214,6 +218,7 @@
     </div>
   </div>
 
+  <!-- Modal: ลงประกาศสัตว์เลี้ยง -->
   <div id="add-pet-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4 overflow-y-auto">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden my-8">
       <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center">
@@ -277,6 +282,7 @@
     </div>
   </div>
 
+  <!-- Modal: รายละเอียดสัตว์เลี้ยง -->
   <div id="detail-pet-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4 overflow-y-auto">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg my-8 relative overflow-hidden">
       
@@ -356,6 +362,7 @@
     </div>
   </div>
 
+  <!-- Modal: ดูภาพขนาดใหญ่ (Lightbox) -->
   <div id="lightbox-modal" class="fixed inset-0 bg-black/90 hidden items-center justify-center z-[100] p-4" onclick="closeImageLightbox()">
     <div class="relative max-w-4xl max-h-full flex items-center justify-center">
       <button type="button" class="absolute -top-10 right-0 text-white bg-slate-800 hover:bg-slate-700 px-3 py-1 rounded-lg text-xs font-bold transition">✕ ปิดภาพใหญ่</button>
@@ -363,6 +370,7 @@
     </div>
   </div>
 
+  <!-- Modal: มอบป้ายรางวัล -->
   <div id="give-badge-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden">
       <div class="bg-slate-900 text-white px-5 py-3.5 flex justify-between items-center">
@@ -379,6 +387,7 @@
     </div>
   </div>
 
+  <!-- Modal: แชทสนทนา -->
   <div id="chat-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg h-[550px] flex flex-col overflow-hidden">
       <div class="bg-slate-900 text-white px-5 py-3.5 flex justify-between items-center border-b border-slate-800">
@@ -408,6 +417,7 @@
     </div>
   </div>
 
+  <!-- Modal: กล่องข้อความทั้งหมด -->
   <div id="inbox-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg h-[550px] flex flex-col overflow-hidden">
       <div class="bg-slate-900 text-white px-5 py-3.5 flex justify-between items-center border-b border-slate-800">
@@ -530,16 +540,13 @@
 
     // --- ฟังก์ชันจำลองการเข้าสู่ระบบ/สมัครสมาชิกผ่าน LINE ---
     window.handleLineLogin = function() {
-      alert('🟢 [จำลองระบบ LINE Login]\nระบบกำลังเชื่อมต่อกับ LINE Platform...\n(ในการใช้งานจริง จะต้องตั้งค่า LINE Login Channel ID และ Callback URL ที่ LINE Developers Console)');
-      
-      // จำลองข้อมูลโปรไฟล์ LINE ที่ดึงกลับมาได้
+      alert('🟢 [จำลองระบบ LINE Login]\nเชื่อมต่อกับ LINE Platform สำเร็จ!');
       const mockLineUser = {
-        id: 'line_user_' + Math.random().toString(36.substring(2, 9)),
+        id: 'line_user_' + Math.random().toString(36).substring(2, 9),
         email: 'line_user_' + Date.now() + '@petmarket.line',
         user_metadata: { full_name: 'สมาชิก LINE (Exotic Lover)' }
       };
 
-      // บันทึกจำลองเข้า Supabase profiles หรือเซสชัน
       supabaseClient.from('profiles').upsert({
         id: mockLineUser.id,
         full_name: mockLineUser.user_metadata.full_name,
@@ -547,7 +554,6 @@
         kyc_status: 'unverified',
         updated_at: new Date()
       }).then(() => {
-        alert('เข้าสู่ระบบด้วย LINE สำเร็จ!');
         authModal.classList.add('hidden');
         authModal.classList.remove('flex');
         updateAuthUI(mockLineUser);
@@ -556,9 +562,8 @@
 
     // --- ฟังก์ชันส่งหลักฐานยืนยันตัวตนผ่าน LINE OA ---
     window.handleLineKycRequest = function() {
-      const lineOaUrl = 'https://line.me/R/ti/p/@petmarket_support'; // ตัวอย่างลิงก์ LINE OA
-      window.open(lineOaUrl, '_blank');
-      alert('💬 ระบบได้เปิดหน้า LINE Official Account ขึ้นมาแล้วครับ\nกรุณาส่งภาพหลักฐานหรือบัตรประชาชนให้กับแอดมินทางแชท LINE เพื่อตรวจสอบและอนุมัติสถานะ KYC ครับ');
+      window.open('https://line.me/R/ti/p/@petmarket_support', '_blank');
+      alert('💬 ระบบเปิด LINE Official Account แล้ว กรุณาส่งภาพบัตรประชาชนหรือหลักฐานให้แอดมินตรวจสอบครับ');
     };
 
     async function uploadKycDocument(file, userId) {
@@ -857,4 +862,956 @@
       inboxModal.classList.add('flex');
       inboxListContainer.innerHTML = '<div class="text-center text-xs text-slate-400 py-8">กำลังโหลดรายการข้อความ...</div>';
 
-      const { data: messages, error
+      const { data: messages, error } = await supabaseClient
+        .from('messages')
+        .select('*')
+        .or(`sender_id.eq.${currentUser.id},receiver_id.eq.${currentUser.id}`)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        inboxListContainer.innerHTML = `<div class="text-center text-xs text-red-500 py-4">เกิดข้อผิดพลาด: ${error.message}</div>`;
+        return;
+      }
+
+      if (!messages || messages.length === 0) {
+        inboxListContainer.innerHTML = `<div class="text-center text-xs text-slate-400 py-8">ยังไม่มีกล่องข้อความการสนทนา</div>`;
+        return;
+      }
+
+      const chatGroups = {};
+      messages.forEach(msg => {
+        const otherUserId = (msg.sender_id === currentUser.id) ? msg.receiver_id : msg.sender_id;
+        const key = `${msg.pet_id}_${otherUserId}`;
+        if (!chatGroups[key]) {
+          const isUnread = (msg.receiver_id === currentUser.id) && (msg.is_read === false || msg.is_read === null);
+          chatGroups[key] = {
+            pet_id: msg.pet_id,
+            otherUserId: otherUserId,
+            otherUserName: (msg.sender_id === currentUser.id) ? 'ผู้ขาย/คู่สนทนา' : (msg.sender_name || 'ผู้ซื้อ'),
+            lastMessage: msg.content,
+            lastTime: msg.created_at,
+            hasUnread: isUnread
+          };
+        }
+      });
+
+      const groupList = Object.values(chatGroups);
+      
+      inboxListContainer.innerHTML = groupList.map((item) => {
+        const pet = allPetsData.find(p => p.id === item.pet_id);
+        const petTitle = pet ? pet.title : 'สัตว์เลี้ยงในประกาศ';
+        const timeStr = new Date(item.lastTime).toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+        return `
+          <div onclick="selectChatFromInbox('${item.pet_id}', '${item.otherUserId}', '${item.otherUserName}', '${petTitle}')" class="p-3.5 hover:bg-slate-100 cursor-pointer rounded-xl transition flex justify-between items-center ${item.hasUnread ? 'bg-blue-50 border-l-4 border-blue-600' : ''}">
+            <div class="flex items-center space-x-3">
+              <div class="relative w-10 h-10 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-sm">
+                ${item.otherUserName.charAt(0).toUpperCase()}
+                ${item.hasUnread ? '<span class="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-500 rounded-full border-2 border-white animate-ping"></span>' : ''}
+              </div>
+              <div>
+                <p class="font-bold text-slate-800 text-sm flex items-center gap-1.5">
+                  ${item.otherUserName}
+                  ${item.hasUnread ? '<span class="text-[10px] bg-red-500 text-white font-bold px-1.5 py-0.2 rounded-full shadow">ข้อความใหม่</span>' : ''}
+                </p>
+                <p class="text-xs text-blue-600 font-semibold truncate max-w-[180px]">${petTitle}</p>
+                <p class="text-xs ${item.hasUnread ? 'text-slate-900 font-extrabold' : 'text-slate-500'} truncate max-w-[200px]">${item.lastMessage}</p>
+              </div>
+            </div>
+            <span class="text-[10px] text-slate-400">${timeStr}</span>
+          </div>
+        `;
+      }).join('');
+    };
+
+    window.switchMainView = function(view) {
+      currentMainView = view;
+      
+      if (tabAllPets) tabAllPets.className = "py-2 px-3.5 font-bold text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-700 transition";
+      if (tabMyPets) tabMyPets.className = "py-2 px-3.5 font-bold text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-700 transition";
+      
+      const tabAdmin = document.getElementById('tab-admin');
+      if (tabAdmin) tabAdmin.className = "py-1.5 px-3 bg-purple-600 text-white rounded-lg text-xs font-bold transition shadow";
+
+      if (view === 'ALL') {
+        if (tabAllPets) tabAllPets.className = "py-2 px-3.5 font-bold text-sm border-b-2 border-blue-600 text-blue-600 transition";
+        categoryFilterContainer.classList.remove('hidden');
+        petGrid.classList.remove('hidden');
+        adminPanelContainer.classList.add('hidden');
+        document.getElementById('section-title').innerText = "รายการสัตว์เลี้ยงมาใหม่";
+      } else if (view === 'MY') {
+        if (tabMyPets) tabMyPets.className = "py-2 px-3.5 font-bold text-sm border-b-2 border-blue-600 text-blue-600 transition";
+        categoryFilterContainer.classList.add('hidden');
+        petGrid.classList.remove('hidden');
+        adminPanelContainer.classList.add('hidden');
+        document.getElementById('section-title').innerText = "รายการประกาศของฉัน";
+      } else if (view === 'ADMIN') {
+        if (tabAdmin) tabAdmin.className = "py-1.5 px-3 bg-purple-800 text-white rounded-lg text-xs font-bold transition shadow ring-2 ring-purple-400";
+        categoryFilterContainer.classList.add('hidden');
+        petGrid.classList.add('hidden');
+        adminPanelContainer.classList.remove('hidden');
+        document.getElementById('section-title').innerText = "ระบบจัดการหลังบ้าน (Admin Panel)";
+        fetchAdminKycData();
+        fetchAdminUsersData();
+      }
+      applyFilters();
+    };
+
+    async function fetchAdminKycData() {
+      const kycListContainer = document.getElementById('admin-kyc-list');
+      kycListContainer.innerHTML = '<p class="text-xs text-slate-400">กำลังดึงข้อมูลสมาชิก...</p>';
+
+      const { data: profiles, error } = await supabaseClient
+        .from('profiles')
+        .select('*')
+        .order('updated_at', { ascending: false });
+
+      if (error) {
+        kycListContainer.innerHTML = `<p class="text-xs text-red-500">โหลดข้อมูลไม่สำเร็จ: ${error.message}</p>`;
+        return;
+      }
+
+      if (!profiles || profiles.length === 0) {
+        kycListContainer.innerHTML = `<p class="text-xs text-slate-400">ยังไม่มีข้อมูลสมาชิกในระบบ</p>`;
+        return;
+      }
+
+      kycListContainer.innerHTML = profiles.map(profile => {
+        const statusText = profile.kyc_status === 'approved' ? '✓ อนุมัติแล้ว' : profile.kyc_status === 'pending' ? '⌛ รอตรวจสอบ' : '✕ ยังไม่ยืนยัน';
+        const statusColor = profile.kyc_status === 'approved' ? 'bg-blue-100 text-blue-700' : profile.kyc_status === 'pending' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600';
+
+        return `
+          <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <p class="font-bold text-slate-900 text-sm">${profile.full_name || 'ไม่ระบุชื่อ'}</p>
+              <p class="text-xs text-slate-500">รหัสผู้ใช้: ${profile.id}</p>
+              <span class="inline-block mt-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full ${statusColor}">${statusText}</span>
+            </div>
+            <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+              ${profile.kyc_document_url ? `<a href="${profile.kyc_document_url}" target="_blank" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-bold transition">ดูเอกสาร</a>` : '<span class="text-xs text-slate-400">ไม่มีเอกสาร</span>'}
+              ${profile.kyc_status !== 'approved' ? `<button onclick="approveKycUser('${profile.id}')" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition">อนุมัติ KYC</button>` : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function fetchAdminUsersData() {
+      const usersListContainer = document.getElementById('admin-users-list');
+      usersListContainer.innerHTML = '<p class="text-xs text-slate-400">กำลังดึงรายชื่อสมาชิก...</p>';
+
+      const { data: profiles, error } = await supabaseClient
+        .from('profiles')
+        .select('*')
+        .order('full_name', { ascending: true });
+
+      if (error) {
+        usersListContainer.innerHTML = `<p class="text-xs text-red-500">โหลดข้อมูลไม่สำเร็จ: ${error.message}</p>`;
+        return;
+      }
+
+      if (!profiles || profiles.length === 0) {
+        usersListContainer.innerHTML = `<p class="text-xs text-slate-400">ยังไม่มีข้อมูลสมาชิกในระบบ</p>`;
+        return;
+      }
+
+      usersListContainer.innerHTML = profiles.map(profile => {
+        const role = profile.role || 'user';
+        let roleBadge = '<span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-[11px] font-bold">User (สมาชิกทั่วไป)</span>';
+        if (role === 'admin') roleBadge = '<span class="bg-purple-100 text-purple-700 px-2 py-0.5 rounded text-[11px] font-bold">Admin (ผู้ดูแลระบบ)</span>';
+        if (role === 'super_admin') roleBadge = '<span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-[11px] font-bold">Super Admin (ผู้ดูแลสูงสุด)</span>';
+
+        const isMe = currentUser && currentUser.id === profile.id;
+
+        return `
+          <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <p class="font-bold text-slate-900 text-sm flex items-center gap-2">
+                ${profile.full_name || 'ไม่ระบุชื่อ'} ${isMe ? '<span class="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded"> (คุณเอง)</span>' : ''}
+              </p>
+              <p class="text-xs text-slate-500">ID: ${profile.id}</p>
+              <div class="mt-1">${roleBadge}</div>
+            </div>
+            <div class="flex items-center gap-2">
+              ${currentUserRole === 'super_admin' && !isMe && role !== 'super_admin' ? `
+                ${role === 'admin' 
+                  ? `<button onclick="changeUserRole('${profile.id}', 'user')" class="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold transition">ถอดถอนสิทธิ์ Admin</button>`
+                  : `<button onclick="changeUserRole('${profile.id}', 'admin')" class="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-bold transition">แต่งตั้งเป็น Admin</button>`
+                }
+              ` : '<span class="text-[11px] text-slate-400">สิทธิ์จำกัด</span>'}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    window.changeUserRole = async function(userId, newRole) {
+      if (currentUserRole !== 'super_admin') {
+        alert('เฉพาะ Super Admin เท่านั้นที่มีสิทธิ์เปลี่ยนแปลงบทบาทผู้ใช้งานครับ');
+        return;
+      }
+
+      const actionText = newRole === 'admin' ? 'แต่งตั้งให้เป็นผู้ดูแลระบบ (Admin)' : 'ถอดถอนสิทธิ์ผู้ดูแลระบบให้กลับเป็นสมาชิกทั่วไป';
+      if (!confirm(`คุณแน่ใจหรือไม่ว่าต้องการ${actionText}?`)) return;
+
+      const { error } = await supabaseClient
+        .from('profiles')
+        .update({ role: newRole, updated_at: new Date() })
+        .eq('id', userId);
+
+      if (error) {
+        alert(`เปลี่ยนสิทธิ์ไม่สำเร็จ: ${error.message}`);
+      } else {
+        alert('อัปเดตบทบาทผู้ใช้งานสำเร็จเรียบร้อยแล้วครับ!');
+        fetchAdminUsersData();
+      }
+    };
+
+    window.approveKycUser = async function(userId) {
+      if (!confirm('ยืนยันการอนุมัติเอกสารยืนยันตัวตน (KYC) สำหรับผู้ใช้งานนี้?')) return;
+
+      const { error } = await supabaseClient
+        .from('profiles')
+        .update({ kyc_status: 'approved', updated_at: new Date() })
+        .eq('id', userId);
+
+      if (error) {
+        alert(`อนุมัติไม่สำเร็จ: ${error.message}`);
+      } else {
+        alert('อนุมัติยืนยันตัวตนสำเร็จเรียบร้อยแล้วครับ!');
+        fetchAdminKycData();
+      }
+    };
+
+    toggleAuthBtn.addEventListener('click', () => {
+      isSignUpMode = !isSignUpMode;
+      document.getElementById('auth-modal-title').innerText = isSignUpMode ? 'สมัครสมาชิก' : 'เข้าสู่ระบบ';
+      document.getElementById('auth-submit-btn').innerText = isSignUpMode ? 'ยืนยันลงทะเบียน' : 'เข้าสู่ระบบ';
+      
+      const forgotContainer = document.getElementById('forgot-password-container');
+      if (isSignUpMode) {
+        nameInputGroup.classList.remove('hidden');
+        document.getElementById('auth-name').setAttribute('required', 'true');
+        if (forgotContainer) forgotContainer.classList.add('hidden');
+      } else {
+        nameInputGroup.classList.add('hidden');
+        document.getElementById('auth-name').removeAttribute('required');
+        if (forgotContainer) forgotContainer.classList.remove('hidden');
+      }
+
+      document.getElementById('toggle-auth-mode-text').innerHTML = isSignUpMode 
+        ? 'มีบัญชีสมาชิกอยู่แล้ว? <button type="button" id="toggle-auth-btn" class="text-blue-600 font-bold hover:underline">เข้าสู่ระบบที่นี่</button>'
+        : 'ยังไม่มีบัญชีสมาชิก? <button type="button" id="toggle-auth-btn" class="text-blue-600 font-bold hover:underline">สมัครสมาชิกที่นี่</button>';
+      document.getElementById('toggle-auth-btn').addEventListener('click', () => toggleAuthBtn.click());
+    });
+
+    authForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('auth-email').value.trim();
+      const password = document.getElementById('auth-password').value;
+      const fullName = document.getElementById('auth-name').value.trim();
+      const submitBtn = document.getElementById('auth-submit-btn');
+
+      submitBtn.disabled = true;
+      submitBtn.innerText = 'กำลังดำเนินการ...';
+
+      try {
+        if (isSignUpMode) {
+          const { data, error } = await supabaseClient.auth.signUp({ 
+            email, 
+            password,
+            options: { data: { full_name: fullName } }
+          });
+          if (error) throw error;
+
+          const userId = data.user?.id;
+
+          if (userId) {
+            await supabaseClient.from('profiles').upsert({
+              id: userId,
+              full_name: fullName,
+              role: 'user',
+              kyc_status: 'unverified',
+              updated_at: new Date()
+            });
+          }
+
+          alert('ลงทะเบียนสำเร็จ! เข้าสู่ระบบได้เลยครับ');
+        } else {
+          const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+          if (error) throw error;
+          updateAuthUI(data.user);
+        }
+        authModal.classList.add('hidden'); authModal.classList.remove('flex');
+        authForm.reset();
+      } catch (err) {
+        alert(`ข้อผิดพลาดระบบสมาชิก: ${err.message}`);
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerText = isSignUpMode ? 'ยืนยันลงทะเบียน' : 'เข้าสู่ระบบ';
+      }
+    });
+
+    window.handleSignOut = async function() {
+      await supabaseClient.auth.signOut();
+      updateAuthUI(null);
+    };
+
+    document.getElementById('close-auth-btn').addEventListener('click', () => {
+      authModal.classList.add('hidden'); authModal.classList.remove('flex'); authForm.reset();
+    });
+
+    const closeAddModal = () => { addModal.classList.add('hidden'); addModal.classList.remove('flex'); addPetForm.reset(); };
+    closeModalBtn.addEventListener('click', closeAddModal);
+    cancelBtn.addEventListener('click', closeAddModal);
+
+    const closeDetailModal = () => { detailModal.classList.add('hidden'); detailModal.classList.remove('flex'); };
+    if (closeDetailBtnTop) {
+      closeDetailBtnTop.addEventListener('click', closeDetailModal);
+    }
+
+    detailModal.addEventListener('click', (e) => {
+      if (e.target === detailModal) {
+        closeDetailModal();
+      }
+    });
+
+    window.openImageLightbox = function() {
+      const imgEl = document.getElementById('detail-image');
+      const lightboxModal = document.getElementById('lightbox-modal');
+      const lightboxImg = document.getElementById('lightbox-img');
+      if (imgEl && imgEl.src && !imgEl.classList.contains('hidden')) {
+        lightboxImg.src = imgEl.src;
+        lightboxModal.classList.remove('hidden');
+        lightboxModal.classList.add('flex');
+      }
+    };
+
+    window.closeImageLightbox = function() {
+      const lightboxModal = document.getElementById('lightbox-modal');
+      lightboxModal.classList.add('hidden');
+      lightboxModal.classList.remove('flex');
+    };
+
+    window.showPetDetail = async function(index) {
+      const pet = filteredPetsData[index];
+      if (!pet) return;
+
+      currentActivePet = pet;
+
+      document.getElementById('detail-title').innerText = pet.title || 'ไม่มีชื่อหัวข้อ';
+      document.getElementById('detail-species').innerText = pet.species || 'ไม่ระบุ';
+      document.getElementById('detail-health').innerText = pet.health_status || 'ปกติ';
+      document.getElementById('detail-morph').innerText = pet.morph || 'ไม่ระบุมอร์ฟ';
+      document.getElementById('detail-desc').innerText = pet.description || 'ไม่มีรายละเอียดเพิ่มเติม';
+      document.getElementById('detail-price').innerText = '฿' + (pet.price ? Number(pet.price).toLocaleString() : '0');
+      document.getElementById('detail-seller-name').innerText = pet.seller_name || 'ผู้ขายทั่วไป (ไม่ระบุชื่อ)';
+
+      const kycBadgeEl = document.getElementById('detail-kyc-badge');
+      kycBadgeEl.className = 'text-xs font-bold px-2.5 py-1 rounded-full flex items-center gap-1 bg-slate-200 text-slate-600';
+      kycBadgeEl.innerText = '⏳ กำลังตรวจสอบสถานะ';
+
+      if (pet.seller_id) {
+        const { data: profileData } = await supabaseClient
+          .from('profiles')
+          .select('kyc_status')
+          .eq('id', pet.seller_id)
+          .single();
+
+        if (profileData) {
+          if (profileData.kyc_status === 'approved') {
+            kycBadgeEl.className = 'text-xs bg-blue-100 text-blue-700 font-bold px-2.5 py-1 rounded-full flex items-center gap-1';
+            kycBadgeEl.innerText = '✓ ผู้ขายยืนยันตัวตน';
+          } else if (profileData.kyc_status === 'pending') {
+            kycBadgeEl.className = 'text-xs bg-amber-100 text-amber-700 font-bold px-2.5 py-1 rounded-full flex items-center gap-1';
+            kycBadgeEl.innerText = '⌛ รอผู้ดูแลระบบอนุมัติ KYC';
+          } else {
+            kycBadgeEl.className = 'text-xs bg-slate-100 text-slate-500 font-bold px-2.5 py-1 rounded-full flex items-center gap-1';
+            kycBadgeEl.innerText = '✕ ยังไม่ยืนยันตัวตน';
+          }
+        }
+      }
+
+      const sellerBadgeContainer = document.getElementById('detail-seller-badges');
+      sellerBadgeContainer.innerHTML = '<span class="text-[11px] text-slate-400">กำลังโหลดป้าย...</span>';
+
+      const { data: badges } = await supabaseClient
+        .from('user_badges')
+        .select('badge_id, badge_types(badge_name)')
+        .eq('receiver_id', pet.seller_id);
+
+      if (!badges || badges.length === 0) {
+        sellerBadgeContainer.innerHTML = '<span class="text-[11px] text-slate-400">ยังไม่มีป้ายรางวัลสะสม</span>';
+      } else {
+        const badgeCounts = {};
+        badges.forEach(b => {
+          const name = b.badge_types?.badge_name || 'ป้ายรางวัล';
+          badgeCounts[name] = (badgeCounts[name] || 0) + 1;
+        });
+
+        sellerBadgeContainer.innerHTML = Object.entries(badgeCounts).map(([name, count]) => `
+          <span class="bg-purple-50 text-purple-700 border border-purple-200 text-[11px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1">
+            🏆 ${name} <span class="bg-purple-200 text-purple-800 px-1 py-0.1 rounded-full text-[9px]">${count}</span>
+          </span>
+        `).join('');
+      }
+
+      const imgEl = document.getElementById('detail-image');
+      const noImgEl = document.getElementById('detail-no-image');
+
+      if (pet.images && pet.images.length > 0 && pet.images[0]) {
+        imgEl.src = pet.images[0];
+        imgEl.classList.remove('hidden');
+        noImgEl.classList.add('hidden');
+      } else {
+        imgEl.classList.add('hidden');
+        noImgEl.classList.remove('hidden');
+      }
+
+      detailModal.classList.remove('hidden');
+      detailModal.classList.add('flex');
+    };
+
+    window.openGiveBadgeModal = async function() {
+      if (!currentUser) {
+        alert('กรุณาเข้าสู่ระบบก่อนมอบป้ายรางวัลครับ');
+        return;
+      }
+      if (currentActivePet && currentActivePet.seller_id === currentUser.id) {
+        alert('ไม่สามารถมอบป้ายรางวัลให้บัญชีของตนเองได้ครับ');
+        return;
+      }
+
+      const modal = document.getElementById('give-badge-modal');
+      const container = document.getElementById('badge-options-container');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      container.innerHTML = '<p class="text-xs text-slate-400">กำลังโหลดรายการป้าย...</p>';
+
+      let { data: types, error } = await supabaseClient
+        .from('badge_types')
+        .select('*');
+
+      if (error || !types || types.length === 0) {
+        types = [
+          { badge_id: 1, badge_name: 'สายเปย์ตัวจริง', description: 'โอนไวจ่ายครบ' },
+          { badge_id: 2, badge_name: 'ซื่อสัตย์ไว้ใจได้', description: 'ไม่โกง!' },
+          { badge_id: 3, badge_name: 'รับผิดชอบดีเยี่ยม', description: 'เป็นผู้ซื้อก็น่ารัก เป็นผู้ขายก็จริงจัง' },
+          { badge_id: 4, badge_name: 'คนรักสัตว์', description: 'เสาหลักของวงการ' },
+          { badge_id: 5, badge_name: 'เจ้าประจำ', description: 'ซื้อแล้วซื้ออีก' },
+          { badge_id: 6, badge_name: 'แพ็คของแน่นหนา', description: 'จะแน่นหนาไปไหน' }
+        ];
+      }
+
+      container.innerHTML = types.map(badge => `
+        <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl flex justify-between items-center hover:bg-slate-100 transition">
+          <div>
+            <p class="font-bold text-slate-800 text-xs">🏆 ${badge.badge_name}</p>
+            <p class="text-[10px] text-slate-500">${badge.description || ''}</p>
+          </div>
+          <button onclick="submitGiveBadge(${badge.badge_id})" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition shadow-sm whitespace-nowrap">
+            มอบป้ายนี้
+          </button>
+        </div>
+      `).join('');
+    };
+
+    window.closeGiveBadgeModal = function() {
+      const modal = document.getElementById('give-badge-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    };
+
+    window.submitGiveBadge = async function(badgeId) {
+      if (!currentUser || !currentActivePet) return;
+      const sellerId = currentActivePet.seller_id;
+
+      try {
+        const { data, error } = await supabaseClient.rpc('give_user_badge', {
+          p_giver_id: currentUser.id,
+          p_receiver_id: sellerId,
+          p_badge_id: badgeId
+        });
+
+        if (error) throw error;
+
+        if (data.status === 'success') {
+          alert(`🎉 ${data.message}`);
+          closeGiveBadgeModal();
+          showPetDetail(filteredPetsData.indexOf(currentActivePet));
+        } else {
+          alert(`⚠️ แจ้งเตือนจากระบบ: ${data.message}`);
+        }
+      } catch (err) {
+        alert(`เกิดข้อผิดพลาดในการมอบป้าย: ${err.message}`);
+      }
+    };
+
+    contactSellerBtn.addEventListener('click', () => {
+      if (!currentUser) {
+        alert('กรุณาเข้าสู่ระบบก่อนส่งข้อความติดต่อผู้ขายครับ');
+        detailModal.classList.add('hidden'); detailModal.classList.remove('flex');
+        authModal.classList.remove('hidden'); authModal.classList.add('flex');
+        return;
+      }
+
+      if (currentActivePet && currentActivePet.seller_id === currentUser.id) {
+        alert('คุณเป็นเจ้าของประกาศนี้ ไม่สามารถส่งข้อความหาตัวเองได้ครับ');
+        return;
+      }
+
+      closeDetailModal();
+      openChatModal(currentActivePet, currentActivePet.seller_id, currentActivePet.seller_name);
+    });
+
+    closeInboxBtn.addEventListener('click', () => {
+      inboxModal.classList.add('hidden'); inboxModal.classList.remove('flex');
+    });
+
+    window.selectChatFromInbox = function(petId, otherUserId, otherUserName, petTitle) {
+      inboxModal.classList.add('hidden'); inboxModal.classList.remove('flex');
+      backToInboxBtn.classList.remove('hidden');
+
+      const petObj = allPetsData.find(p => p.id === petId) || { id: petId, title: petTitle };
+      openChatModal(petObj, otherUserId, otherUserName);
+    };
+
+    backToInboxBtn.addEventListener('click', () => {
+      chatModal.classList.add('hidden'); chatModal.classList.remove('flex');
+      openInboxModal();
+    });
+
+    async function openChatModal(pet, otherUserId, otherUserName) {
+      if (!pet) return;
+
+      currentActivePet = pet;
+      targetChatUserId = otherUserId;
+
+      document.getElementById('chat-seller-name').innerText = otherUserName || 'คู่สนทนา';
+      document.getElementById('chat-seller-avatar').innerText = (otherUserName || 'C').charAt(0).toUpperCase();
+      document.getElementById('chat-pet-title').innerText = `ประกาศ: ${pet.title || 'สัตว์เลี้ยง'}`;
+
+      chatModal.classList.remove('hidden');
+      chatModal.classList.add('flex');
+
+      await fetchChatMessages(pet.id, otherUserId);
+      subscribeToRealtimeChat(pet.id, otherUserId);
+    }
+
+    closeChatBtn.addEventListener('click', () => {
+      chatModal.classList.add('hidden');
+      chatModal.classList.remove('flex');
+      backToInboxBtn.classList.add('hidden');
+      if (chatRealtimeChannel) {
+        supabaseClient.removeChannel(chatRealtimeChannel);
+      }
+    });
+
+    async function fetchChatMessages(petId, otherUserId) {
+      chatMessagesContainer.innerHTML = '<div class="text-center text-xs text-slate-400 py-4">กำลังโหลดข้อความ...</div>';
+
+      if (!currentUser) return;
+
+      const { data: messages, error } = await supabaseClient
+        .from('messages')
+        .select('*')
+        .eq('pet_id', petId)
+        .or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${otherUserId}),and(sender_id.eq.${otherUserId},receiver_id.eq.${currentUser.id})`)
+        .order('created_at', { ascending: true });
+
+      if (error) {
+        chatMessagesContainer.innerHTML = `<div class="text-center text-xs text-red-500 py-4">โหลดแชตไม่สำเร็จ: ${error.message}</div>`;
+        return;
+      }
+
+      await supabaseClient
+        .from('messages')
+        .update({ is_read: true })
+        .eq('pet_id', petId)
+        .eq('receiver_id', currentUser.id)
+        .eq('sender_id', otherUserId)
+        .or('is_read.is.null,is_read.eq.false');
+          
+      checkUnreadMessages();
+      renderChatMessages(messages || []);
+    }
+
+    function renderChatMessages(messages) {
+      if (messages.length === 0) {
+        chatMessagesContainer.innerHTML = `
+          <div class="text-center text-xs text-slate-400 py-8">
+            ยังไม่มีข้อความสนทนา พิมพ์ข้อความด้านล่างเพื่อเริ่มทักทายได้เลยครับ!
+          </div>
+        `;
+        return;
+      }
+
+      chatMessagesContainer.innerHTML = messages.map(msg => {
+        const isMe = currentUser && (msg.sender_id === currentUser.id);
+        const timeStr = new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+        return `
+          <div class="flex flex-col ${isMe ? 'items-end' : 'items-start'}">
+            <span class="text-[10px] text-slate-400 mb-0.5 px-1">${isMe ? 'คุณ' : (msg.sender_name || 'คู่สนทนา')}</span>
+            <div class="max-w-[75%] px-3.5 py-2 rounded-2xl text-xs ${isMe ? 'bg-blue-600 text-white rounded-br-none' : 'bg-white text-slate-800 border border-slate-200 rounded-bl-none shadow-sm'}">
+              ${msg.content}
+            </div>
+            <span class="text-[9px] text-slate-400 mt-0.5 px-1">${timeStr}</span>
+          </div>
+        `;
+      }).join('');
+
+      chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
+    }
+
+    function subscribeToRealtimeChat(petId, otherUserId) {
+      if (chatRealtimeChannel) {
+        supabaseClient.removeChannel(chatRealtimeChannel);
+      }
+
+      chatRealtimeChannel = supabaseClient
+        .channel(`chat-pet-${petId}-${otherUserId}`)
+        .on(
+          'postgres_changes',
+          { event: 'INSERT', schema: 'public', table: 'messages', filter: `pet_id=eq.${petId}` },
+          (payload) => {
+            const newMsg = payload.new;
+            if (
+              (newMsg.sender_id === currentUser.id && newMsg.receiver_id === otherUserId) ||
+              (newMsg.sender_id === otherUserId && newMsg.receiver_id === currentUser.id)
+            ) {
+              fetchChatMessages(petId, otherUserId);
+            }
+          }
+        )
+        .subscribe();
+    }
+
+    chatForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const content = chatInput.value.trim();
+      if (!content || !currentActivePet || !currentUser) return;
+
+      const myName = currentUser.user_metadata?.full_name || currentUser.email.split('@')[0];
+      chatInput.value = '';
+
+      const { error } = await supabaseClient
+        .from('messages')
+        .insert([{
+          pet_id: currentActivePet.id,
+          sender_id: currentUser.id,
+          receiver_id: targetChatUserId,
+          sender_name: myName,
+          content: content,
+          is_read: false
+        }]);
+
+      if (error) {
+        alert(`ส่งข้อความไม่สำเร็จ: ${error.message}`);
+      }
+    });
+
+    window.deletePet = async function(petId) {
+      if (!confirm('คุณแน่ใจหรือไม่ว่าต้องการลบประกาศนี้?')) return;
+
+      try {
+        const petToDelete = allPetsData.find(p => p.id === petId);
+
+        const { error: dbError } = await supabaseClient
+          .from('pets')
+          .delete()
+          .eq('id', petId);
+
+        if (dbError) throw dbError;
+
+        if (petToDelete && petToDelete.images && petToDelete.images.length > 0) {
+          const imageUrl = petToDelete.images[0];
+          const urlParts = imageUrl.split('/');
+          const fileName = urlParts[urlParts.length - 1];
+
+          if (fileName) {
+            await supabaseClient.storage
+              .from('pet-images')
+              .remove([fileName]);
+          }
+        }
+
+        alert('ลบประกาศและไฟล์รูปภาพเรียบร้อยแล้วครับ');
+        fetchPets();
+      } catch (err) {
+        alert(`เกิดข้อผิดพลาดในการลบ: ${err.message}`);
+      }
+    };
+
+    window.openEditModal = function(index) {
+      const pet = filteredPetsData[index];
+      if (!pet) return;
+
+      document.getElementById('form-modal-title').innerText = 'แก้ไขประกาศสัตว์เลี้ยง';
+      document.getElementById('edit-pet-id').value = pet.id;
+      document.getElementById('title').value = pet.title || '';
+      document.getElementById('species').value = pet.species || 'Other';
+      document.getElementById('price').value = pet.price || '';
+      document.getElementById('morph').value = pet.morph || '';
+      document.getElementById('health_status').value = pet.health_status || 'สมบูรณ์แข็งแรง';
+      document.getElementById('image_url').value = (pet.images && pet.images[0]) ? pet.images[0] : '';
+      document.getElementById('description').value = pet.description || '';
+
+      addModal.classList.remove('hidden');
+      addModal.classList.add('flex');
+    };
+
+    function renderPetGrid(pets) {
+      document.getElementById('item-count').innerText = `พบ ${pets.length} รายการ`;
+
+      if (!pets || pets.length === 0) {
+        petGrid.innerHTML = `
+          <div class="col-span-full bg-white p-8 rounded-xl border border-dashed border-slate-300 text-center">
+            <p class="text-slate-800 font-bold mb-1">${currentMainView === 'MY' ? 'คุณยังไม่มีรายการประกาศขาย' : 'ไม่พบรายการสัตว์เลี้ยงที่ค้นหา'}</p>
+            <p class="text-xs text-slate-500">${currentMainView === 'MY' ? 'กดปุ่ม "+ ลงประกาศ" มุมขวาบนเพื่อสร้างประกาศแรกได้เลยครับ' : 'ลองเปลี่ยนคำค้นหา หรือเลือกดูหมวดหมู่อื่นๆ ได้ครับ'}</p>
+          </div>
+        `;
+        return;
+      }
+
+      petGrid.innerHTML = pets.map((pet, idx) => {
+        const hasImage = pet.images && pet.images.length > 0 && pet.images[0];
+        const isOwner = currentUser && pet.seller_id && (currentUser.id === pet.seller_id);
+        const isAdmin = currentUser && (currentUserRole === 'admin' || currentUserRole === 'super_admin');
+
+        return `
+          <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-md transition flex flex-col justify-between">
+            <div>
+              <div class="h-48 bg-slate-100 flex items-center justify-center text-slate-400 overflow-hidden relative">
+                ${hasImage 
+                  ? `<img src="${pet.images[0]}" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                     <span class="text-xs text-slate-400 hidden">โหลดรูปภาพไม่สำเร็จ</span>` 
+                  : '<span class="text-xs text-slate-400">ไม่มีรูปภาพ</span>'}
+              </div>
+              <div class="p-4">
+                <div class="flex justify-between items-start mb-2">
+                  <span class="text-xs font-bold uppercase bg-blue-50 text-blue-600 px-2 py-0.5 rounded">${pet.species || 'ไม่ระบุ'}</span>
+                  <span class="text-xs text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded font-medium">${pet.health_status || 'ปกติ'}</span>
+                </div>
+                <h3 class="font-bold text-slate-900 text-base mb-1 line-clamp-1">${pet.title || 'ไม่มีชื่อหัวข้อ'}</h3>
+                <p class="text-xs text-slate-500 mb-2">${pet.morph ? 'Morph: ' + pet.morph : 'ไม่มีระบุมอร์ฟ'}</p>
+                <p class="text-[11px] text-slate-400">โดย: <span class="font-semibold text-slate-600">${pet.seller_name || 'ผู้ขายทั่วไป'}</span></p>
+              </div>
+            </div>
+            <div class="p-4 pt-0">
+              <div class="flex justify-between items-center pt-2 border-t border-slate-100">
+                <span class="text-lg font-extrabold text-blue-600">฿${pet.price ? Number(pet.price).toLocaleString() : '0'}</span>
+                <div class="flex space-x-1">
+                  ${isOwner ? `
+                    <button onclick="openEditModal(${idx})" class="text-xs bg-amber-500 hover:bg-amber-600 text-white px-2.5 py-1.5 rounded-lg transition font-medium">แก้</button>
+                  ` : ''}
+                  ${isOwner || isAdmin ? `
+                    <button onclick="deletePet('${pet.id}')" class="text-xs bg-red-500 hover:bg-red-600 text-white px-2.5 py-1.5 rounded-lg transition font-medium">ลบ</button>
+                  ` : ''}
+                  <button onclick="showPetDetail(${idx})" class="text-xs bg-slate-900 hover:bg-slate-800 text-white px-3 py-1.5 rounded-lg transition font-medium">รายละเอียด</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function applyFilters() {
+      const query = searchInput.value.trim().toLowerCase();
+
+      if (currentUser) {
+        const myPetsCount = allPetsData.filter(p => p.seller_id && p.seller_id === currentUser.id).length;
+        document.getElementById('my-count-badge').innerText = myPetsCount;
+      }
+
+      filteredPetsData = allPetsData.filter(pet => {
+        if (currentMainView === 'MY') {
+          if (!currentUser) return false;
+          if (!pet.seller_id || pet.seller_id !== currentUser.id) return false;
+        }
+
+        const matchesCategory = (currentMainView === 'MY') || (currentCategory === 'ALL') || (pet.species === currentCategory);
+        
+        const titleMatch = (pet.title || '').toLowerCase().includes(query);
+        const morphMatch = (pet.morph || '').toLowerCase().includes(query);
+        const speciesMatch = (pet.species || '').toLowerCase().includes(query);
+        const descMatch = (pet.description || '').toLowerCase().includes(query);
+
+        return matchesCategory && (titleMatch || morphMatch || speciesMatch || descMatch);
+      });
+
+      renderPetGrid(filteredPetsData);
+    }
+
+    window.filterCategory = function(cat) {
+      currentCategory = cat;
+      const tabs = document.querySelectorAll('.cat-tab');
+      tabs.forEach(tab => {
+        tab.className = 'cat-tab bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 px-4 py-1.5 rounded-full text-xs font-bold transition';
+      });
+      event.target.className = 'cat-tab bg-blue-600 text-white px-4 py-1.5 rounded-full text-xs font-bold transition shadow-sm';
+      applyFilters();
+    };
+
+    searchForm.addEventListener('submit', (e) => { e.preventDefault(); applyFilters(); });
+    searchInput.addEventListener('input', () => { applyFilters(); });
+
+    async function fetchPets() {
+      try {
+        const { data: pets, error } = await supabaseClient
+          .from('pets')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          petGrid.innerHTML = `<div class="col-span-full bg-red-50 text-red-600 p-4 rounded-lg text-center text-sm">ข้อผิดพลาดจากฐานข้อมูล: ${error.message}</div>`;
+          return;
+        }
+
+        allPetsData = pets || [];
+        applyFilters();
+
+      } catch (err) {
+        petGrid.innerHTML = `<div class="col-span-full text-red-500 text-center text-sm">เกิดข้อผิดพลาดในการดึงข้อมูล: ${err.message}</div>`;
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      fetchPets();
+
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      if (session) {
+        updateAuthUI(session.user);
+      } else {
+        updateAuthUI(null);
+      }
+
+      supabaseClient.auth.onAuthStateChange(async (event, session) => {
+        if (event === 'PASSWORD_RECOVERY') {
+          const newPassword = prompt('กรุณากรอกรหัสผ่านใหม่ของคุณ (อย่างน้อย 6 ตัวอักษร):');
+          if (newPassword && newPassword.length >= 6) {
+            const { data, error } = await supabaseClient.auth.updateUser({ password: newPassword });
+            if (error) {
+              alert(`เปลี่ยนรหัสผ่านไม่สำเร็จ: ${error.message}`);
+            } else {
+              alert('เปลี่ยนรหัสผ่านเรียบร้อยแล้ว! สามารถเข้าสู่ระบบด้วยรหัสผ่านใหม่ได้เลยครับ');
+            }
+          } else {
+            alert('รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษรครับ');
+          }
+        }
+      });
+
+      supabaseClient.auth.onAuthStateChange((_event, session) => {
+        if (_event !== 'PASSWORD_RECOVERY') {
+          updateAuthUI(session ? session.user : null);
+        }
+      });
+    });
+
+    const petImageFileInput = document.getElementById('pet-image-file');
+    const imageUrlInput = document.getElementById('image_url');
+
+    petImageFileInput.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      if (file.size > 15 * 1024 * 1024) {
+        alert('ขนาดไฟล์ใหญ่เกินไป กรุณาเลือกไฟล์ที่มีขนาดไม่เกิน 15MB');
+        petImageFileInput.value = '';
+        return;
+      }
+
+      const submitBtn = document.getElementById('submit-btn');
+      submitBtn.disabled = true;
+      submitBtn.innerText = 'กำลังบีบอัดและอัปโหลดรูปภาพ...';
+
+      try {
+        const optimizedFile = await compressImage(file, 1200, 0.8);
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Date.now()}_${Math.random()}.${fileExt}`;
+
+        const { error } = await supabaseClient.storage
+            .from('pet-images')
+            .upload(fileName, optimizedFile);
+
+        if (error) throw error;
+
+        const { data: publicUrlData } = await supabaseClient.storage
+            .from('pet-images')
+            .getPublicUrl(fileName);
+
+        if (publicUrlData && publicUrlData.publicUrl) {
+            imageUrlInput.value = publicUrlData.publicUrl;
+            alert('อัปโหลดและบีบอัดรูปภาพสำเร็จ!');
+        }
+      } catch (error) {
+        alert('อัปโหลดรูปภาพไม่สำเร็จ: ' + error.message);
+        petImageFileInput.value = '';
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerText = 'บันทึกประกาศ';
+      }
+    });
+
+    addPetForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      if (!currentUser) {
+        alert('กรุณาเข้าสู่ระบบก่อนลงประกาศขายสัตว์เลี้ยงครับ');
+        return;
+      }
+
+      const submitBtn = document.getElementById('submit-btn');
+      submitBtn.disabled = true;
+      submitBtn.innerText = 'กำลังบันทึก...';
+
+      const editId = document.getElementById('edit-pet-id').value;
+      const imageUrl = document.getElementById('image_url').value.trim();
+      const currentUserName = currentUser.user_metadata?.full_name || currentUser.email.split('@')[0];
+      
+      const payload = {
+        title: document.getElementById('title').value.trim(),
+        species: document.getElementById('species').value,
+        price: parseFloat(document.getElementById('price').value),
+        morph: document.getElementById('morph').value.trim() || null,
+        health_status: document.getElementById('health_status').value.trim() || 'สมบูรณ์แข็งแรง',
+        description: document.getElementById('description').value.trim() || null,
+        images: imageUrl ? [imageUrl] : [],
+        seller_name: currentUserName
+      };
+
+      try {
+        let error = null;
+
+        if (editId) {
+          const res = await supabaseClient
+            .from('pets')
+            .update(payload)
+            .eq('id', editId);
+          error = res.error;
+        } else {
+          payload.seller_id = currentUser.id;
+          const res = await supabaseClient
+            .from('pets')
+            .insert([payload]);
+          error = res.error;
+        }
+
+        if (error) {
+          alert(`เกิดข้อผิดพลาด: ${error.message}`);
+        } else {
+          closeAddModal();
+          fetchPets();
+        }
+      } catch (err) {
+        alert(`เกิดข้อผิดพลาดในการเชื่อมต่อ: ${err.message}`);
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerText = 'บันทึกประกาศ';
+      }
+    });
+  </script>
+</body>
+</html>
