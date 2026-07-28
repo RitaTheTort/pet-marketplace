@@ -157,6 +157,7 @@
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     let currentUser = null;
+    let globalAuctions = [];
 
     async function updateAuthUI(user) {
       currentUser = user;
@@ -256,7 +257,8 @@
       try {
         const { data, error } = await supabaseClient.from('auctions').select('*').eq('status', 'active').order('created_at', { ascending: false });
         if (error) throw error;
-        renderAuctions(data || []);
+        globalAuctions = data || [];
+        renderAuctions(globalAuctions);
       } catch (err) {
         grid.innerHTML = `<div class="col-span-full text-red-500 text-center">เกิดข้อผิดพลาด: ${err.message}</div>`;
       }
@@ -277,7 +279,12 @@
               <span class="absolute top-3 left-3 bg-red-600 text-white font-bold text-xs px-2.5 py-1 rounded shadow">LIVE AUCTION</span>
             </div>
             <div class="p-4 space-y-2">
-              <span class="text-xs font-bold uppercase bg-red-50 text-red-600 px-2 py-0.5 rounded">${auc.species}</span>
+              <div class="flex justify-between items-center">
+                <span class="text-xs font-bold uppercase bg-red-50 text-red-600 px-2 py-0.5 rounded">${auc.species}</span>
+                <span id="timer-${auc.id}" class="text-xs font-mono font-bold text-red-600 bg-red-50 px-2.5 py-1 rounded-lg border border-red-100 flex items-center gap-1">
+                  ⏳ กำลังคำนวณ...
+                </span>
+              </div>
               <h3 class="font-bold text-slate-900 text-base">${auc.title}</h3>
               <p class="text-xs text-slate-500">ผู้เปิดประมูล: <span class="font-semibold text-slate-700">${auc.seller_name}</span></p>
               <div class="bg-emerald-50 p-3 rounded-xl border border-emerald-100 flex justify-between items-center mt-2">
@@ -296,6 +303,32 @@
           </div>
         </div>
       `).join('');
+
+      updateTimers();
+    }
+
+    // ฟังก์ชันคำนวณและอัปเดตเวลานับถอยหลังทุกๆ 1 วินาที
+    function updateTimers() {
+      setInterval(() => {
+        globalAuctions.forEach(auc => {
+          const timerEl = document.getElementById(`timer-${auc.id}`);
+          if (!timerEl) return;
+
+          const now = new Date().getTime();
+          const distance = new Date(auc.expires_at).getTime() - now;
+
+          if (distance < 0) {
+            timerEl.innerHTML = "🔴 ปิดประมูลแล้ว";
+            timerEl.className = "text-xs font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-lg";
+          } else {
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60 * 1000));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+            timerEl.innerHTML = `⏳ ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+          }
+        });
+      }, 1000);
     }
 
     document.getElementById('auth-form').addEventListener('submit', async (e) => {
