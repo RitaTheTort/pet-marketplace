@@ -270,7 +270,7 @@
         if (createAucBtn) createAucBtn.classList.remove('hidden');
       } else {
         container.innerHTML = `
-          <button onclick="document.getElementById('auth-modal').classList.remove('hidden'); document.getElementById('auth-modal').classList.add('flex');" class="bg-blue-600 text-white px-3.5 py-1.5 rounded-lg text-xs font-bold shadow">เข้าสู่ระบบ</button>
+          <button onclick="document.getElementById('auth-modal').classList.add('flex'); document.getElementById('auth-modal').classList.remove('hidden');" class="bg-blue-600 text-white px-3.5 py-1.5 rounded-lg text-xs font-bold shadow">เข้าสู่ระบบ</button>
         `;
         if (createAucBtn) createAucBtn.classList.add('hidden');
       }
@@ -449,7 +449,7 @@
       }, 1000);
     }
 
-    // --- ระบบห้องประมูลเดี่ยว (Single Auction Room Logic + Realtime) ---
+    // --- ระบบห้องประมูลเดี่ยว (Single Auction Room Logic + Realtime Both Tables) ---
     window.openSingleAuctionModal = async function(aucId) {
       await refreshActiveAuctionData(aucId);
       if (!activeAuction) return;
@@ -478,7 +478,7 @@
       if (singleRoomInterval) clearInterval(singleRoomInterval);
       singleRoomInterval = setInterval(updateSingleRoomTimer, 1000);
 
-      // เปิดระบบ Realtime Subscription ฟังการอัปเดตห้องนี้แบบสด ๆ
+      // เปิดระบบ Realtime ฟังทั้งตาราง auctions และ auction_bids พร้อมกัน
       setupRealtimeSubscription(activeAuction.id);
 
       document.getElementById('single-auction-modal').classList.remove('hidden');
@@ -500,21 +500,34 @@
       }
     }
 
-    // ฟังก์ชัน Realtime คอยซิงค์หน้าจออัตโนมัติเมื่อมีคนกดประมูลใหม่
+    // ฟังก์ชัน Realtime ดักฟังทั้ง 2 ตารางเพื่อให้หน้าจออัปเดตอัตโนมัติทันที
     function setupRealtimeSubscription(aucId) {
       if (activeSubscription) {
         supabaseClient.removeChannel(activeSubscription);
       }
 
       activeSubscription = supabaseClient
-        .channel(`room-${aucId}`)
+        .channel(`room-sync-${aucId}`)
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'auctions',
+          filter: `id=eq.${aucId}`
+        }, async (payload) => {
+          await refreshActiveAuctionData(aucId);
+          if (activeAuction) {
+            document.getElementById('sa-current-price').innerText = `฿${Number(activeAuction.current_price).toLocaleString()}`;
+            setupDynamicIncrements(Number(activeAuction.current_price));
+            await loadBidHistory(aucId);
+            updateBidButtonState();
+          }
+        })
         .on('postgres_changes', {
           event: '*',
           schema: 'public',
           table: 'auction_bids',
           filter: `auction_id=eq.${aucId}`
         }, async (payload) => {
-          // เมื่อมีประวัติการประมูลใหม่เข้ามา ให้ดึงข้อมูลล่าสุดและรีเฟรชหน้าจอทันทีโดยไม่ต้องกดรีเฟรชเอง
           await refreshActiveAuctionData(aucId);
           if (activeAuction) {
             document.getElementById('sa-current-price').innerText = `฿${Number(activeAuction.current_price).toLocaleString()}`;
@@ -528,8 +541,6 @@
 
     async function loadBidHistory(aucId) {
       const historyList = document.getElementById('sa-history-list');
-      historyList.innerHTML = '<div class="text-center text-slate-400 py-4">กำลังโหลดประวัติ...</div>';
-
       try {
         const { data, error } = await supabaseClient
           .from('auction_bids')
