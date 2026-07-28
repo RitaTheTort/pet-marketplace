@@ -527,7 +527,6 @@
       }
     }
 
-    // ฟังก์ชันจัดกลุ่มหน้าร้าน พร้อมจัดเรียง: 1. ร้านที่กดดาวขึ้นก่อน, 2. ร้านที่มีสินค้าใกล้หมดเวลาที่สุดขึ้นก่อน
     function renderSellerHubs(auctions) {
       const countEl = document.getElementById('auction-count');
       const grid = document.getElementById('seller-hub-grid');
@@ -552,7 +551,6 @@
         }
         sellerMap[sId].items.push(auc);
         
-        // หาเวลาหมดเวลาที่เร็วที่สุดของสินค้าในร้านนี้
         const expTime = new Date(auc.expires_at).getTime();
         if (expTime < sellerMap[sId].earliest_expiry) {
           sellerMap[sId].earliest_expiry = expTime;
@@ -561,17 +559,14 @@
 
       let sellers = Object.values(sellerMap);
 
-      // จัดเรียงลำดับอัจฉริยะ (Smart Multi-level Sorting)
       sellers.sort((a, b) => {
         const aFav = userFavorites.includes(a.seller_id) ? 1 : 0;
         const bFav = userFavorites.includes(b.seller_id) ? 1 : 0;
 
-        // เงื่อนไขที่ 1: ถ้ายศหรือสถานะดาวไม่เท่ากัน ให้ร้านที่กดดาวขึ้นมาก่อน
         if (aFav !== bFav) {
           return bFav - aFav;
         }
 
-        // เงื่อนไขที่ 2: ถ้าน้ำหนักดาวเท่ากัน ให้เรียงตามสินค้าที่ใกล้จะหมดเวลาที่สุดขึ้นก่อน (น้อยไปมาก)
         return a.earliest_expiry - b.earliest_expiry;
       });
 
@@ -615,8 +610,23 @@
     }
 
     window.openSellerRoomsModal = function(sellerId) {
-      const sellerAuctions = globalAuctions.filter(a => (a.seller_id || 'unknown') === sellerId);
+      let sellerAuctions = globalAuctions.filter(a => (a.seller_id || 'unknown') === sellerId);
       if (!sellerAuctions.length) return;
+
+      // จัดเรียงรายการสินค้าภายในห้อง: เปิดอยู่ (Active) ไว้บน (เรียงตามเวลาใกล้หมด), ปิดแล้ว (Closed) ผลักลงล่างสุด
+      sellerAuctions.sort((a, b) => {
+        const now = new Date().getTime();
+        const aClosed = new Date(a.expires_at).getTime() < now ? 1 : 0;
+        const bClosed = new Date(b.expires_at).getTime() < now ? 1 : 0;
+
+        // ถ้าสถานะการปิดไม่เท่ากัน ให้รายการที่ยังไม่ปิดขึ้นมาก่อน
+        if (aClosed !== bClosed) {
+          return aClosed - bClosed;
+        }
+
+        // ถ้าสถานะเหมือนกัน ให้เรียงตามเวลาหมดอายุจากน้อยไปมาก (ใกล้หมดสุดขึ้นก่อน)
+        return new Date(a.expires_at).getTime() - new Date(b.expires_at).getTime();
+      });
 
       const sellerName = sellerAuctions[0].seller_name || 'ผู้ขายทั่วไป';
       document.getElementById('modal-seller-title').innerText = `🔨 ห้องประมูลสินค้า - ร้านคุณ ${sellerName}`;
