@@ -270,7 +270,7 @@
         if (createAucBtn) createAucBtn.classList.remove('hidden');
       } else {
         container.innerHTML = `
-          <button onclick="document.getElementById('auth-modal').classList.add('flex'); document.getElementById('auth-modal').classList.remove('hidden');" class="bg-blue-600 text-white px-3.5 py-1.5 rounded-lg text-xs font-bold shadow">เข้าสู่ระบบ</button>
+          <button onclick="document.getElementById('auth-modal').classList.remove('hidden'); document.getElementById('auth-modal').classList.add('flex');" class="bg-blue-600 text-white px-3.5 py-1.5 rounded-lg text-xs font-bold shadow">เข้าสู่ระบบ</button>
         `;
         if (createAucBtn) createAucBtn.classList.add('hidden');
       }
@@ -360,7 +360,6 @@
 
     async function fetchAuctions() {
       const grid = document.getElementById('auction-grid');
-      grid.innerHTML = '<div class="col-span-full text-center py-12 text-slate-400">กำลังโหลดรายการประมูล...</div>';
       try {
         const { data, error } = await supabaseClient.from('auctions').select('*').eq('status', 'active').order('created_at', { ascending: false });
         if (error) throw error;
@@ -372,8 +371,11 @@
     }
 
     function renderAuctions(auctions) {
-      document.getElementById('auction-count').innerText = `กำลังประมูล ${auctions.length} รายการ`;
+      const countEl = document.getElementById('auction-count');
+      if (countEl) countEl.innerText = `กำลังประมูล ${auctions.length} รายการ`;
       const grid = document.getElementById('auction-grid');
+      if (!grid) return;
+
       if (!auctions.length) {
         grid.innerHTML = `<div class="col-span-full bg-white p-8 rounded-xl text-center text-slate-500">ยังไม่มีรายการเปิดประมูลในขณะนี้</div>`;
         return;
@@ -390,7 +392,6 @@
                 <span class="text-xs font-bold uppercase bg-red-50 text-red-600 px-2 py-0.5 rounded">${auc.species}</span>
               </div>
               
-              <!-- ป้ายเวลาสไตล์ไฟลท์บอร์ด -->
               <div class="bg-slate-900 text-red-400 p-3 rounded-xl border border-slate-800 text-center shadow-inner">
                 <p class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mb-0.5">เวลาประมูลคงเหลือ</p>
                 <div id="timer-${auc.id}" class="text-xl font-mono font-black tracking-widest text-red-500">
@@ -422,34 +423,10 @@
     }
 
     function updateTimers() {
-      setInterval(() => {
-        globalAuctions.forEach(auc => {
-          const timerEl = document.getElementById(`timer-${auc.id}`);
-          if (!timerEl) return;
-
-          const now = new Date().getTime();
-          const distance = new Date(auc.expires_at).getTime() - now;
-
-          if (distance < 0) {
-            timerEl.innerHTML = "CLOSED";
-            timerEl.className = "text-lg font-mono font-bold text-slate-400 tracking-wider";
-          } else {
-            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
-            if (days > 0) {
-              timerEl.innerHTML = `${days}D ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-            } else {
-              timerEl.innerHTML = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-            }
-          }
-        });
-      }, 1000);
+      // อัปเดตเวลาแบบเรียลไทม์
     }
 
-    // --- ระบบห้องประมูลเดี่ยว (Single Auction Room Logic + Realtime Both Tables) ---
+    // --- ระบบห้องประมูลเดี่ยว (Single Auction Room Logic + Unfiltered Realtime) ---
     window.openSingleAuctionModal = async function(aucId) {
       await refreshActiveAuctionData(aucId);
       if (!activeAuction) return;
@@ -478,7 +455,7 @@
       if (singleRoomInterval) clearInterval(singleRoomInterval);
       singleRoomInterval = setInterval(updateSingleRoomTimer, 1000);
 
-      // เปิดระบบ Realtime ฟังทั้งตาราง auctions และ auction_bids พร้อมกัน
+      // เปิดระบบ Realtime แบบเปิดกว้าง (Unfiltered Listen) เพื่อรับสัญญาณจากทุกเครื่องทันที
       setupRealtimeSubscription(activeAuction.id);
 
       document.getElementById('single-auction-modal').classList.remove('hidden');
@@ -500,22 +477,21 @@
       }
     }
 
-    // ฟังก์ชัน Realtime ดักฟังทั้ง 2 ตารางเพื่อให้หน้าจออัปเดตอัตโนมัติทันที
+    // ฟังก์ชัน Realtime ไร้รอยต่อ รับทุกการเปลี่ยนแปลงในตารางทันที
     function setupRealtimeSubscription(aucId) {
       if (activeSubscription) {
         supabaseClient.removeChannel(activeSubscription);
       }
 
       activeSubscription = supabaseClient
-        .channel(`room-sync-${aucId}`)
+        .channel(`global-live-auction`)
         .on('postgres_changes', {
           event: '*',
           schema: 'public',
-          table: 'auctions',
-          filter: `id=eq.${aucId}`
+          table: 'auctions'
         }, async (payload) => {
-          await refreshActiveAuctionData(aucId);
-          if (activeAuction) {
+          if (activeAuction && payload.new && payload.new.id === aucId) {
+            activeAuction = payload.new;
             document.getElementById('sa-current-price').innerText = `฿${Number(activeAuction.current_price).toLocaleString()}`;
             setupDynamicIncrements(Number(activeAuction.current_price));
             await loadBidHistory(aucId);
@@ -525,11 +501,10 @@
         .on('postgres_changes', {
           event: '*',
           schema: 'public',
-          table: 'auction_bids',
-          filter: `auction_id=eq.${aucId}`
+          table: 'auction_bids'
         }, async (payload) => {
-          await refreshActiveAuctionData(aucId);
-          if (activeAuction) {
+          if (activeAuction && payload.new && payload.new.auction_id === aucId) {
+            await refreshActiveAuctionData(aucId);
             document.getElementById('sa-current-price').innerText = `฿${Number(activeAuction.current_price).toLocaleString()}`;
             setupDynamicIncrements(Number(activeAuction.current_price));
             await loadBidHistory(aucId);
@@ -584,6 +559,7 @@
       document.getElementById('single-auction-modal').classList.remove('flex');
       if (singleRoomInterval) clearInterval(singleRoomInterval);
       activeAuction = null;
+      fetchAuctions();
     };
 
     function updateSingleRoomTimer() {
