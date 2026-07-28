@@ -29,7 +29,7 @@
   <section class="bg-gradient-to-r from-red-900 to-slate-900 text-white py-10 px-4">
     <div class="max-w-4xl mx-auto text-center flex flex-col items-center">
       <h1 class="text-3xl font-extrabold mb-2">🔨 ตลาดประมูลสัตว์เลี้ยงออนไลน์ (Live Auction)</h1>
-      <p class="text-slate-300 text-sm mb-4">ร่วมประมูลสินค้าคัดพิเศษ หรือเปิดประมูลสัตว์เลี้ยงของคุณเองได้ทันที</p>
+      <p class="text-slate-300 text-sm mb-4">ร่วมประมูลสินค้าคัดพิเศษ หรือเปิดประมูลสัตว์เลี้ยงของคุณเองได้ทันที (เฉพาะสมาชิกที่ยืนยันตัวตน KYC แล้วเท่านั้น)</p>
       <button id="open-create-auc-btn" onclick="openCreateAuctionModal()" class="hidden bg-red-600 hover:bg-red-700 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-lg transition flex items-center gap-2">
         + เปิดประมูลสินค้าใหม่
       </button>
@@ -97,12 +97,11 @@
 
           <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-2">
             <p class="text-xs font-bold text-slate-700">เลือกจำนวนเงินที่จะเพิ่มจากราคาปัจจุบัน:</p>
-            <div id="increment-buttons-container" class="grid grid-cols-3 sm:grid-cols-6 gap-1.5">
-              </div>
+            <div id="increment-buttons-container" class="grid grid-cols-3 sm:grid-cols-6 gap-1.5"></div>
           </div>
 
           <button onclick="confirmBidPrompt()" id="sa-bid-btn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3.5 rounded-xl font-bold text-sm md:text-base shadow-lg transition flex items-center justify-center gap-2">
-             ยืนยันการเสนอราคา (เสนอ <span id="sa-next-price">0</span> บาท)
+            🔨 ยืนยันการเสนอราคา (เสนอ <span id="sa-next-price">0</span> บาท)
           </button>
         </div>
 
@@ -122,7 +121,7 @@
       <div id="bid-confirm-modal" class="absolute inset-0 bg-slate-900/80 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden p-6 text-center space-y-4">
           <div class="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-2xl font-bold">
-            
+            🔨
           </div>
           <h3 class="text-lg font-extrabold text-slate-900">ยืนยันการเสนอราคาของคุณ</h3>
           <p class="text-xs text-slate-600">คุณกำลังจะเสนอราคาประมูลใหม่ที่ยอดเงิน:</p>
@@ -281,6 +280,7 @@
 
     let currentUser = null;
     let currentUserRole = 'user';
+    let currentKycStatus = 'unverified';
     let globalAuctions = [];
     let activeAuction = null;
     let selectedIncrement = 100;
@@ -291,6 +291,7 @@
     async function updateAuthUI(user) {
       currentUser = user;
       currentUserRole = 'user';
+      currentKycStatus = 'unverified';
       const container = document.getElementById('auth-buttons-container');
       const createAucBtn = document.getElementById('open-create-auc-btn');
 
@@ -299,17 +300,18 @@
 
         const { data: profileData } = await supabaseClient
           .from('profiles')
-          .select('role')
+          .select('role, kyc_status')
           .eq('id', user.id)
           .single();
 
-        if (profileData && profileData.role) {
-          currentUserRole = profileData.role;
+        if (profileData) {
+          if (profileData.role) currentUserRole = profileData.role;
+          if (profileData.kyc_status) currentKycStatus = profileData.kyc_status;
         }
 
         container.innerHTML = `
           <div class="flex items-center space-x-2 bg-slate-800 px-3 py-1.5 rounded-lg text-xs text-white">
-            <span>คุณ ${displayName}</span>
+            <span>คุณ ${displayName} ${currentKycStatus === 'approved' ? '✓' : '(ยังไม่ KYC)'}</span>
             <button onclick="handleSignOut()" class="text-red-400 font-bold ml-1">ออก</button>
           </div>
         `;
@@ -328,11 +330,16 @@
     window.handleSignOut = async function() {
       await supabaseClient.auth.signOut();
       currentUserRole = 'user';
+      currentKycStatus = 'unverified';
       updateAuthUI(null);
     };
 
     window.openCreateAuctionModal = function() {
       if (!currentUser) { alert('กรุณาเข้าสู่ระบบก่อนเปิดประมูล'); return; }
+      if (currentKycStatus !== 'approved') {
+        alert('⚠️ คุณจำเป็นต้องผ่านการยืนยันตัวตน (KYC) โดยการส่งบัตรประชาชนในหน้าหลัก (Index) และรอแอดมินอนุมัติก่อน จึงจะสามารถเปิดห้องประมูลได้ครับ');
+        return;
+      }
       document.getElementById('create-auction-modal').classList.remove('hidden');
       document.getElementById('create-auction-modal').classList.add('flex');
     };
@@ -369,7 +376,6 @@
       }
     });
 
-    // ดักจับ Submit เพื่อเปิด Modal เตือนก่อนบันทึกจริง
     document.getElementById('create-auction-form').addEventListener('submit', (e) => {
       e.preventDefault();
       if (!currentUser) return;
@@ -391,7 +397,6 @@
       document.getElementById('auction-confirm-modal').classList.add('flex');
     });
 
-    // ฟังก์ชันบันทึกข้อมูลจริง เมื่อผู้ใช้กดยืนยันใน Modal เตือน
     window.executeCreateAuction = async function() {
       closeAuctionConfirmModal();
       if (!currentUser) return;
@@ -788,6 +793,7 @@
       }
     }
 
+    // ฟังก์ชันอัปเดตสถานะปุ่ม Bid (ตรวจสอบ KYC และห้ามเจ้าของห้องประมูลสินค้าตัวเอง)
     function updateBidButtonState() {
       const bidBtn = document.getElementById('sa-bid-btn');
       if (!bidBtn || !activeAuction) return;
@@ -798,6 +804,14 @@
         bidBtn.disabled = false;
         bidBtn.className = "w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3.5 rounded-xl font-bold text-sm md:text-base shadow-lg transition flex items-center justify-center gap-2";
         bidBtn.innerHTML = `🔨 ยืนยันการเสนอราคา (เสนอ <span id="sa-next-price">${nextPrice.toLocaleString()}</span> บาท)`;
+        return;
+      }
+
+      // ตรวจสอบว่าเป็นเจ้าของโพสต์หรือไม่ (ห้ามประมูลสินค้าตัวเอง)
+      if (activeAuction.seller_id === currentUser.id) {
+        bidBtn.disabled = true;
+        bidBtn.className = "w-full bg-red-100 border border-red-300 text-red-700 py-3.5 rounded-xl font-bold text-xs md:text-sm cursor-not-allowed flex items-center justify-center gap-1";
+        bidBtn.innerHTML = `⚠️ คุณไม่สามารถประมูลสินค้าของตนเองได้`;
         return;
       }
 
@@ -820,7 +834,19 @@
         return;
       }
 
+      // ตรวจสอบสถานะ KYC ก่อนให้ Bid
+      if (currentKycStatus !== 'approved') {
+        alert('⚠️ คุณจำเป็นต้องผ่านการยืนยันตัวตน (KYC) ในหน้าหลัก (Index) และรอแอดมินอนุมัติก่อน จึงจะสามารถเข้าร่วมเสนอราคาประมูลได้ครับ');
+        return;
+      }
+
       if (!activeAuction) return;
+
+      // ป้องกันไม่ให้เจ้าของห้องประมูลกดเสนอราคา
+      if (activeAuction.seller_id === currentUser.id) {
+        alert('คุณไม่สามารถเสนอราคาสินค้าของตนเองได้ครับ');
+        return;
+      }
 
       if (activeAuction.last_bidder_id && activeAuction.last_bidder_id === currentUser.id) {
         alert('คุณเป็นผู้เสนอราคาสูงสุดในขณะนี้แล้ว ไม่สามารถเสนอราคาทับตัวเองได้ครับ');
