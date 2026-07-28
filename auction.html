@@ -272,10 +272,8 @@
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZya3htbHpzYnhnb2JvdWxmZ29zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUwNzk3NDUsImV4cCI6MjEwMDY1NTc0NX0.2ZbPyeqT-oLtKegqgmHMQx70x1BWhLWXc5p2jySspiQ';
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // กำหนดรายชื่ออีเมลผู้ดูแลระบบ (Admin / Super Admin)
-    const ADMIN_EMAILS = ['ritathetort@gmail.com']; // สามารถเพิ่มอีเมลอื่น ๆ ได้ตามต้องการ
-
     let currentUser = null;
+    let currentUserRole = 'user';
     let globalAuctions = [];
     let activeAuction = null;
     let selectedIncrement = 100;
@@ -285,11 +283,24 @@
 
     async function updateAuthUI(user) {
       currentUser = user;
+      currentUserRole = 'user';
       const container = document.getElementById('auth-buttons-container');
       const createAucBtn = document.getElementById('open-create-auc-btn');
 
       if (user) {
         const displayName = user.user_metadata?.full_name || user.email.split('@')[0];
+
+        // ดึง role จากตาราง profiles ให้ตรงกับหน้า index.html
+        const { data: profileData } = await supabaseClient
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .single();
+
+        if (profileData && profileData.role) {
+          currentUserRole = profileData.role;
+        }
+
         container.innerHTML = `
           <div class="flex items-center space-x-2 bg-slate-800 px-3 py-1.5 rounded-lg text-xs text-white">
             <span>คุณ ${displayName}</span>
@@ -305,7 +316,6 @@
       }
       if (activeAuction) updateBidButtonState();
       
-      // สั่งเรนเดอร์การ์ดใหม่ทุกครั้งที่สถานะ Auth เปลี่ยนแปลง เพื่อให้ปุ่มลบ Admin แสดงผลทันที
       if (globalAuctions.length > 0) {
         renderAuctions(globalAuctions);
       }
@@ -415,64 +425,65 @@
         return;
       }
 
-      const isAdmin = currentUser && ADMIN_EMAILS.includes(currentUser.email);
+      grid.innerHTML = auctions.map(auc => {
+        // ตรวจสอบสิทธิ์จาก role ในตาราง profiles หรือถ้าเป็นเจ้าของโพสต์เอง
+        const isAdmin = currentUser && (currentUserRole === 'admin' || currentUserRole === 'super_admin' || auc.seller_id === currentUser.id);
 
-      grid.innerHTML = auctions.map(auc => `
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col justify-between hover:shadow-md transition relative">
-          <div>
-            <div class="h-56 bg-slate-100 relative">
-              <img src="${auc.images?.[0] || ''}" class="w-full h-full object-cover">
-              <span class="absolute top-3 left-3 bg-red-600 text-white font-bold text-xs px-2.5 py-1 rounded shadow">LIVE AUCTION</span>
-              ${isAdmin ? `<button onclick="deleteAuction('${auc.id}', '${auc.images?.[0] || ''}')" class="absolute top-3 right-3 bg-slate-900/80 hover:bg-red-600 text-white p-2 rounded-lg text-xs font-bold shadow transition z-10" title="ลบโพสต์ (Admin)">🗑️</button>` : ''}
+        return `
+          <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col justify-between hover:shadow-md transition relative">
+            <div>
+              <div class="h-56 bg-slate-100 relative">
+                <img src="${auc.images?.[0] || ''}" class="w-full h-full object-cover">
+                <span class="absolute top-3 left-3 bg-red-600 text-white font-bold text-xs px-2.5 py-1 rounded shadow">LIVE AUCTION</span>
+                ${isAdmin ? `<button onclick="deleteAuction('${auc.id}', '${auc.images?.[0] || ''}')" class="absolute top-3 right-3 bg-slate-900/90 hover:bg-red-600 text-white p-2 rounded-lg text-xs font-bold shadow transition z-10" title="ลบโพสต์">🗑️</button>` : ''}
+              </div>
+              <div class="p-4 space-y-3">
+                <div class="flex justify-between items-center">
+                  <span class="text-xs font-bold uppercase bg-red-50 text-red-600 px-2 py-0.5 rounded">${auc.species}</span>
+                </div>
+                
+                <div class="bg-slate-900 text-red-400 p-3 rounded-xl border border-slate-800 text-center shadow-inner">
+                  <p class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mb-0.5">เวลาประมูลคงเหลือ</p>
+                  <div id="timer-${auc.id}" class="text-xl font-mono font-black tracking-widest text-red-500">
+                    00:00:00
+                  </div>
+                </div>
+
+                <h3 class="font-bold text-slate-900 text-base line-clamp-1">${auc.title}</h3>
+                <p class="text-xs text-slate-500">ผู้เปิดประมูล: <span class="font-semibold text-slate-700">${auc.seller_name}</span></p>
+                
+                <div class="bg-emerald-50 p-3 rounded-xl border border-emerald-100 flex justify-between items-center mt-2">
+                  <div>
+                    <p class="text-[10px] text-emerald-700 font-medium">ราคาปัจจุบัน</p>
+                    <p class="text-xl font-black text-emerald-800">฿${Number(auc.current_price).toLocaleString()}</p>
+                  </div>
+                  <div class="text-right">
+                    <p class="text-[10px] text-slate-500 font-medium">ผู้ชนะปัจจุบัน</p>
+                    <p class="text-xs font-bold text-slate-700 truncate max-w-[100px]">${auc.last_bidder_name || '-'}</p>
+                  </div>
+                  ${auc.buyout_price ? `<div class="text-right"><p class="text-[10px] text-blue-600 font-medium">ซื้อทันที</p><p class="text-sm font-bold text-blue-700">฿${Number(auc.buyout_price).toLocaleString()}</p></div>` : ''}
+                </div>
+              </div>
             </div>
-            <div class="p-4 space-y-3">
-              <div class="flex justify-between items-center">
-                <span class="text-xs font-bold uppercase bg-red-50 text-red-600 px-2 py-0.5 rounded">${auc.species}</span>
-              </div>
-              
-              <div class="bg-slate-900 text-red-400 p-3 rounded-xl border border-slate-800 text-center shadow-inner">
-                <p class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mb-0.5">เวลาประมูลคงเหลือ</p>
-                <div id="timer-${auc.id}" class="text-xl font-mono font-black tracking-widest text-red-500">
-                  00:00:00
-                </div>
-              </div>
-
-              <h3 class="font-bold text-slate-900 text-base line-clamp-1">${auc.title}</h3>
-              <p class="text-xs text-slate-500">ผู้เปิดประมูล: <span class="font-semibold text-slate-700">${auc.seller_name}</span></p>
-              
-              <div class="bg-emerald-50 p-3 rounded-xl border border-emerald-100 flex justify-between items-center mt-2">
-                <div>
-                  <p class="text-[10px] text-emerald-700 font-medium">ราคาปัจจุบัน</p>
-                  <p class="text-xl font-black text-emerald-800">฿${Number(auc.current_price).toLocaleString()}</p>
-                </div>
-                <div class="text-right">
-                  <p class="text-[10px] text-slate-500 font-medium">ผู้ชนะปัจจุบัน</p>
-                  <p class="text-xs font-bold text-slate-700 truncate max-w-[100px]">${auc.last_bidder_name || '-'}</p>
-                </div>
-                ${auc.buyout_price ? `<div class="text-right"><p class="text-[10px] text-blue-600 font-medium">ซื้อทันที</p><p class="text-sm font-bold text-blue-700">฿${Number(auc.buyout_price).toLocaleString()}</p></div>` : ''}
-              </div>
+            <div class="p-4 pt-0">
+              <button onclick="openSingleAuctionModal('${auc.id}')" class="w-full bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-xl text-xs font-bold shadow transition flex items-center justify-center gap-1">
+                🔨 เข้าร่วมห้องประมูล
+              </button>
             </div>
           </div>
-          <div class="p-4 pt-0">
-            <button onclick="openSingleAuctionModal('${auc.id}')" class="w-full bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-xl text-xs font-bold shadow transition flex items-center justify-center gap-1">
-              🔨 เข้าร่วมห้องประมูล
-            </button>
-          </div>
-        </div>
-      `).join('');
+        `;
+      }).join('');
 
       updateTimers();
     }
 
-    // ฟังก์ชันลบโพสต์ประมูลแบบเบ็ดเสร็จ (Admin Only)
+    // ฟังก์ชันลบโพสต์ประมูลแบบเบ็ดเสร็จ
     window.deleteAuction = async function(aucId, imageUrl) {
       if (!confirm('⚠️ คำเตือน: คุณต้องการลบโพสต์ประมูลนี้ รวมถึงประวัติการสู้ราคาและรูปภาพทั้งหมดอย่างถาวรใช่หรือไม่?')) return;
 
       try {
-        // 1. ลบประวัติการสู้ราคาในตาราง auction_bids ก่อน
         await supabaseClient.from('auction_bids').delete().eq('auction_id', aucId);
 
-        // 2. ลบรูปภาพออกจาก Supabase Storage (ถ้ามี)
         if (imageUrl) {
           const urlParts = imageUrl.split('/pet-images/');
           if (urlParts.length > 1) {
@@ -481,7 +492,6 @@
           }
         }
 
-        // 3. ลบโพสต์หลักในตาราง auctions
         const { error } = await supabaseClient.from('auctions').delete().eq('id', aucId);
         if (error) throw error;
 
