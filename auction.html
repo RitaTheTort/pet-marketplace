@@ -539,6 +539,8 @@
       }
 
       const sellerMap = {};
+      const now = new Date().getTime();
+
       auctions.forEach(auc => {
         const sId = auc.seller_id || 'unknown';
         if (!sellerMap[sId]) {
@@ -546,13 +548,14 @@
             seller_id: sId,
             seller_name: auc.seller_name || 'ผู้ขายทั่วไป',
             items: [],
-            earliest_expiry: new Date(auc.expires_at).getTime()
+            earliest_expiry: Infinity
           };
         }
         sellerMap[sId].items.push(auc);
         
         const expTime = new Date(auc.expires_at).getTime();
-        if (expTime < sellerMap[sId].earliest_expiry) {
+        // คำนวณหาเฉพาะร้านที่มีสินค้ายังไม่ปิด (expTime > now) และหาเวลาที่ใกล้ที่สุด
+        if (expTime > now && expTime < sellerMap[sId].earliest_expiry) {
           sellerMap[sId].earliest_expiry = expTime;
         }
       });
@@ -613,18 +616,16 @@
       let sellerAuctions = globalAuctions.filter(a => (a.seller_id || 'unknown') === sellerId);
       if (!sellerAuctions.length) return;
 
-      // จัดเรียงรายการสินค้าภายในห้อง: เปิดอยู่ (Active) ไว้บน (เรียงตามเวลาใกล้หมด), ปิดแล้ว (Closed) ผลักลงล่างสุด
+      // จัดเรียงรายการสินค้าภายในห้อง: กรองสินค้าที่ปิดแล้ว (Closed) ลงล่างสุดทันที
       sellerAuctions.sort((a, b) => {
         const now = new Date().getTime();
         const aClosed = new Date(a.expires_at).getTime() < now ? 1 : 0;
         const bClosed = new Date(b.expires_at).getTime() < now ? 1 : 0;
 
-        // ถ้าสถานะการปิดไม่เท่ากัน ให้รายการที่ยังไม่ปิดขึ้นมาก่อน
         if (aClosed !== bClosed) {
           return aClosed - bClosed;
         }
 
-        // ถ้าสถานะเหมือนกัน ให้เรียงตามเวลาหมดอายุจากน้อยไปมาก (ใกล้หมดสุดขึ้นก่อน)
         return new Date(a.expires_at).getTime() - new Date(b.expires_at).getTime();
       });
 
