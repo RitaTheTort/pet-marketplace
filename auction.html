@@ -425,6 +425,7 @@
       }
 
       grid.innerHTML = auctions.map(auc => {
+        // ให้สิทธิ์ Admin / Super Admin หรือเจ้าของโพสต์ สามารถลบได้ทันที
         const isAdmin = currentUser && (currentUserRole === 'admin' || currentUserRole === 'super_admin' || auc.seller_id === currentUser.id);
 
         return `
@@ -475,8 +476,18 @@
       updateTimers();
     }
 
-    // ฟังก์ชันลบโพสต์ประมูลแบบเบ็ดเสร็จ (เอา alert ออก เพื่อให้รีเฟรชและหายไปทันที)
+    // ฟังก์ชันลบโพสต์ประมูลแบบเบ็ดเสร็จ (เช็คสิทธิ์ซ้ำเพื่อความปลอดภัย และลบสำเร็จทันทีโดยไม่มี alert ขัดจังหวะ)
     window.deleteAuction = async function(aucId, imageUrl) {
+      if (!currentUser) return;
+      
+      const targetAuc = globalAuctions.find(a => a.id === aucId);
+      const isAuthorized = (currentUserRole === 'admin' || currentUserRole === 'super_admin' || (targetAuc && targetAuc.seller_id === currentUser.id));
+
+      if (!isAuthorized) {
+        alert('คุณไม่มีสิทธิ์ในการลบโพสต์นี้');
+        return;
+      }
+
       if (!confirm('⚠️ คำเตือน: คุณต้องการลบโพสต์ประมูลนี้ รวมถึงประวัติการสู้ราคาและรูปภาพทั้งหมดอย่างถาวรใช่หรือไม่?')) return;
 
       try {
