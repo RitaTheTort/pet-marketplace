@@ -303,7 +303,7 @@
     let singleRoomInterval = null;
     let activeSubscription = null;
     let mainTimerInterval = null;
-    let userFavorites = []; // เก็บรายชื่อ seller_id ที่ผู้ใช้กดดาวไว้
+    let userFavorites = [];
 
     function lockBodyScroll() {
       document.getElementById('page-body').classList.add('overflow-hidden', 'fixed', 'inset-0');
@@ -335,7 +335,6 @@
           if (profileData.kyc_status) currentKycStatus = profileData.kyc_status;
         }
 
-        // ดึงข้อมูลรายการโปรด (Favorite Sellers) ของผู้ใช้คนนี้
         const { data: favData } = await supabaseClient
           .from('favorite_sellers')
           .select('seller_id')
@@ -371,9 +370,8 @@
       updateAuthUI(null);
     };
 
-    // ฟังก์ชันสลับสถานะกดดาว (Favorite Seller)
     window.toggleFavoriteSeller = async function(event, sellerId) {
-      event.stopPropagation(); // ป้องกันการกดทะลุไปเปิด Modal ห้องประมูล
+      event.stopPropagation();
       if (!currentUser) {
         alert('กรุณาเข้าสู่ระบบก่อนกดติดตามหน้าร้านครับ');
         document.getElementById('auth-modal').classList.remove('hidden');
@@ -384,7 +382,6 @@
       const isFav = userFavorites.includes(sellerId);
 
       if (isFav) {
-        // เอาออกจากรายการโปรด
         const { error } = await supabaseClient
           .from('favorite_sellers')
           .delete()
@@ -396,7 +393,6 @@
           renderSellerHubs(globalAuctions);
         }
       } else {
-        // เพิ่มเข้าสู่รายการโปรด
         const { error } = await supabaseClient
           .from('favorite_sellers')
           .insert([{ user_id: currentUser.id, seller_id: sellerId }]);
@@ -522,7 +518,7 @@
     async function fetchAuctions() {
       const grid = document.getElementById('seller-hub-grid');
       try {
-        const { data, error } = await supabaseClient.from('auctions').select('*').eq('status', 'active').order('created_at', { ascending: false });
+        const { data, error } = await supabaseClient.from('auctions').select('*').eq('status', 'active').order('expires_at', { ascending: true });
         if (error) throw error;
         globalAuctions = data || [];
         renderSellerHubs(globalAuctions);
@@ -531,7 +527,7 @@
       }
     }
 
-    // ฟังก์ชันจัดกลุ่มหน้าร้าน พร้อมจัดเรียงร้านที่กดดาว (Favorite) ขึ้นมาอยู่อันดับบนสุดเสมอ
+    // ฟังก์ชันจัดกลุ่มหน้าร้าน พร้อมจัดเรียง: 1. ร้านที่กดดาวขึ้นก่อน, 2. ร้านที่มีสินค้าใกล้หมดเวลาที่สุดขึ้นก่อน
     function renderSellerHubs(auctions) {
       const countEl = document.getElementById('auction-count');
       const grid = document.getElementById('seller-hub-grid');
@@ -550,19 +546,33 @@
           sellerMap[sId] = {
             seller_id: sId,
             seller_name: auc.seller_name || 'ผู้ขายทั่วไป',
-            items: []
+            items: [],
+            earliest_expiry: new Date(auc.expires_at).getTime()
           };
         }
         sellerMap[sId].items.push(auc);
+        
+        // หาเวลาหมดเวลาที่เร็วที่สุดของสินค้าในร้านนี้
+        const expTime = new Date(auc.expires_at).getTime();
+        if (expTime < sellerMap[sId].earliest_expiry) {
+          sellerMap[sId].earliest_expiry = expTime;
+        }
       });
 
       let sellers = Object.values(sellerMap);
 
-      // จัดเรียง: ร้านที่กดดาว (Favorite) ไว้ จะถูกดันขึ้นมาอยู่อันดับบนสุด
+      // จัดเรียงลำดับอัจฉริยะ (Smart Multi-level Sorting)
       sellers.sort((a, b) => {
         const aFav = userFavorites.includes(a.seller_id) ? 1 : 0;
         const bFav = userFavorites.includes(b.seller_id) ? 1 : 0;
-        return bFav - aFav; // เอาค่าที่เป็น Favorite มากกว่าขึ้นก่อน
+
+        // เงื่อนไขที่ 1: ถ้ายศหรือสถานะดาวไม่เท่ากัน ให้ร้านที่กดดาวขึ้นมาก่อน
+        if (aFav !== bFav) {
+          return bFav - aFav;
+        }
+
+        // เงื่อนไขที่ 2: ถ้าน้ำหนักดาวเท่ากัน ให้เรียงตามสินค้าที่ใกล้จะหมดเวลาที่สุดขึ้นก่อน (น้อยไปมาก)
+        return a.earliest_expiry - b.earliest_expiry;
       });
 
       if (countEl) countEl.innerText = `หน้าร้านที่กำลังเปิดประมูล ${sellers.length} ร้าน (รวม ${auctions.length} รายการ)`;
@@ -580,7 +590,6 @@
                 <div class="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-transparent to-transparent"></div>
                 <span class="absolute top-3 left-3 bg-red-600 text-white font-bold text-xs px-2.5 py-1 rounded shadow">SELLER STOREFRONT</span>
                 
-                <!-- ปุ่มไอคอนรูปดาวปักหมุดหน้าร้านโปรด -->
                 <button onclick="toggleFavoriteSeller(event, '${seller.seller_id}')" class="absolute top-3 right-3 bg-slate-900/80 hover:bg-slate-900 text-white p-2 rounded-xl text-base shadow transition z-10" title="${isFav ? 'ยกเลิกปักหมุด' : 'ปักหมุดร้านโปรด'}">
                   ${isFav ? '⭐' : '☆'}
                 </button>
