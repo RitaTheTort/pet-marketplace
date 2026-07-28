@@ -83,7 +83,7 @@
       </div>
     </div>
 
-    <!-- ส่วนแสดงรายการสัตว์เลี้ยงปกติ / ประกาศของฉัน -->
+    <!-- ส่วนแสดงรายการสัตว์เลี้ยงปกติ -->
     <div id="pet-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
       <div class="col-span-full text-center py-12 text-slate-400 text-sm">
         กำลังเชื่อมต่อฐานข้อมูล...
@@ -107,6 +107,16 @@
         </h3>
         <div id="admin-kyc-list" class="space-y-3">
           <p class="text-xs text-slate-400">กำลังโหลดข้อมูลผู้สมัคร...</p>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6" id="admin-role-management-section">
+        <h3 class="font-bold text-lg text-slate-900 mb-2 flex items-center gap-2">
+          <span>🛡️ จัดการสิทธิ์ผู้ใช้งานและผู้ดูแลระบบ (Admin Role Management)</span>
+        </h3>
+        <p class="text-xs text-slate-500 mb-4">รายชื่อสมาชิกทั้งหมดในระบบสำหรับกำหนดสิทธิ์ผู้ดูแลระบบ</p>
+        <div id="admin-users-list" class="space-y-3">
+          <p class="text-xs text-slate-400">กำลังโหลดรายชื่อสมาชิก...</p>
         </div>
       </div>
     </div>
@@ -195,6 +205,9 @@
         <div>
           <label class="block text-xs font-bold text-slate-700 mb-1">รหัสผ่าน (Password) *</label>
           <input type="password" id="auth-password" required placeholder="อย่างน้อย 6 ตัวอักษร" minlength="6" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+          <div class="text-right mt-1" id="forgot-password-container">
+            <button type="button" onclick="handleForgotPassword()" class="text-[11px] text-blue-600 hover:underline">ลืมรหัสผ่าน?</button>
+          </div>
         </div>
 
         <div class="pt-2">
@@ -206,6 +219,237 @@
           </p>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- Modal: จัดการบัญชีผู้ใช้และอัปเดต KYC -->
+  <div id="profile-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden my-8">
+      <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center">
+        <h3 class="font-bold text-lg">จัดการบัญชีและสถานะ KYC</h3>
+        <button id="close-profile-btn" class="text-slate-400 hover:text-white text-xl font-bold">&times;</button>
+      </div>
+      
+      <form id="profile-form" class="p-6 space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">อีเมลผู้ใช้งาน</label>
+          <input type="email" id="profile-email" disabled class="w-full px-3 py-2 border border-slate-200 bg-slate-100 rounded-lg text-sm text-slate-500 cursor-not-allowed">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">ชื่อผู้ใช้ / ชื่อร้านค้า *</label>
+          <input type="text" id="profile-name" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">สถานะยืนยันตัวตน (KYC Status)</label>
+          <div id="profile-kyc-status-box" class="p-3 rounded-lg text-xs font-bold bg-slate-100 text-slate-600 flex items-center justify-between">
+            <span>⏳ กำลังตรวจสอบสถานะ</span>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">ถ้วยรางวัลและป้ายพฤติกรรมสะสม (Badges)</label>
+          <div id="profile-badges-container" class="p-3 rounded-xl border border-slate-200 bg-slate-50 flex flex-wrap gap-2 min-h-[50px] items-center">
+            <span class="text-xs text-slate-400">กำลังโหลดป้ายรางวัล...</span>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">อัปเดต/ส่งเอกสารยืนยันตัวตนใหม่ (ถ้ามี)</label>
+          <input type="file" id="profile-kyc-file" accept="image/*" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-xs file:font-bold file:bg-blue-50 file:text-blue-700">
+        </div>
+
+        <div class="pt-3 flex justify-end space-x-3 border-t border-slate-100">
+          <button type="button" id="cancel-profile-btn" class="px-4 py-2 border border-slate-300 rounded-lg text-slate-600 text-sm font-medium hover:bg-slate-50 transition">ปิด</button>
+          <button type="submit" id="save-profile-btn" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-bold shadow transition">บันทึกข้อมูล</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: ลงประกาศสัตว์เลี้ยง -->
+  <div id="add-pet-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden my-8">
+      <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center">
+        <h3 id="form-modal-title" class="font-bold text-lg">ลงประกาศขายสัตว์เลี้ยง</h3>
+        <button id="close-modal-btn" class="text-slate-400 hover:text-white text-xl font-bold">&times;</button>
+      </div>
+      
+      <form id="add-pet-form" class="p-6 space-y-4">
+        <input type="hidden" id="edit-pet-id" value="">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">ชื่อหัวข้อประกาศ *</label>
+          <input type="text" id="title" required placeholder="เช่น African Fat-tailed Gecko สายพันธุ์แท้" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">หมวดหมู่/ชนิด *</label>
+            <select id="species" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+              <option value="Gecko">Gecko (ตุ๊กแก)</option>
+              <option value="Tortoise">Tortoise (เต่าบก)</option>
+              <option value="Frog">Frog (กบ)</option>
+              <option value="Cat">Cat (แมว)</option>
+              <option value="Other">อื่นๆ</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">ราคา (บาท) *</label>
+            <input type="number" id="price" required placeholder="เช่น 15000" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">มอร์ฟ (Morph) / สายพันธุ์</label>
+            <input type="text" id="morph" placeholder="เช่น White Out Amel Zulu" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">สถานะสุขภาพ</label>
+            <input type="text" id="health_status" value="สมบูรณ์แข็งแรง" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">อัปโหลดรูปภาพสัตว์เลี้ยง</label>
+          <input type="file" id="pet-image-file" accept="image/*" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-bold file:bg-blue-50 file:text-blue-700">
+          <input type="hidden" id="image_url" value="">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">รายละเอียดเพิ่มเติม</label>
+          <textarea id="description" rows="3" placeholder="ระบุประวัติการกิน คราบ เพศ หรือรายละเอียดสายเลือด..." class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"></textarea>
+        </div>
+
+        <div class="pt-3 flex justify-end space-x-3 border-t border-slate-100">
+          <button type="button" id="cancel-btn" class="px-4 py-2 border border-slate-300 rounded-lg text-slate-600 text-sm font-medium hover:bg-slate-50 transition">ยกเลิก</button>
+          <button type="submit" id="submit-btn" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-bold shadow transition">บันทึกประกาศ</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: รายละเอียดสัตว์เลี้ยง -->
+  <div id="detail-pet-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg my-8 relative overflow-hidden">
+      <div class="bg-slate-900 text-white px-5 py-4 flex justify-between items-center">
+        <h3 id="detail-title" class="font-bold text-base truncate pr-2">รายละเอียดสัตว์เลี้ยง</h3>
+        <button type="button" id="close-detail-btn-top" class="bg-slate-800 hover:bg-slate-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1 border border-slate-700">
+          ✕ ปิด
+        </button>
+      </div>
+
+      <div class="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
+        <div class="h-60 bg-slate-100 rounded-xl overflow-hidden flex items-center justify-center text-slate-400 relative group cursor-pointer" onclick="openImageLightbox()">
+          <img id="detail-image" src="" class="w-full h-full object-contain hidden">
+          <span id="detail-no-image" class="text-sm">ไม่มีรูปภาพ</span>
+        </div>
+
+        <div class="flex justify-between items-center">
+          <span id="detail-species" class="text-xs font-bold uppercase bg-blue-50 text-blue-600 px-2.5 py-1 rounded-md">SPECIES</span>
+          <span id="detail-health" class="text-xs font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-md">สมบูรณ์แข็งแรง</span>
+        </div>
+        <div>
+          <p class="text-xs text-slate-400 mb-1">มอร์ฟ / สายพันธุ์</p>
+          <p id="detail-morph" class="text-sm font-semibold text-slate-800">-</p>
+        </div>
+        <div>
+          <p class="text-xs text-slate-400 mb-1">รายละเอียดเพิ่มเติม</p>
+          <div id="detail-desc" class="text-sm text-slate-600 bg-slate-50 p-3 rounded-lg min-h-[60px] whitespace-pre-wrap">ไม่มีรายละเอียดเพิ่มเติม</div>
+        </div>
+
+        <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 flex justify-between items-center">
+          <div>
+            <p class="text-xs text-slate-400 mb-0.5">ผู้ลงประกาศขาย</p>
+            <p id="detail-seller-name" class="text-sm font-bold text-slate-800">กำลังโหลด...</p>
+          </div>
+          <span id="detail-kyc-badge" class="text-xs bg-slate-200 text-slate-600 font-bold px-2.5 py-1 rounded-full flex items-center gap-1">
+            ⏳ กำลังตรวจสอบสถานะ
+          </span>
+        </div>
+
+        <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-2">
+          <div class="flex justify-between items-center">
+            <span class="text-xs text-slate-400 font-medium">ป้ายรางวัลสะสมของผู้ขาย:</span>
+            <button type="button" onclick="openGiveBadgeModal()" class="text-xs bg-purple-600 hover:bg-purple-700 text-white font-bold px-2.5 py-1 rounded-lg transition shadow-sm">
+              + มอบป้ายรางวัล
+            </button>
+          </div>
+          <div id="detail-seller-badges" class="flex flex-wrap gap-1.5 pt-1">
+            <span class="text-[11px] text-slate-400">ยังไม่มีป้ายรางวัล</span>
+          </div>
+        </div>
+
+        <div class="pt-4 border-t border-slate-100 flex justify-between items-center">
+          <div>
+            <p class="text-xs text-slate-400">ราคาขาย</p>
+            <p id="detail-price" class="text-2xl font-extrabold text-blue-600">฿0</p>
+          </div>
+          <button id="contact-seller-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow transition">
+            ติดต่อผู้ขาย
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: แชทสนทนา -->
+  <div id="chat-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg h-[550px] flex flex-col overflow-hidden">
+      <div class="bg-slate-900 text-white px-5 py-3.5 flex justify-between items-center border-b border-slate-800">
+        <div class="flex items-center space-x-3">
+          <button id="back-to-inbox-btn" class="text-slate-400 hover:text-white font-bold text-lg hidden mr-1">&larr;</button>
+          <div class="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center font-bold text-sm text-white" id="chat-seller-avatar">S</div>
+          <div>
+            <h4 id="chat-seller-name" class="font-bold text-sm leading-tight">ชื่อผู้ติดต่อ</h4>
+            <p id="chat-pet-title" class="text-[11px] text-blue-300 truncate max-w-[200px]">เกี่ยวกับ: สัตว์เลี้ยง</p>
+          </div>
+        </div>
+        <button id="close-chat-btn" class="text-slate-400 hover:text-white text-xl font-bold">&times;</button>
+      </div>
+
+      <div id="chat-messages-container" class="flex-1 p-4 overflow-y-auto space-y-3 bg-slate-50 text-sm">
+        <div class="text-center text-xs text-slate-400 py-4">กำลังโหลดประวัติการสนทนา...</div>
+      </div>
+
+      <form id="chat-form" class="p-3 bg-white border-t border-slate-200 flex items-center space-x-2">
+        <input type="text" id="chat-input" required placeholder="พิมพ์ข้อความโต้ตอบ..." class="flex-1 px-4 py-2 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <button type="submit" id="send-msg-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-bold transition whitespace-nowrap">ส่ง</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: กล่องข้อความทั้งหมด (Inbox) -->
+  <div id="inbox-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg h-[550px] flex flex-col overflow-hidden">
+      <div class="bg-slate-900 text-white px-5 py-3.5 flex justify-between items-center border-b border-slate-800">
+        <div class="flex items-center space-x-2">
+          <span class="text-lg">💬</span>
+          <h4 class="font-bold text-base">กล่องข้อความสนทนาทั้งหมด</h4>
+        </div>
+        <button id="close-inbox-btn" class="text-slate-400 hover:text-white text-xl font-bold">&times;</button>
+      </div>
+      <div id="inbox-list-container" class="flex-1 overflow-y-auto p-4 divide-y divide-slate-100">
+        <div class="text-center text-xs text-slate-400 py-8">กำลังดึงรายการกล่องข้อความ...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: มอบป้ายรางวัล -->
+  <div id="give-badge-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden">
+      <div class="bg-slate-900 text-white px-5 py-3.5 flex justify-between items-center">
+        <h3 class="font-bold text-sm">มอบป้ายรางวัลให้ผู้ใช้งาน</h3>
+        <button onclick="closeGiveBadgeModal()" class="text-slate-400 hover:text-white text-xl font-bold">&times;</button>
+      </div>
+      <div class="p-5 space-y-4">
+        <p class="text-xs text-slate-600">เลือกป้ายรางวัลที่ต้องการมอบให้กับผู้ขายรายนี้:</p>
+        <div id="badge-options-container" class="space-y-2"></div>
+        <div class="pt-2 flex justify-end">
+          <button type="button" onclick="closeGiveBadgeModal()" class="px-4 py-2 border border-slate-300 rounded-lg text-slate-600 text-xs font-medium">ปิด</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -247,9 +491,14 @@
     let currentUser = null;
     let currentUserRole = 'user';
     let allPetsData = [];
+    let filteredPetsData = [];
     let allAuctionsData = [];
-    let currentMainView = 'ALL';
     let currentCategory = 'ALL';
+    let currentMainView = 'ALL';
+    let currentActivePet = null;
+    let chatRealtimeChannel = null;
+    let globalNotificationChannel = null;
+    let targetChatUserId = null;
 
     window.switchMainView = function(view) {
       currentMainView = view;
@@ -258,10 +507,11 @@
       if (document.getElementById('tab-my-pets')) {
         document.getElementById('tab-my-pets').className = "py-2 px-3.5 font-bold text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-700 transition";
       }
-      
+
       const petGrid = document.getElementById('pet-grid');
       const auctionView = document.getElementById('auction-view-container');
       const categoryFilter = document.getElementById('category-filter-container');
+      const adminPanel = document.getElementById('admin-panel-container');
       const createAucBtn = document.getElementById('create-auction-trigger-btn');
 
       if (view === 'ALL') {
@@ -269,7 +519,8 @@
         categoryFilter.classList.remove('hidden');
         petGrid.classList.remove('hidden');
         auctionView.classList.add('hidden');
-        createAucBtn.classList.add('hidden');
+        adminPanel.classList.add('hidden');
+        if (createAucBtn) createAucBtn.classList.add('hidden');
         document.getElementById('section-title').innerText = "รายการสัตว์เลี้ยงมาใหม่";
         fetchPets();
       } else if (view === 'AUCTION') {
@@ -277,7 +528,8 @@
         categoryFilter.classList.add('hidden');
         petGrid.classList.add('hidden');
         auctionView.classList.remove('hidden');
-        if (currentUser) createAucBtn.classList.remove('hidden');
+        adminPanel.classList.add('hidden');
+        if (currentUser && createAucBtn) createAucBtn.classList.remove('hidden');
         document.getElementById('section-title').innerText = "ตลาดประมูลสด (Live Auction)";
         fetchAuctions();
       } else if (view === 'MY') {
@@ -285,27 +537,54 @@
         categoryFilter.classList.add('hidden');
         petGrid.classList.remove('hidden');
         auctionView.classList.add('hidden');
-        createAucBtn.classList.add('hidden');
+        adminPanel.classList.add('hidden');
+        if (createAucBtn) createAucBtn.classList.add('hidden');
         document.getElementById('section-title').innerText = "รายการประกาศของฉัน";
         fetchMyPets();
+      } else if (view === 'ADMIN') {
+        categoryFilter.classList.add('hidden');
+        petGrid.classList.add('hidden');
+        auctionView.classList.add('hidden');
+        adminPanel.classList.remove('hidden');
+        if (createAucBtn) createAucBtn.classList.add('hidden');
+        document.getElementById('section-title').innerText = "ระบบจัดการหลังบ้าน (Admin Panel)";
+        fetchAdminKycData();
+        fetchAdminUsersData();
       }
     };
 
     async function updateAuthUI(user) {
       currentUser = user;
+      currentUserRole = 'user';
       const container = document.getElementById('auth-buttons-container');
+      const dynamicActionArea = document.getElementById('dynamic-action-area');
       const createAucBtn = document.getElementById('create-auction-trigger-btn');
 
       if (user) {
         const displayName = user.user_metadata?.full_name || user.email.split('@')[0];
+        const { data: profileData } = await supabaseClient.from('profiles').select('role').eq('id', user.id).single();
+        if (profileData && profileData.role) currentUserRole = profileData.role;
+
         container.innerHTML = `
           <div class="flex items-center space-x-1.5 bg-slate-800 px-2 py-1.5 rounded-lg border border-slate-700 shrink-0">
             <span class="text-xs font-bold text-slate-200 truncate max-w-[80px]">คุณ ${displayName}</span>
-            <button onclick="handleSignOut()" class="text-xs text-red-400 hover:text-red-300 font-bold ml-1">ออก</button>
+            <button onclick="openInboxModal()" class="relative bg-slate-700 hover:bg-slate-600 text-blue-300 px-2 py-1 rounded text-xs font-bold transition">💬 แชท</button>
+            <button onclick="handleSignOut()" class="text-xs text-red-400 hover:text-red-300 font-bold ml-0.5">ออก</button>
           </div>
         `;
+
+        dynamicActionArea.innerHTML = `
+          <button onclick="openAddModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-3 py-1.5 rounded-lg text-xs transition shadow shrink-0">+ ลงประกาศ</button>
+        `;
+
         document.getElementById('tab-my-pets').classList.remove('hidden');
-        if (currentMainView === 'AUCTION') createAucBtn.classList.remove('hidden');
+        if (currentMainView === 'AUCTION' && createAucBtn) createAucBtn.classList.remove('hidden');
+        
+        if (currentUserRole === 'admin' || currentUserRole === 'super_admin') {
+          document.getElementById('admin-tab-container').classList.remove('hidden');
+        } else {
+          document.getElementById('admin-tab-container').classList.add('hidden');
+        }
       } else {
         container.innerHTML = `
           <button id="open-auth-modal-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-3.5 py-1.5 rounded-lg text-xs transition shadow-sm">เข้าสู่ระบบ</button>
@@ -314,10 +593,13 @@
           document.getElementById('auth-modal').classList.remove('hidden');
           document.getElementById('auth-modal').classList.add('flex');
         });
+        dynamicActionArea.innerHTML = '';
         document.getElementById('tab-my-pets').classList.add('hidden');
-        createAucBtn.classList.add('hidden');
+        document.getElementById('admin-tab-container').classList.add('hidden');
+        if (createAucBtn) createAucBtn.classList.add('hidden');
         currentMainView = 'ALL';
       }
+      applyFilters();
     }
 
     window.handleSignOut = async function() {
@@ -421,7 +703,7 @@
         const { data, error } = await supabaseClient.from('pets').select('*').order('created_at', { ascending: false });
         if (error) throw error;
         allPetsData = data || [];
-        renderPetGrid(allPetsData);
+        applyFilters();
       } catch (err) {
         document.getElementById('pet-grid').innerHTML = `<div class="col-span-full text-red-500 text-center text-sm">โหลดข้อมูลไม่สำเร็จ: ${err.message}</div>`;
       }
@@ -455,13 +737,16 @@
       document.getElementById('item-count').innerText = `พบ ${pets.length} รายการ`;
       const grid = document.getElementById('pet-grid');
       if (!pets.length) { grid.innerHTML = `<div class="col-span-full text-center py-12 text-slate-400">ไม่พบรายการ</div>`; return; }
-      grid.innerHTML = pets.map(pet => `
+      grid.innerHTML = pets.map((pet, idx) => `
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
           <div class="h-48 bg-slate-100"><img src="${pet.images?.[0] || ''}" class="w-full h-full object-cover"></div>
           <div class="p-4">
             <span class="text-xs font-bold uppercase bg-blue-50 text-blue-600 px-2 py-0.5 rounded">${pet.species || 'ไม่ระบุ'}</span>
             <h3 class="font-bold mt-2">${pet.title}</h3>
             <p class="text-blue-600 font-extrabold mt-2">฿${Number(pet.price).toLocaleString()}</p>
+          </div>
+          <div class="p-4 pt-0">
+            <button onclick="showPetDetail(${idx})" class="w-full text-xs bg-slate-900 text-white py-2 rounded-lg">รายละเอียด</button>
           </div>
         </div>
       `).join('');
@@ -502,6 +787,17 @@
         </div>
       `).join('');
     }
+
+    window.openInboxModal = async function() {
+      if (!currentUser) return;
+      document.getElementById('inbox-modal').classList.remove('hidden');
+      document.getElementById('inbox-modal').classList.add('flex');
+    };
+
+    document.getElementById('close-inbox-btn').addEventListener('click', () => {
+      document.getElementById('inbox-modal').classList.add('hidden');
+      document.getElementById('inbox-modal').classList.remove('flex');
+    });
 
     document.addEventListener('DOMContentLoaded', async () => {
       fetchPets();
