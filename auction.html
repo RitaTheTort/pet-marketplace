@@ -118,7 +118,7 @@
             <span>📋 ประวัติการเสนอราคาสด</span>
           </h4>
           <div id="sa-history-list" class="flex-1 overflow-y-auto space-y-2 pr-1 divide-y divide-slate-200 text-xs">
-            <div class="text-center text-slate-400 py-6">กำลังโหลดข้อมูลล่าสุด...</div>
+            <div class="text-center text-slate-400 py-6">กำลังโหลดประวัติ...</div>
           </div>
           <p class="text-[10px] text-slate-400 text-center pt-2 border-t border-slate-200 mt-2">
             ระบบอัปเดตราคาล่าสุดทันทีผ่าน Supabase
@@ -470,7 +470,9 @@
         buyoutBox.classList.add('hidden');
       }
 
-      renderAuctionHistory(activeAuction);
+      // โหลดประวัติการสู้ย้อน로나แบบสะสมจากตาราง auction_bids
+      await loadBidHistory(activeAuction.id);
+
       updateBidButtonState();
       updateSingleRoomTimer();
 
@@ -496,20 +498,40 @@
       }
     }
 
-    function renderAuctionHistory(auc) {
+    // ฟังก์ชันดึงและแสดงประวัติการสู้ราคาแบบสะสม (Accumulated History)
+    async function loadBidHistory(aucId) {
       const historyList = document.getElementById('sa-history-list');
-      if (auc.last_bidder_name) {
+      historyList.innerHTML = '<div class="text-center text-slate-400 py-4">กำลังโหลดประวัติ...</div>';
+
+      try {
+        const { data, error } = await supabaseClient
+          .from('auction_bids')
+          .select('*')
+          .eq('auction_id', aucId)
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        if (!data || data.length === 0) {
+          historyList.innerHTML = `
+            <div class="flex justify-between items-center py-2 font-bold text-emerald-700">
+              <span>฿${Number(activeAuction.current_price).toLocaleString()}</span>
+              <span class="text-slate-500 font-medium">ราคาเริ่มต้น / ปัจจุบัน</span>
+            </div>
+          `;
+        } else {
+          historyList.innerHTML = data.map(bid => `
+            <div class="flex justify-between items-center py-2 font-bold text-slate-700">
+              <span class="text-emerald-700">฿${Number(bid.bid_amount).toLocaleString()}</span>
+              <span class="text-slate-500 font-medium">${bid.bidder_name} (ผู้นำล่าสุด)</span>
+            </div>
+          `).join('');
+        }
+      } catch (err) {
         historyList.innerHTML = `
           <div class="flex justify-between items-center py-2 font-bold text-emerald-700">
-            <span>฿${Number(auc.current_price).toLocaleString()}</span>
-            <span class="text-slate-500 font-medium">${auc.last_bidder_name} (ผู้นำล่าสุด)</span>
-          </div>
-        `;
-      } else {
-        historyList.innerHTML = `
-          <div class="flex justify-between items-center py-2 font-bold text-emerald-700">
-            <span>฿${Number(auc.current_price).toLocaleString()}</span>
-            <span class="text-slate-500 font-medium">ราคาเริ่มต้น</span>
+            <span>฿${Number(activeAuction.current_price).toLocaleString()}</span>
+            <span class="text-slate-500 font-medium">ราคาปัจจุบัน</span>
           </div>
         `;
       }
@@ -607,7 +629,6 @@
         return;
       }
 
-      // ป้องกันการล็อคผิดพลาด: หากยังไม่มีผู้ประมูลล่าสุด (last_bidder_id เป็นค่าว่าง) หรือผู้ใช้ไม่ใช่คนล่าสุด ให้ปลดล็อคเสมอ
       if (activeAuction.last_bidder_id && activeAuction.last_bidder_id === currentUser.id) {
         bidBtn.disabled = true;
         bidBtn.className = "w-full bg-amber-100 border border-amber-300 text-amber-800 py-3.5 rounded-xl font-bold text-xs md:text-sm cursor-not-allowed flex items-center justify-center gap-1";
@@ -642,7 +663,8 @@
       submitBtn.innerText = 'กำลังเสนอราคา...';
 
       try {
-        const { error } = await supabaseClient
+        // 1. อัปเดตราคาล่าสุดและผู้ให้ราคาสุดท้ายลงตารางหลัก auctions
+        const { error: updateError } = await supabaseClient
           .from('auctions')
           .update({ 
             current_price: newPrice,
@@ -651,13 +673,25 @@
           })
           .eq('id', activeAuction.id);
 
-        if (error) throw error;
+        if (updateError) throw updateError;
+
+        // 2. บันทึกประวัติการสู้ราคาลงตาราง auction_bids เพื่อให้ประวัติสะสมยาวต่อเนื่อง
+        const { error: bidError } = await supabaseClient
+          .from('auction_bids')
+          .insert([{
+            auction_id: activeAuction.id,
+            bidder_id: currentUser.id,
+            bidder_name: bidderName,
+            bid_amount: newPrice
+          }]);
+
+        if (bidError) throw bidError;
 
         await refreshActiveAuctionData(activeAuction.id);
 
         document.getElementById('sa-current-price').innerText = `฿${Number(activeAuction.current_price).toLocaleString()}`;
         setupDynamicIncrements(Number(activeAuction.current_price));
-        renderAuctionHistory(activeAuction);
+        await loadBidHistory(activeAuction.id);
 
         updateBidButtonState();
         alert(`🎉 เสนอราคาสำเร็จที่ ฿${newPrice.toLocaleString()} บาท!`);
