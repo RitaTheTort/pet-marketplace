@@ -303,6 +303,7 @@
     let singleRoomInterval = null;
     let activeSubscription = null;
     let mainTimerInterval = null;
+    let userFavorites = []; // เก็บรายชื่อ seller_id ที่ผู้ใช้กดดาวไว้
 
     function lockBodyScroll() {
       document.getElementById('page-body').classList.add('overflow-hidden', 'fixed', 'inset-0');
@@ -316,6 +317,7 @@
       currentUser = user;
       currentUserRole = 'user';
       currentKycStatus = 'unverified';
+      userFavorites = [];
       const container = document.getElementById('auth-buttons-container');
       const createAucBtn = document.getElementById('open-create-auc-btn');
 
@@ -331,6 +333,16 @@
         if (profileData) {
           if (profileData.role) currentUserRole = profileData.role;
           if (profileData.kyc_status) currentKycStatus = profileData.kyc_status;
+        }
+
+        // ดึงข้อมูลรายการโปรด (Favorite Sellers) ของผู้ใช้คนนี้
+        const { data: favData } = await supabaseClient
+          .from('favorite_sellers')
+          .select('seller_id')
+          .eq('user_id', user.id);
+
+        if (favData) {
+          userFavorites = favData.map(f => f.seller_id);
         }
 
         container.innerHTML = `
@@ -355,7 +367,45 @@
       await supabaseClient.auth.signOut();
       currentUserRole = 'user';
       currentKycStatus = 'unverified';
+      userFavorites = [];
       updateAuthUI(null);
+    };
+
+    // ฟังก์ชันสลับสถานะกดดาว (Favorite Seller)
+    window.toggleFavoriteSeller = async function(event, sellerId) {
+      event.stopPropagation(); // ป้องกันการกดทะลุไปเปิด Modal ห้องประมูล
+      if (!currentUser) {
+        alert('กรุณาเข้าสู่ระบบก่อนกดติดตามหน้าร้านครับ');
+        document.getElementById('auth-modal').classList.remove('hidden');
+        document.getElementById('auth-modal').classList.add('flex');
+        return;
+      }
+
+      const isFav = userFavorites.includes(sellerId);
+
+      if (isFav) {
+        // เอาออกจากรายการโปรด
+        const { error } = await supabaseClient
+          .from('favorite_sellers')
+          .delete()
+          .eq('user_id', currentUser.id)
+          .eq('seller_id', sellerId);
+
+        if (!error) {
+          userFavorites = userFavorites.filter(id => id !== sellerId);
+          renderSellerHubs(globalAuctions);
+        }
+      } else {
+        // เพิ่มเข้าสู่รายการโปรด
+        const { error } = await supabaseClient
+          .from('favorite_sellers')
+          .insert([{ user_id: currentUser.id, seller_id: sellerId }]);
+
+        if (!error) {
+          userFavorites.push(sellerId);
+          renderSellerHubs(globalAuctions);
+        }
+      }
     };
 
     window.openCreateAuctionModal = function() {
@@ -481,6 +531,7 @@
       }
     }
 
+    // ฟังก์ชันจัดกลุ่มหน้าร้าน พร้อมจัดเรียงร้านที่กดดาว (Favorite) ขึ้นมาอยู่อันดับบนสุดเสมอ
     function renderSellerHubs(auctions) {
       const countEl = document.getElementById('auction-count');
       const grid = document.getElementById('seller-hub-grid');
@@ -505,12 +556,21 @@
         sellerMap[sId].items.push(auc);
       });
 
-      const sellers = Object.values(sellerMap);
+      let sellers = Object.values(sellerMap);
+
+      // จัดเรียง: ร้านที่กดดาว (Favorite) ไว้ จะถูกดันขึ้นมาอยู่อันดับบนสุด
+      sellers.sort((a, b) => {
+        const aFav = userFavorites.includes(a.seller_id) ? 1 : 0;
+        const bFav = userFavorites.includes(b.seller_id) ? 1 : 0;
+        return bFav - aFav; // เอาค่าที่เป็น Favorite มากกว่าขึ้นก่อน
+      });
+
       if (countEl) countEl.innerText = `หน้าร้านที่กำลังเปิดประมูล ${sellers.length} ร้าน (รวม ${auctions.length} รายการ)`;
 
       grid.innerHTML = sellers.map(seller => {
         const coverImg = seller.items[0]?.images?.[0] || '';
         const itemCount = seller.items.length;
+        const isFav = userFavorites.includes(seller.seller_id);
 
         return `
           <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col justify-between hover:shadow-md transition relative">
@@ -519,7 +579,13 @@
                 <img src="${coverImg}" class="w-full h-full object-cover">
                 <div class="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-transparent to-transparent"></div>
                 <span class="absolute top-3 left-3 bg-red-600 text-white font-bold text-xs px-2.5 py-1 rounded shadow">SELLER STOREFRONT</span>
-                <span class="absolute bottom-3 left-3 text-white font-extrabold text-sm truncate max-w-[240px]">ร้านของคุณ ${seller.seller_name}</span>
+                
+                <!-- ปุ่มไอคอนรูปดาวปักหมุดหน้าร้านโปรด -->
+                <button onclick="toggleFavoriteSeller(event, '${seller.seller_id}')" class="absolute top-3 right-3 bg-slate-900/80 hover:bg-slate-900 text-white p-2 rounded-xl text-base shadow transition z-10" title="${isFav ? 'ยกเลิกปักหมุด' : 'ปักหมุดร้านโปรด'}">
+                  ${isFav ? '⭐' : '☆'}
+                </button>
+
+                <span class="absolute bottom-3 left-3 text-white font-extrabold text-sm truncate max-w-[220px]">ร้านของคุณ ${seller.seller_name}</span>
               </div>
               <div class="p-5 space-y-3">
                 <div class="flex justify-between items-center text-xs text-slate-500">
@@ -900,7 +966,6 @@
         return;
       }
 
-      // ตรวจสอบว่าเป็นเจ้าของโพสต์หรือไม่ แต่ถ้ายศเป็น admin หรือ super_admin จะได้รับการยกเว้นให้ประมูลได้
       const isAdmin = (currentUserRole === 'admin' || currentUserRole === 'super_admin');
       if (activeAuction.seller_id === currentUser.id && !isAdmin) {
         bidBtn.disabled = true;
