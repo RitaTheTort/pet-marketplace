@@ -7,7 +7,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen">
+<body id="page-body" class="bg-slate-50 text-slate-800 min-h-screen">
 
   <header class="bg-slate-900 text-white shadow-md sticky top-0 z-40">
     <div class="max-w-6xl mx-auto px-4 py-3.5 flex justify-between items-center">
@@ -42,6 +42,7 @@
       <span class="text-xs text-slate-500" id="auction-count">กำลังโหลดข้อมูล...</span>
     </div>
 
+    <!-- Grid แสดงการ์ดหน้าร้านของผู้ขายแต่ละท่าน -->
     <div id="seller-hub-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       <div class="col-span-full text-center py-12 text-slate-400 text-sm">
         กำลังเชื่อมต่อตารางประมูล Supabase...
@@ -49,7 +50,8 @@
     </div>
   </main>
 
-  <div id="seller-rooms-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden items-center justify-center z-50 p-3 md:p-6 overflow-y-auto">
+  <!-- Modal: แสดงรายการสินค้าทั้งหมดในห้องของ Seller คนนั้น ๆ -->
+  <div id="seller-rooms-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden items-center justify-center z-50 p-3 md:p-6 overflow-hidden">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-5xl overflow-hidden my-auto relative flex flex-col max-h-[90vh]">
       <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center shrink-0 sticky top-0 z-20 shadow">
         <div class="flex items-center gap-2 min-w-0 pr-2">
@@ -58,14 +60,16 @@
         </div>
         <button onclick="closeSellerRoomsModal()" class="text-slate-400 hover:text-white text-2xl font-bold px-2 py-0.5 rounded-lg transition">&times;</button>
       </div>
-      <div class="p-4 md:p-6 bg-slate-50 overflow-y-auto flex-1">
+      <div class="p-4 md:p-6 bg-slate-50 overflow-y-auto flex-1 overscroll-contain">
         <div id="seller-rooms-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-6">
-          </div>
+          <!-- แสดงรายการประมูลย่อยของ Seller รายนี้ -->
+        </div>
       </div>
     </div>
   </div>
 
-  <div id="single-auction-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden items-center justify-center z-50 p-3 md:p-6 overflow-y-auto">
+  <!-- Modal: ห้องประมูลเดี่ยว (Single Auction Room) -->
+  <div id="single-auction-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden items-center justify-center z-50 p-3 md:p-6 overflow-hidden">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl overflow-hidden my-auto relative flex flex-col max-h-[90vh]">
       <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center shrink-0 sticky top-0 z-20 shadow">
         <div class="flex items-center gap-2">
@@ -75,7 +79,7 @@
         <button onclick="closeSingleAuctionModal()" class="text-slate-400 hover:text-white text-2xl font-bold px-2 py-0.5 rounded-lg transition">&times;</button>
       </div>
 
-      <div class="p-4 md:p-6 grid grid-cols-1 lg:grid-cols-3 gap-6 overflow-y-auto relative flex-1">
+      <div class="p-4 md:p-6 grid grid-cols-1 lg:grid-cols-3 gap-6 overflow-y-auto relative flex-1 overscroll-contain">
         <div class="lg:col-span-2 space-y-4">
           <div class="relative h-64 bg-slate-100 rounded-xl overflow-hidden">
             <img id="sa-image" src="" class="w-full h-full object-cover">
@@ -304,6 +308,14 @@
     let activeSubscription = null;
     let mainTimerInterval = null;
 
+    function lockBodyScroll() {
+      document.getElementById('page-body').classList.add('overflow-hidden', 'fixed', 'inset-0');
+    }
+
+    function unlockBodyScroll() {
+      document.getElementById('page-body').classList.remove('overflow-hidden', 'fixed', 'inset-0');
+    }
+
     async function updateAuthUI(user) {
       currentUser = user;
       currentUserRole = 'user';
@@ -356,11 +368,13 @@
         alert('⚠️ คุณจำเป็นต้องผ่านการยืนยันตัวตน (KYC) โดยการส่งบัตรประชาชนในหน้าหลัก (Index) และรอแอดมินอนุมัติก่อน จึงจะสามารถเปิดห้องประมูลได้ครับ');
         return;
       }
+      lockBodyScroll();
       document.getElementById('create-auction-modal').classList.remove('hidden');
       document.getElementById('create-auction-modal').classList.add('flex');
     };
 
     window.closeCreateAuctionModal = function() {
+      unlockBodyScroll();
       document.getElementById('create-auction-modal').classList.add('hidden');
       document.getElementById('create-auction-modal').classList.remove('flex');
     };
@@ -572,11 +586,13 @@
         `;
       }).join('');
 
+      lockBodyScroll();
       document.getElementById('seller-rooms-modal').classList.remove('hidden');
       document.getElementById('seller-rooms-modal').classList.add('flex');
     };
 
     window.closeSellerRoomsModal = function() {
+      unlockBodyScroll();
       document.getElementById('seller-rooms-modal').classList.add('hidden');
       document.getElementById('seller-rooms-modal').classList.remove('flex');
     };
@@ -645,6 +661,7 @@
 
       setupRealtimeSubscription(activeAuction.id);
 
+      lockBodyScroll();
       document.getElementById('single-auction-modal').classList.remove('hidden');
       document.getElementById('single-auction-modal').classList.add('flex');
     };
@@ -746,6 +763,7 @@
     }
 
     window.closeSingleAuctionModal = function() {
+      unlockBodyScroll();
       if (activeSubscription) {
         supabaseClient.removeChannel(activeSubscription);
         activeSubscription = null;
