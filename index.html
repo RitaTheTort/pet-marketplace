@@ -86,8 +86,11 @@
 
     <div id="admin-panel-container" class="hidden space-y-8">
       <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-        <h3 class="font-bold text-lg text-slate-900 mb-4 flex items-center gap-2">
+        <h3 class="font-bold text-lg text-slate-900 mb-4 flex items-center justify-between">
           <span>📋 รายการรอตรวจสอบและอนุมัติยืนยันตัวตน (KYC Approvals)</span>
+          <button onclick="cleanupLineDuplicates()" class="text-xs bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-lg font-bold transition shadow-sm">
+            🧹 เคลียร์บัญชี LINE ซ้ำซ้อน
+          </button>
         </h3>
         <div id="admin-kyc-list" class="space-y-3">
           <p class="text-xs text-slate-400">กำลังโหลดข้อมูลผู้สมัคร...</p>
@@ -565,26 +568,65 @@
         window.history.replaceState({}, document.title, window.location.pathname);
         localStorage.removeItem('line_login_state');
 
-        // เนื่องจาก LINE OAuth Token Exchange ต้องใช้ Client Secret ซึ่งไม่ควรเปิดเผยฝั่ง Frontend 
-        // เราจึงจำลองการสร้างโปรไฟล์จำลองจาก LINE หรือใช้งาน Supabase Custom Token ต่อเนื่อง
+        // [แก้ไขปัญหาไอดี LINE ซ้ำซ้อน]: ใช้การสร้าง session คงที่ผ่าน localStorage แทนการสุ่มรหัสใหม่ทุกครั้งจาก code
+        let persistentLineId = localStorage.getItem('persistent_line_id');
+        let persistentLineEmail = localStorage.getItem('persistent_line_email');
+
+        if (!persistentLineId) {
+          persistentLineId = 'line_user_' + Math.random().toString(36).substring(2, 10);
+          persistentLineEmail = `${persistentLineId}@petmarket.line`;
+          localStorage.setItem('persistent_line_id', persistentLineId);
+          localStorage.setItem('persistent_line_email', persistentLineEmail);
+        }
+
         const mockLineUser = {
-          id: 'line_real_' + Math.abs(hashCode(code)),
-          email: `line_${code.substring(0, 8)}@petmarket.line`,
+          id: persistentLineId,
+          email: persistentLineEmail,
           user_metadata: { full_name: 'สมาชิก LINE (Verified)' }
         };
 
-        await supabaseClient.from('profiles').upsert({
-          id: mockLineUser.id,
-          full_name: mockLineUser.user_metadata.full_name,
-          role: 'user',
-          kyc_status: 'unverified',
-          updated_at: new Date()
-        });
+        // ตรวจสอบว่ามีโปรไฟล์นี้อยู่แล้วหรือไม่ เพื่อไม่ให้ทับชื่อเดิมที่ผู้ใช้อาจเคยเปลี่ยนไว้
+        const { data: existingProfile } = await supabaseClient
+          .from('profiles')
+          .select('*')
+          .eq('id', persistentLineId)
+          .single();
+
+        if (!existingProfile) {
+          await supabaseClient.from('profiles').upsert({
+            id: mockLineUser.id,
+            full_name: mockLineUser.user_metadata.full_name,
+            role: 'user',
+            kyc_status: 'unverified',
+            updated_at: new Date()
+          });
+        } else {
+          // หากมีอยู่แล้ว ให้นำชื่อเดิมมาใช้ใน metadata เพื่อความต่อเนื่อง
+          mockLineUser.user_metadata.full_name = existingProfile.full_name;
+        }
 
         alert('🟢 เข้าสู่ระบบผ่าน LINE สำเร็จเรียบร้อยแล้วครับ!');
         updateAuthUI(mockLineUser);
       }
     }
+
+    // ฟังก์ชันช่วยเคลียร์ข้อมูล LINE แฝด/ซ้ำซ้อนในฐานข้อมูลสำหรับแอดมิน
+    window.cleanupLineDuplicates = async function() {
+      if (!confirm('คุณต้องการเคลียร์บัญชีจำลอง LINE ที่ไม่ได้ใช้งานหรือซ้ำซ้อนออกทั้งหมดใช่หรือไม่?')) return;
+      try {
+        const { data, error } = await supabaseClient
+          .from('profiles')
+          .delete()
+          .like('id', 'line_real_%');
+
+        if (error) throw error;
+        alert('🧹 ล้างข้อมูลบัญชี LINE ซ้ำซ้อนเรียบร้อยแล้วครับ!');
+        if (typeof fetchAdminKycData === 'function') fetchAdminKycData();
+        if (typeof fetchAdminUsersData === 'function') fetchAdminUsersData();
+      } catch (err) {
+        alert('เกิดข้อผิดพลาดในการเคลียร์ข้อมูล: ' + err.message);
+      }
+    };
 
     function hashCode(str) {
       let hash = 0;
