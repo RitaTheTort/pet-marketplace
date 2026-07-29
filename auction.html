@@ -325,15 +325,52 @@
     let activeSubscription = null;
     let mainTimerInterval = null;
     let userFavorites = [];
-    let currentAuctionCategory = 'ALL'; // ตัวแปรเก็บแท็บหมวดหมู่ปัจจุบัน
+    let currentAuctionCategory = 'ALL';
 
-    // 🛠️ แก้ไขให้ล็อกการเลื่อนเฉพาะพื้นหลัง แต่ไม่บล็อกทัชสกรีนบนมือถือ
     function lockBodyScroll() {
       document.body.style.overflow = 'hidden';
     }
 
     function unlockBodyScroll() {
       document.body.style.overflow = '';
+    }
+
+    // 🌟 อัปเดตระบบตรวจจับ Session ทั้งจาก Supabase ปกติ และ Persistent LINE ID
+    async function checkUserSession() {
+      // 1. ตรวจสอบ Supabase Session ปกติ (สำหรับผู้ใช้ระบบ Email)
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      if (session && session.user) {
+        updateAuthUI(session.user);
+        return;
+      }
+
+      // 2. หากไม่มี ให้ตรวจสอบ Persistent LINE ID ใน localStorage
+      const persistentLineId = localStorage.getItem('persistent_line_id');
+      const persistentLineEmail = localStorage.getItem('persistent_line_email');
+
+      if (persistentLineId) {
+        const mockLineUser = {
+          id: persistentLineId,
+          email: persistentLineEmail || `${persistentLineId}@petmarket.line`,
+          user_metadata: { full_name: 'สมาชิก LINE (Verified)' }
+        };
+
+        // ดึงชื่อล่าสุดจากตาราง profiles หากเคยมีการเปลี่ยนชื่อ
+        const { data: existingProfile } = await supabaseClient
+          .from('profiles')
+          .select('*')
+          .eq('id', persistentLineId)
+          .single();
+
+        if (existingProfile && existingProfile.full_name) {
+          mockLineUser.user_metadata.full_name = existingProfile.full_name;
+        }
+
+        updateAuthUI(mockLineUser);
+        return;
+      }
+
+      updateAuthUI(null);
     }
 
     async function updateAuthUI(user) {
@@ -386,7 +423,11 @@
     }
 
     window.handleSignOut = async function() {
+      // ล้างทั้ง Supabase Auth และ Persistent LINE Session
       await supabaseClient.auth.signOut();
+      localStorage.removeItem('persistent_line_id');
+      localStorage.removeItem('persistent_line_email');
+
       currentUserRole = 'user';
       currentKycStatus = 'unverified';
       userFavorites = [];
@@ -550,7 +591,6 @@
       }
     }
 
-    // ฟังก์ชันสลับการแสดงผลตามแถบหมวดหมู่ 4 แบบ + ทั้งหมด
     window.filterAuctionCategory = function(cat) {
       currentAuctionCategory = cat;
       const tabs = document.querySelectorAll('.auc-cat-tab');
@@ -566,18 +606,14 @@
 
       if (currentAuctionCategory === 'ALL') {
         mainTitle.innerText = 'หน้าร้านห้องประมูล (Seller Auction Hubs)';
-        
-        // 🌟 กรองเฉพาะรายการที่เวลายังไม่หมด (Active Auctions) มาแสดงผลที่หน้าร้าน
         const now = new Date().getTime();
         const activeOnlyAuctions = globalAuctions.filter(auc => new Date(auc.expires_at).getTime() > now);
-        
         renderSellerHubs(activeOnlyAuctions);
       } else {
         renderFilteredAuctionItems(currentAuctionCategory);
       }
     }
 
-    // 🌟 ฟังก์ชันเรนเดอร์หน้าร้าน: ปรับปรุงระบบ Grid รูปภาพให้รองรับครบทุกชิ้น (เฉพาะที่ยังไม่หมดเวลา)
     function renderSellerHubs(auctions) {
       const countEl = document.getElementById('auction-count');
       const grid = document.getElementById('seller-hub-grid');
@@ -626,7 +662,6 @@
         const isFav = userFavorites.includes(seller.seller_id);
         const images = seller.items.map(item => item.images?.[0]).filter(Boolean);
 
-        // 🛠️ ปรับปรุง Grid ให้แสดงผลรูปภาพครอบคลุมตามจำนวนชิ้นจริง (1, 2, 3, 4 ชิ้นขึ้นไป)
         let imagePreviewHTML = '';
         if (images.length === 1) {
           imagePreviewHTML = `<div class="h-48 bg-slate-100 relative overflow-hidden"><img src="${images[0]}" class="w-full h-full object-cover"></div>`;
@@ -644,7 +679,6 @@
               <img src="${images[2]}" class="w-full h-full object-cover">
             </div>`;
         } else {
-          // 4 ชิ้นขึ้นไป: แบ่งเป็น 4 ช่อง 2x2 Grid พอดีเป๊ะ
           imagePreviewHTML = `
             <div class="h-48 grid grid-cols-2 grid-rows-2 gap-0.5 bg-slate-200 overflow-hidden">
               <img src="${images[0]}" class="w-full h-full object-cover">
@@ -689,7 +723,6 @@
       }).join('');
     }
 
-    // ฟังก์ชันกรองแสดงผลแบบรายชิ้นตามแท็บพิเศษ (🔥, ⏳, 🏷️, 🏆)
     function renderFilteredAuctionItems(category) {
       const countEl = document.getElementById('auction-count');
       const mainTitle = document.getElementById('main-section-title');
@@ -1223,12 +1256,8 @@
     });
 
     document.addEventListener('DOMContentLoaded', async () => {
-      const { data: { session } } = await supabaseClient.auth.getSession();
-      if (session) {
-        updateAuthUI(session.user);
-      } else {
-        updateAuthUI(null);
-      }
+      // เรียกใช้ฟังก์ชันตรวจสอบ Session แบบไร้รอยต่อ
+      checkUserSession();
     });
   </script>
 </body>
