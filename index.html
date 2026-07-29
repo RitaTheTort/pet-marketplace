@@ -86,8 +86,11 @@
 
     <div id="admin-panel-container" class="hidden space-y-8">
       <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-        <h3 class="font-bold text-lg text-slate-900 mb-4 flex items-center gap-2">
+        <h3 class="font-bold text-lg text-slate-900 mb-4 flex items-center justify-between">
           <span>📋 รายการรอตรวจสอบและอนุมัติยืนยันตัวตน (KYC Approvals)</span>
+          <button onclick="cleanupLineDuplicates()" class="text-xs bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-lg font-bold transition shadow-sm">
+            🧹 เคลียร์บัญชี LINE ซ้ำซ้อน
+          </button>
         </h3>
         <div id="admin-kyc-list" class="space-y-3">
           <p class="text-xs text-slate-400">กำลังโหลดข้อมูลผู้สมัคร...</p>
@@ -565,19 +568,40 @@
         window.history.replaceState({}, document.title, window.location.pathname);
         localStorage.removeItem('line_login_state');
 
+        // [แก้ไขปัญหาไอดี LINE ซ้ำซ้อนอย่างถาวร]: ใช้ persistent ID เพื่อไม่ให้รหัสเปลี่ยนทุกรอบที่ login
+        let persistentLineId = localStorage.getItem('persistent_line_id');
+        let persistentLineEmail = localStorage.getItem('persistent_line_email');
+
+        if (!persistentLineId) {
+          persistentLineId = 'line_user_' + Math.random().toString(36).substring(2, 10);
+          persistentLineEmail = `${persistentLineId}@petmarket.line`;
+          localStorage.setItem('persistent_line_id', persistentLineId);
+          localStorage.setItem('persistent_line_email', persistentLineEmail);
+        }
+
         const mockLineUser = {
-          id: 'line_real_' + Math.abs(hashCode(code)),
-          email: `line_${code.substring(0, 8)}@petmarket.line`,
+          id: persistentLineId,
+          email: persistentLineEmail,
           user_metadata: { full_name: 'สมาชิก LINE (Verified)' }
         };
 
-        await supabaseClient.from('profiles').upsert({
-          id: mockLineUser.id,
-          full_name: mockLineUser.user_metadata.full_name,
-          role: 'user',
-          kyc_status: 'unverified',
-          updated_at: new Date()
-        });
+        const { data: existingProfile } = await supabaseClient
+          .from('profiles')
+          .select('*')
+          .eq('id', persistentLineId)
+          .single();
+
+        if (!existingProfile) {
+          await supabaseClient.from('profiles').upsert({
+            id: mockLineUser.id,
+            full_name: mockLineUser.user_metadata.full_name,
+            role: 'user',
+            kyc_status: 'unverified',
+            updated_at: new Date()
+          });
+        } else {
+          mockLineUser.user_metadata.full_name = existingProfile.full_name;
+        }
 
         alert('🟢 เข้าสู่ระบบผ่าน LINE สำเร็จเรียบร้อยแล้วครับ!');
         updateAuthUI(mockLineUser);
@@ -769,7 +793,14 @@
       if (!currentUser) return;
 
       document.getElementById('profile-email').value = currentUser.email || 'เชื่อมต่อผ่าน LINE';
-      document.getElementById('profile-name').value = currentUser.user_metadata?.full_name || '';
+      const nameInput = document.getElementById('profile-name');
+      nameInput.value = currentUser.user_metadata?.full_name || '';
+      nameInput.disabled = true;
+      nameInput.classList.add('bg-slate-100', 'cursor-not-allowed');
+      nameInput.classList.remove('bg-white');
+      document.getElementById('profile-name-hint').classList.add('hidden');
+      document.getElementById('toggle-edit-name-btn').innerText = '✏️ แก้ไขชื่อ';
+
       document.getElementById('profile-kyc-file').value = '';
       
       const statusBox = document.getElementById('profile-kyc-status-box');
@@ -811,8 +842,8 @@
       if (profileData) {
         if (profileData.role) currentUserRole = profileData.role;
 
-        if (profileData.full_name && !document.getElementById('profile-name').value) {
-          document.getElementById('profile-name').value = profileData.full_name;
+        if (profileData.full_name) {
+          nameInput.value = profileData.full_name;
         }
         
         if (profileData.kyc_status === 'approved') {
@@ -831,6 +862,29 @@
       }
     };
 
+    window.toggleProfileNameEdit = function() {
+      const nameInput = document.getElementById('profile-name');
+      const hintEl = document.getElementById('profile-name-hint');
+      const btnEl = document.getElementById('toggle-edit-name-btn');
+
+      if (nameInput.disabled) {
+        nameInput.disabled = false;
+        nameInput.classList.remove('bg-slate-100', 'cursor-not-allowed');
+        nameInput.classList.add('bg-white');
+        nameInput.focus();
+        hintEl.classList.remove('hidden');
+        btnEl.innerText = '🔒 ล็อกชื่อ';
+        btnEl.className = 'px-3.5 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-xs font-bold transition whitespace-nowrap';
+      } else {
+        nameInput.disabled = true;
+        nameInput.classList.add('bg-slate-100', 'cursor-not-allowed');
+        nameInput.classList.remove('bg-white');
+        hintEl.classList.add('hidden');
+        btnEl.innerText = '✏️ แก้ไขชื่อ';
+        btnEl.className = 'px-3.5 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-xs font-bold transition whitespace-nowrap';
+      }
+    };
+
     const closeProfileModalFunc = () => {
       profileModal.classList.add('hidden');
       profileModal.classList.remove('flex');
@@ -842,18 +896,41 @@
       e.preventDefault();
       if (!currentUser) return;
 
-      const newName = document.getElementById('profile-name').value.trim();
+      const nameInput = document.getElementById('profile-name');
+      const newName = nameInput.value.trim();
+      if (!newName) {
+        alert('กรุณากรอกชื่อผู้ใช้ / ชื่อร้านค้า');
+        return;
+      }
+
       const kycFile = document.getElementById('profile-kyc-file').files[0];
       const saveBtn = document.getElementById('save-profile-btn');
 
       saveBtn.disabled = true;
-      saveBtn.innerText = 'กำลังบันทึก...';
+      saveBtn.innerText = 'กำลังตรวจสอบชื่อซ้ำ...';
 
       try {
+        const { data: existingProfiles, error: checkError } = await supabaseClient
+          .from('profiles')
+          .select('id, full_name')
+          .ilike('full_name', newName)
+          .neq('id', currentUser.id);
+
+        if (checkError) throw checkError;
+
+        if (existingProfiles && existingProfiles.length > 0) {
+          alert('⚠️ ชื่อผู้ใช้หรือชื่อร้านค้านี้ถูกใช้งานแล้วในระบบ กรุณาใช้ชื่ออื่นครับ');
+          saveBtn.disabled = false;
+          saveBtn.innerText = 'บันทึกข้อมูล';
+          return;
+        }
+
         let kycUrl = null;
         if (kycFile) {
           saveBtn.innerText = 'กำลังบีบอัดและอัปโหลดเอกสาร KYC...';
           kycUrl = await uploadKycDocument(kycFile, currentUser.id);
+        } else {
+          saveBtn.innerText = 'กำลังบันทึกข้อมูล...';
         }
 
         const updatePayload = {
@@ -873,6 +950,10 @@
 
         if (error) throw error;
 
+        if (currentUser.user_metadata) {
+          currentUser.user_metadata.full_name = newName;
+        }
+
         await supabaseClient.auth.updateUser({
           data: { full_name: newName }
         });
@@ -880,6 +961,7 @@
         alert('บันทึกข้อมูลโปรไฟล์สำเร็จเรียบร้อยแล้วครับ!');
         closeProfileModalFunc();
         updateAuthUI(currentUser);
+        fetchPets();
       } catch (err) {
         alert(`เกิดข้อผิดพลาด: ${err.message}`);
       } finally {
