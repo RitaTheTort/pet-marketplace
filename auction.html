@@ -143,6 +143,10 @@
                 </button>
               </div>
             </div>
+
+            <!-- 🌟 ปุ่มพิเศษสำหรับผู้เปิดประมูล: กลับไปห้องประมูลของฉัน -->
+            <div id="seller-back-dashboard-container" class="my-2"></div>
+
             <h2 id="sa-title" class="text-lg md:text-xl font-extrabold text-slate-900">ชื่อสินค้า</h2>
             <p id="sa-desc" class="text-xs text-slate-500 mt-1 whitespace-pre-wrap">รายละเอียดเพิ่มเติม...</p>
             <p id="sa-retention-info" class="text-[10px] text-slate-400 mt-2 italic">ℹ️ ข้อมูลการประมูลนี้จะถูกจัดเก็บรักษาไว้เป็นเวลา 30 วันหลังสิ้นสุดการประมูล</p>
@@ -536,7 +540,6 @@
       `;
     }
 
-    // 🌟 ฟังก์ชันเปิด-ปิด และเรนเดอร์ข้อมูลใน Modal "ห้องประมูลของฉัน" (เพิ่มปุ่มลิงก์ไปห้องประมูลสด)
     window.openMyAuctionsModal = async function() {
       if (!currentUser) return;
       lockBodyScroll();
@@ -587,7 +590,6 @@
               </div>
             </div>
 
-            <!-- 🌟 ปุ่มโยงไปยังหน้าห้องประมูลสด -->
             <button onclick="closeMyAuctionsModal(); openSingleAuctionModal('${auc.id}')" class="w-full bg-slate-900 hover:bg-slate-800 text-white py-2 rounded-xl text-xs font-bold transition shadow-sm flex items-center justify-center gap-1">
               🔍 ไปที่ห้องประมูลสด
             </button>
@@ -985,6 +987,9 @@
       document.getElementById('sa-image').src = activeAuction.images?.[0] || '';
       document.getElementById('sa-current-price').innerText = `฿${Number(activeAuction.current_price).toLocaleString()}`;
 
+      // 🌟 ตรวจสอบและแสดงปุ่ม "กลับไปห้องประมูลของฉัน" สำหรับผู้เปิดประมูล
+      renderSellerDashboardReturnButton();
+
       const buyoutBox = document.getElementById('sa-buyout-box');
       if (activeAuction.buyout_price) {
         document.getElementById('sa-buyout-price').innerText = `฿${Number(activeAuction.buyout_price).toLocaleString()}`;
@@ -1008,6 +1013,22 @@
       document.getElementById('single-auction-modal').classList.remove('hidden');
       document.getElementById('single-auction-modal').classList.add('flex');
     };
+
+    // 🌟 ฟังก์ชันเรนเดอร์ปุ่มกลับหน้าห้องของฉันในห้องประมูลสด
+    function renderSellerDashboardReturnButton() {
+      const container = document.getElementById('seller-back-dashboard-container');
+      if (!container || !currentUser || !activeAuction) return;
+
+      if (activeAuction.seller_id === currentUser.id) {
+        container.innerHTML = `
+          <button onclick="closeSingleAuctionModal(); openMyAuctionsModal();" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2 px-3 rounded-xl text-xs font-bold transition shadow-sm flex items-center justify-center gap-1.5">
+            📦 กลับไปห้องประมูลของฉัน (จัดการคำสั่งซื้อ)
+          </button>
+        `;
+      } else {
+        container.innerHTML = '';
+      }
+    }
 
     async function refreshActiveAuctionData(aucId) {
       try {
