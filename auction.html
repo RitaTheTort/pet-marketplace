@@ -152,7 +152,7 @@
             🔨 ยืนยันการเสนอราคา (เสนอ <span id="sa-next-price">0</span> บาท)
           </button>
 
-          <!-- 🌟 ปุ่มติดต่อผู้ชนะการประมูล (ส่งข้อความอัตโนมัติฟอนต์ใหญ่) -->
+          <!-- 🌟 ปุ่มติดต่อผู้ชนะการประมูล -->
           <div id="winner-contact-container" class="hidden pt-2">
             <button type="button" onclick="openWinnerChat()" class="w-full bg-purple-600 hover:bg-purple-700 text-white py-3.5 rounded-xl font-bold text-sm shadow-lg transition flex items-center justify-center gap-2 animate-bounce">
               🏆 ติดต่อผู้ชนะการประมูล (<span id="winner-name-display">-</span>) เพื่อสรุปยอดชำระเงิน
@@ -891,11 +891,10 @@
       openAuctionChat(activeAuction, activeAuction.seller_id, activeAuction.seller_name || 'ผู้ขาย');
     };
 
-    // 🌟 แก้ไขจุดนี้: ฟังก์ชันเปิดแชทติดต่อผู้ชนะการประมูล (ดึงข้อมูลผู้ชนะให้แม่นยำและส่งข้อความอัตโนมัติ)
+    // 🌟 แก้ไขจุดนี้: เช็กเฉพาะว่า "เคยมีข้อความคำว่า ยินดีด้วย!! ส่งไปหรือยัง" หากยังไม่เคย ให้ส่งอัตโนมัติทันที
     window.openWinnerChat = async function() {
       if (!currentUser || !activeAuction) return;
 
-      // ดึงข้อมูลล่าสุดจากฐานข้อมูลเพื่อความชัวร์
       await refreshActiveAuctionData(activeAuction.id);
       if (!activeAuction.last_bidder_id) {
         alert('ยังไม่มีข้อมูลผู้ชนะการประมูลในระบบครับ');
@@ -906,17 +905,21 @@
       const winnerName = activeAuction.last_bidder_name || 'ผู้ชนะประมูล';
       const finalPrice = Number(activeAuction.current_price).toLocaleString();
 
-      // เปิดหน้าต่างแชทกับผู้ชนะ
+      // เปิดหน้าต่างแชทกับผู้ชนะทันที
       await openAuctionChat(activeAuction, winnerId, winnerName);
 
-      // ตรวจสอบข้อความในแชท ถ้ายังไม่มี ให้ส่งข้อความอัตโนมัติ
+      // ดึงประวัติข้อความทั้งหมดในห้องนี้มาตรวจเช็ก
       const { data: existingMsgs } = await supabaseClient
         .from('auction_messages')
         .select('*')
         .eq('auction_id', activeAuction.id)
         .or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${winnerId}),and(sender_id.eq.${winnerId},receiver_id.eq.${currentUser.id})`);
 
-      if (!existingMsgs || existingMsgs.length === 0) {
+      // เช็กว่ามีข้อความใดมีคำว่า "ยินดีด้วย!!" อยู่แล้วหรือยัง
+      const hasWelcomed = existingMsgs && existingMsgs.some(m => m.content && m.content.includes("ยินดีด้วย!!"));
+
+      // ถ้ายังไม่เคยส่งข้อความต้อนรับนี้มาก่อน แม้จะเคยคุยกันเรื่องอื่น ก็ให้ส่งข้อความนี้แทรกไปได้เลย
+      if (!hasWelcomed) {
         const welcomeText = `🎉 ยินดีด้วย!! คุณคือผู้ชนะประมูลที่ราคา ฿${finalPrice}`;
         const myName = currentUser.user_metadata?.full_name || currentUser.email.split('@')[0];
         
