@@ -1271,26 +1271,30 @@
       modal.classList.remove('flex');
     };
 
+    // 🌟 แก้ไขระบบมอบป้าย บันทึกลงตาราง user_badges โดยตรงผ่าน JavaScript ป้องกัน Error Type Mismatch
     window.submitGiveBadge = async function(badgeId) {
       if (!currentUser || !currentActivePet) return;
       const sellerId = currentActivePet.seller_id;
 
+      if (sellerId === currentUser.id) {
+        alert('ไม่สามารถมอบป้ายรางวัลให้ตนเองได้ครับ');
+        return;
+      }
+
       try {
-        const { data, error } = await supabaseClient.rpc('give_user_badge', {
-          p_giver_id: currentUser.id,
-          p_receiver_id: sellerId,
-          p_badge_id: badgeId
-        });
+        const { error } = await supabaseClient
+          .from('user_badges')
+          .insert([{
+            giver_id: currentUser.id,
+            receiver_id: sellerId,
+            badge_id: badgeId
+          }]);
 
         if (error) throw error;
 
-        if (data.status === 'success') {
-          alert(`🎉 ${data.message}`);
-          closeGiveBadgeModal();
-          showPetDetail(filteredPetsData.indexOf(currentActivePet));
-        } else {
-          alert(`⚠️ แจ้งเตือนจากระบบ: ${data.message}`);
-        }
+        alert('🎉 มอบป้ายรางวัลสำเร็จเรียบร้อยแล้ว!');
+        closeGiveBadgeModal();
+        showPetDetail(filteredPetsData.indexOf(currentActivePet));
       } catch (err) {
         alert(`เกิดข้อผิดพลาดในการมอบป้าย: ${err.message}`);
       }
@@ -1517,7 +1521,7 @@
         petGrid.innerHTML = `
           <div class="col-span-full bg-white p-8 rounded-xl border border-dashed border-slate-300 text-center">
             <p class="text-slate-800 font-bold mb-1">${currentMainView === 'MY' ? 'คุณยังไม่มีรายการประกาศขาย' : 'ไม่พบรายการสัตว์เลี้ยงที่ค้นหา'}</p>
-            <p class="text-xs text-slate-500">${currentMainView === 'MY' ? 'กดปุ่ม "+ ลงประกาศ" ด้านบนเพื่อสร้างประกาศแรกได้เลยครับ' : 'ลองเปลี่ยนคำค้นหา หรือเลือกดูหมวดหมู่อื่นๆ ได้ครับ'}</p>
+            <p class="text-xs text-slate-500">${currentMainView === 'MY' ? 'กดปุ่ม "+ ลงประกาศ" ด้านบนเพื่อสร้างประกาศแรกได้เลยครับ' : 'ลองเปลี่ยนคำค้นหา หรือเลือกดูหมวดหมู่นี้ได้ครับ'}</p>
           </div>
         `;
         return;
