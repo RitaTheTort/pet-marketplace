@@ -24,11 +24,14 @@
     </div>
   </header>
 
-  <!-- 🌟 แถบเมนูลอยด้านล่าง -->
+  <!-- 🌟 แถบเมนูลอยด้านล่าง (เพิ่มปุ่ม "ห้องประมูลของฉัน" ตรงกลางพอดี) -->
   <div class="fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-md border-t border-slate-800 text-white py-3 px-4 z-40 shadow-2xl flex justify-between items-center max-w-xl mx-auto md:rounded-t-2xl">
-    <a href="index.html" class="flex items-center gap-1.5 text-slate-300 hover:text-white font-bold text-xs md:text-sm transition bg-slate-800 hover:bg-slate-700 px-4 py-2.5 rounded-xl border border-slate-700 shadow-sm">
-      &larr; กลับหน้าหลักตลาด
+    <a href="index.html" class="flex items-center gap-1.5 text-slate-300 hover:text-white font-bold text-xs md:text-sm transition bg-slate-800 hover:bg-slate-700 px-3.5 py-2.5 rounded-xl border border-slate-700 shadow-sm">
+      &larr; กลับหน้าหลัก
     </a>
+    
+    <div id="my-auctions-nav-btn-container"></div>
+
     <div id="quick-action-chat-container" class="relative"></div>
   </div>
 
@@ -75,6 +78,28 @@
       </div>
     </div>
   </main>
+
+  <!-- 🌟 Modal: ห้องประมูลของฉัน (จัดการสถานะสินค้า) -->
+  <div id="my-auctions-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden items-center justify-center z-50 p-3 md:p-6 overflow-y-auto">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl overflow-hidden my-auto relative flex flex-col max-h-[90vh]">
+      <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center shrink-0 sticky top-0 z-20 shadow">
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
+          <h3 class="font-bold text-base md:text-lg">📦 ห้องประมูลของฉัน (My Auctions Dashboard)</h3>
+        </div>
+        <button onclick="closeMyAuctionsModal()" class="text-slate-400 hover:text-white text-2xl font-bold px-2 py-0.5 rounded-lg transition">&times;</button>
+      </div>
+
+      <div class="p-4 md:p-6 bg-slate-50 overflow-y-auto flex-1 space-y-4">
+        <div class="bg-blue-50 border border-blue-200 p-3.5 rounded-xl text-xs text-blue-800">
+          ℹ️ จัดการสถานะคำสั่งซื้อสินค้าที่คุณเปิดประมูล เช่น อัปเดตสถานะการชำระเงิน หรือสถานะการจัดส่ง (การปิดประมูลจะเกิดขึ้นเมื่อมีผู้กดซื้อทันทีหรือหมดเวลาเท่านั้น)
+        </div>
+        <div id="my-auctions-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4 pb-4">
+          <div class="col-span-full text-center py-8 text-slate-400 text-xs">กำลังโหลดรายการของคุณ...</div>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <div id="seller-rooms-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden items-center justify-center z-50 p-3 md:p-6 overflow-y-auto">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-5xl overflow-hidden my-auto relative flex flex-col max-h-[90vh]">
@@ -431,6 +456,7 @@
       userFavorites = [];
       const container = document.getElementById('auth-buttons-container');
       const quickChatContainer = document.getElementById('quick-action-chat-container');
+      const myAuctionsNavContainer = document.getElementById('my-auctions-nav-btn-container');
       const createAucBtn = document.getElementById('open-create-auc-btn');
 
       if (user) {
@@ -463,13 +489,22 @@
           </div>
         `;
 
-        updateUnreadBadgeCount();
+        // 🌟 แสดงปุ่ม "ห้องประมูลของฉัน" ตรงกลางเมนูลอยด้านล่าง
+        if (myAuctionsNavContainer) {
+          myAuctionsNavContainer.innerHTML = `
+            <button onclick="openMyAuctionsModal()" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-xs px-3.5 py-2.5 rounded-xl shadow-md transition flex items-center gap-1.5 whitespace-nowrap">
+              📦 ห้องของฉัน
+            </button>
+          `;
+        }
 
+        updateUnreadBadgeCount();
         if (createAucBtn) createAucBtn.classList.remove('hidden');
       } else {
         container.innerHTML = `
           <button onclick="document.getElementById('auth-modal').classList.add('flex'); document.getElementById('auth-modal').classList.remove('hidden');" class="bg-blue-600 text-white px-3.5 py-1.5 rounded-lg text-xs font-bold shadow">เข้าสู่ระบบ</button>
         `;
+        if (myAuctionsNavContainer) myAuctionsNavContainer.innerHTML = '';
         if (quickChatContainer) quickChatContainer.innerHTML = '';
         if (createAucBtn) createAucBtn.classList.add('hidden');
       }
@@ -490,8 +525,8 @@
       const unreadCount = unreadMsgs ? unreadMsgs.length : 0;
 
       quickChatContainer.innerHTML = `
-        <button onclick="openAuctionInboxModal()" class="relative bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-extrabold px-6 py-2.5 rounded-xl text-xs md:text-sm transition shadow-lg shadow-blue-500/35 flex items-center gap-2">
-          💬 แชทรวมประมูล
+        <button onclick="openAuctionInboxModal()" class="relative bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-extrabold px-4 py-2.5 rounded-xl text-xs md:text-sm transition shadow-lg shadow-blue-500/35 flex items-center gap-2">
+          💬 แชท
           ${unreadCount > 0 ? `
             <span class="absolute -top-1.5 -right-1.5 bg-red-600 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow-md animate-bounce">
               ${unreadCount}
@@ -501,6 +536,84 @@
         </button>
       `;
     }
+
+    // 🌟 ฟังก์ชันเปิด-ปิด และเรนเดอร์ข้อมูลใน Modal "ห้องประมูลของฉัน"
+    window.openMyAuctionsModal = async function() {
+      if (!currentUser) return;
+      lockBodyScroll();
+      const modal = document.getElementById('my-auctions-modal');
+      const grid = document.getElementById('my-auctions-grid');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      grid.innerHTML = '<div class="col-span-full text-center py-8 text-slate-400 text-xs">กำลังโหลดรายการห้องประมูลของคุณ...</div>';
+
+      const { data, error } = await supabaseClient
+        .from('auctions')
+        .select('*')
+        .eq('seller_id', currentUser.id)
+        .order('created_at', { ascending: false });
+
+      if (error || !data || data.length === 0) {
+        grid.innerHTML = `<div class="col-span-full text-center py-12 text-slate-400 text-xs bg-white rounded-xl border border-slate-200">คุณยังไม่มีรายการเปิดประมูลสินค้าในขณะนี้</div>`;
+        return;
+      }
+
+      grid.innerHTML = data.map(auc => {
+        const currentStatus = auc.order_status || 'รอการชำระเงิน';
+        let statusBadgeColor = 'bg-amber-100 text-amber-800 border-amber-300';
+        if (currentStatus === 'ชำระเงินแล้ว') statusBadgeColor = 'bg-blue-100 text-blue-800 border-blue-300';
+        if (currentStatus === 'จัดส่งสำเร็จแล้ว') statusBadgeColor = 'bg-emerald-100 text-emerald-800 border-emerald-300';
+
+        return `
+          <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex flex-col justify-between space-y-3">
+            <div class="flex items-center space-x-3">
+              <img src="${auc.images?.[0] || ''}" class="w-20 h-20 rounded-xl object-cover border border-slate-100 shrink-0">
+              <div class="min-w-0 flex-1">
+                <span class="text-[10px] font-bold uppercase bg-red-50 text-red-600 px-2 py-0.5 rounded">${auc.species}</span>
+                <h4 class="font-bold text-slate-900 text-sm truncate mt-1">${auc.title}</h4>
+                <p class="text-xs text-emerald-700 font-extrabold mt-0.5">ราคาปัจจุบัน: ฿${Number(auc.current_price).toLocaleString()}</p>
+                <p class="text-[11px] text-slate-500 truncate">ผู้ชนะปัจจุบัน: <strong class="text-slate-700">${auc.last_bidder_name || 'ยังไม่มีผู้เสนอราคา'}</strong></p>
+              </div>
+            </div>
+
+            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
+              <div class="flex justify-between items-center text-xs">
+                <span class="font-bold text-slate-700">สถานะคำสั่งซื้อ:</span>
+                <span class="px-2.5 py-0.5 rounded-full font-bold text-[11px] border ${statusBadgeColor}">${currentStatus}</span>
+              </div>
+              <div class="flex gap-1.5 pt-1">
+                <button onclick="updateAuctionOrderStatus('${auc.id}', 'รอการชำระเงิน')" class="flex-1 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-[10px] font-bold transition">รอชำระเงิน</button>
+                <button onclick="updateAuctionOrderStatus('${auc.id}', 'ชำระเงินแล้ว')" class="flex-1 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[10px] font-bold transition shadow-sm">ชำระเงินแล้ว</button>
+                <button onclick="updateAuctionOrderStatus('${auc.id}', 'จัดส่งสำเร็จแล้ว')" class="flex-1 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[10px] font-bold transition shadow-sm">ส่งสำเร็จ</button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    };
+
+    window.closeMyAuctionsModal = function() {
+      unlockBodyScroll();
+      document.getElementById('my-auctions-modal').classList.add('hidden');
+      document.getElementById('my-auctions-modal').classList.remove('flex');
+    };
+
+    window.updateAuctionOrderStatus = async function(auctionId, newStatus) {
+      if (!currentUser) return;
+      try {
+        const { error } = await supabaseClient
+          .from('auctions')
+          .update({ order_status: newStatus })
+          .eq('id', auctionId);
+
+        if (error) throw error;
+        alert(`อัปเดตสถานะเป็น "${newStatus}" เรียบร้อยแล้ว!`);
+        openMyAuctionsModal();
+        fetchAuctions();
+      } catch (err) {
+        alert('อัปเดตสถานะไม่สำเร็จ: ' + err.message);
+      }
+    };
 
     window.handleSignOut = async function() {
       await supabaseClient.auth.signOut();
@@ -514,7 +627,7 @@
       event.stopPropagation();
       if (!currentUser) {
         alert('กรุณาเข้าสู่ระบบก่อนกดติดตามหน้าร้านครับ');
-        document.getElementById('auth-modal').classList.remove('hidden');
+        document.getElementById('auth-modal').classList.add('hidden');
         document.getElementById('auth-modal').classList.add('flex');
         return;
       }
@@ -610,7 +723,8 @@
         seller_id: currentUser.id,
         seller_name: currentUser.user_metadata?.full_name || currentUser.email.split('@')[0],
         expires_at: new Date(Date.now() + totalMilliseconds).toISOString(),
-        status: 'active', last_bidder_id: null, last_bidder_name: null
+        status: 'active', last_bidder_id: null, last_bidder_name: null,
+        order_status: 'รอการชำระเงิน'
       };
 
       try {
@@ -1229,7 +1343,6 @@
         }]);
 
         if (insErr) throw insErr;
-        // บังคับโหลดข้อความทันทีฝั่งผู้ส่ง
         await fetchAuctionChatMessages(activeAuction.id, targetAuctionChatUserId);
       } catch (err) {
         alert('อัปโหลดรูปภาพไม่สำเร็จ: ' + err.message);
@@ -1441,7 +1554,6 @@
       container.scrollTop = container.scrollHeight;
     }
 
-    // 🌟 ปรับปรุง Realtime Subscription ให้ดักจับทั้ง INSERT และ DELETE ทันทีแบบวินาทีต่อวินาที
     function subscribeAuctionChatRealtime(auctionId, otherUserId) {
       if (aucChatChannel) supabaseClient.removeChannel(aucChatChannel);
       aucChatChannel = supabaseClient.channel(`auc-chat-room-${auctionId}-${otherUserId}`)
@@ -1455,7 +1567,6 @@
           }
         })
         .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'auction_messages', filter: `auction_id=eq.${auctionId}` }, async () => {
-          // หากมีการลบห้องแชท (ปิดการซื้อขายสำเร็จ) ให้เด้งออกไปหน้า Inbox ทันที
           alert('การซื้อขายถูกปิดและข้อมูลถูกลบเรียบร้อยแล้ว');
           closeAuctionChatModal();
           openAuctionInboxModal();
@@ -1484,7 +1595,6 @@
       if (error) {
         alert('ส่งข้อความไม่สำเร็จ: ' + error.message);
       } else {
-        // บังคับดึงข้อความทันทีเพื่อความลื่นไหลสูงสุดของผู้ส่ง
         await fetchAuctionChatMessages(activeAuction.id, targetAuctionChatUserId);
       }
     });
