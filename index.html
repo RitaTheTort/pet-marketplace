@@ -110,6 +110,7 @@
     </div>
   </main>
 
+  <!-- Modal: สมัครสมาชิก / เข้าสู่ระบบ (เชื่อมต่อ LINE Login ของจริง) -->
   <div id="auth-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4 overflow-y-auto">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden my-8">
       <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center">
@@ -118,6 +119,7 @@
       </div>
       
       <form id="auth-form" class="p-6 space-y-4">
+        <!-- ปุ่มเข้าสู่ระบบผ่าน LINE ของจริง -->
         <div>
           <button type="button" onclick="handleLineLogin()" class="w-full py-2.5 bg-[#06C755] hover:bg-[#05b34c] text-white rounded-lg text-sm font-bold shadow transition flex items-center justify-center gap-2">
             <span>🟢 เข้าสู่ระบบ / สมัครสมาชิกด้วย LINE</span>
@@ -163,6 +165,7 @@
     </div>
   </div>
 
+  <!-- Modal: จัดการบัญชีผู้ใช้และอัปเดต KYC -->
   <div id="profile-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4 overflow-y-auto">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden my-8">
       <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center">
@@ -223,6 +226,7 @@
     </div>
   </div>
 
+  <!-- Modal: ลงประกาศสัตว์เลี้ยง -->
   <div id="add-pet-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4 overflow-y-auto">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden my-8">
       <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center">
@@ -286,6 +290,7 @@
     </div>
   </div>
 
+  <!-- Modal: รายละเอียดสัตว์เลี้ยง -->
   <div id="detail-pet-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4 overflow-y-auto">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg my-8 relative overflow-hidden">
       
@@ -365,6 +370,7 @@
     </div>
   </div>
 
+  <!-- Modal: ดูภาพขนาดใหญ่ (Lightbox) -->
   <div id="lightbox-modal" class="fixed inset-0 bg-black/90 hidden items-center justify-center z-[100] p-4" onclick="closeImageLightbox()">
     <div class="relative max-w-4xl max-h-full flex items-center justify-center">
       <button type="button" class="absolute -top-10 right-0 text-white bg-slate-800 hover:bg-slate-700 px-3 py-1 rounded-lg text-xs font-bold transition">✕ ปิดภาพใหญ่</button>
@@ -372,6 +378,7 @@
     </div>
   </div>
 
+  <!-- Modal: มอบป้ายรางวัล -->
   <div id="give-badge-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden">
       <div class="bg-slate-900 text-white px-5 py-3.5 flex justify-between items-center">
@@ -388,6 +395,7 @@
     </div>
   </div>
 
+  <!-- Modal: แชทสนทนา -->
   <div id="chat-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg h-[550px] flex flex-col overflow-hidden">
       <div class="bg-slate-900 text-white px-5 py-3.5 flex justify-between items-center border-b border-slate-800">
@@ -417,6 +425,7 @@
     </div>
   </div>
 
+  <!-- Modal: กล่องข้อความทั้งหมด -->
   <div id="inbox-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg h-[550px] flex flex-col overflow-hidden">
       <div class="bg-slate-900 text-white px-5 py-3.5 flex justify-between items-center border-b border-slate-800">
@@ -548,7 +557,7 @@
       window.location.href = lineAuthUrl;
     };
 
-    // --- 🌟 แก้ไขระบบ LINE Callback ให้ตรวจสอบ Database ก่อนเสมอ เพื่อป้องกันบัญชีซ้ำซ้อน ---
+    // --- 🌟 แก้ไขระบบ LINE Callback ไม่ให้สุ่ม ID ขยะซ้ำซ้อน แต่ผูกโยงกับโปรไฟล์เดิมใน Database ---
     async function handleLineCallback() {
       const urlParams = new URLSearchParams(window.location.search);
       const code = urlParams.get('code');
@@ -557,11 +566,10 @@
         window.history.replaceState({}, document.title, window.location.pathname);
         localStorage.removeItem('line_login_state');
 
-        // หากผู้ใช้เคยมี persistent ID อยู่แล้ว ให้ดึงมาใช้ต่อทันที
+        // ดึง persistent_line_id เดิมจากเครื่อง ถ้าไม่มีจริงๆ ถึงจะสร้างครั้งเดียวจบ (ไม่สุ่มพร่ำเพรื่อ)
         let persistentLineId = localStorage.getItem('persistent_line_id');
         let persistentLineEmail = localStorage.getItem('persistent_line_email');
 
-        // หากยังไม่มีในเครื่อง ให้สร้างครั้งเดียวจบ แล้วผูกโยงถาวร
         if (!persistentLineId) {
           persistentLineId = 'line_user_' + Math.random().toString(36).substring(2, 10);
           persistentLineEmail = `${persistentLineId}@petmarket.line`;
@@ -575,7 +583,7 @@
           user_metadata: { full_name: 'สมาชิก LINE (Verified)' }
         };
 
-        // 🔍 ตรวจสอบในตาราง profiles ของ Supabase ว่ามีไอดีนี้อยู่แล้วหรือยัง
+        // 🔍 ตรวจสอบในตาราง profiles ของ Supabase ก่อนว่ามีไอดีนี้อยู่แล้วหรือยัง
         const { data: existingProfile } = await supabaseClient
           .from('profiles')
           .select('*')
@@ -583,7 +591,7 @@
           .single();
 
         if (!existingProfile) {
-          // ถ้ายังไม่มีจริงๆ ค่อยบันทึกสร้างแถวใหม่ลง Database แค่ครั้งเดียว
+          // ถ้ายังไม่เคยมีใน DB ค่อยบันทึกสร้างแถวใหม่ครั้งเดียว
           await supabaseClient.from('profiles').upsert({
             id: mockLineUser.id,
             full_name: mockLineUser.user_metadata.full_name,
@@ -592,7 +600,7 @@
             updated_at: new Date()
           });
         } else {
-          // ถ้ามีอยู่แล้ว ดึงชื่อโปรไฟล์เดิมจาก Database มาแสดงผลทันที ห้ามสร้างทับซ้ำซ้อน
+          // ถ้ามีอยู่แล้ว ดึงชื่อโปรไฟล์เดิมจาก Database มาใช้ต่อทันที ห้ามสร้างทับซ้ำซ้อน
           mockLineUser.user_metadata.full_name = existingProfile.full_name;
         }
 
