@@ -188,7 +188,7 @@
     </div>
   </div>
 
-  <!-- 🌟 หน้าต่างแชทรวมห้องประมูล (เพิ่มปุ่ม "ปิดการซื้อขาย" ตามตำแหน่งที่อี้อวี่เลือก) -->
+  <!-- 🌟 หน้าต่างแชทรวมห้องประมูล -->
   <div id="auction-chat-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-[80] p-4">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg h-[650px] flex flex-col overflow-hidden relative">
       <div class="bg-slate-900 text-white px-5 py-3 flex justify-between items-center border-b border-slate-800 shrink-0">
@@ -200,7 +200,6 @@
           </div>
         </div>
         
-        <!-- ส่วนปุ่ม ปิดการซื้อขาย, กลับ, และกากบาท -->
         <div class="flex items-center space-x-2 shrink-0">
           <div id="close-trade-btn-container"></div>
           <button onclick="backToAuctionInbox()" class="text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 text-xs font-bold px-2.5 py-1.5 rounded-lg transition flex items-center gap-1 shadow-sm" title="กลับไปหน้ากล่องข้อความ">
@@ -423,7 +422,7 @@
     let aucChatChannel = null;
     let targetAuctionChatUserId = null;
     let cachedInboxGroups = [];
-    let activeChatMetaData = null; // เก็บข้อมูลผู้ขอปิดการซื้อขาย
+    let activeChatMetaData = null;
 
     async function updateAuthUI(user) {
       currentUser = user;
@@ -1006,7 +1005,6 @@
 
       activeChatMetaData = null;
       if (data) {
-        // ค้นหาข้อความขอปิดการซื้อขายล่าสุด
         const closeReq = data.find(m => m.content && m.content.includes("ได้ส่งคำขอปิดการซื้อขาย/สนทนาแล้ว"));
         if (closeReq) {
           activeChatMetaData = {
@@ -1032,16 +1030,13 @@
         return;
       }
 
-      // กรณีคนละคนกัน เช็คว่าใครเป็นคนขอปิดไปแล้ว
       if (activeChatMetaData && activeChatMetaData.requesterId === currentUser.id) {
-        // เราเป็นคนขอไปแล้ว -> ล็อกปุ่ม
         container.innerHTML = `
           <button onclick="promptCloseTradeWaiting()" class="bg-amber-600 text-white text-[11px] font-bold px-2 py-1.5 rounded-lg opacity-90 cursor-not-allowed flex items-center gap-1 shadow-sm" title="รออีกฝ่ายยืนยัน">
             ⏳ รออีกฝ่ายยืนยัน
           </button>
         `;
       } else {
-        // ยังไม่มีใครขอ หรืออีกฝ่ายเป็นคนขอ -> สามารถกดเพื่อยืนยันปิดได้
         container.innerHTML = `
           <button onclick="promptCloseTrade()" class="bg-red-600 hover:bg-red-700 text-white text-[11px] font-bold px-2.5 py-1.5 rounded-lg transition flex items-center gap-1 shadow-sm" title="ปิดการซื้อขาย">
             🔒 ปิดการซื้อขาย
@@ -1083,7 +1078,6 @@
       const modal = document.getElementById('trade-confirm-modal');
       modal.classList.add('hidden');
       modal.classList.remove('flex');
-      // คืนค่าปุ่ม modal กลับเป็นแบบปกติ
       document.getElementById('trade-modal-buttons').innerHTML = `
         <button onclick="closeTradeConfirmModal()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 py-3 rounded-xl font-bold text-sm transition">ยกเลิก</button>
         <button onclick="executeCloseTrade()" class="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl font-bold text-sm shadow-lg transition">ยืนยันการปิด</button>
@@ -1098,7 +1092,6 @@
       const myName = currentUser.user_metadata?.full_name || currentUser.email.split('@')[0];
 
       if (isSameUser) {
-        // เงื่อนไข 1: คนเดียวกัน ลบห้องแชทและรูปภาพทันที
         await deleteEntireChatRoom(activeAuction.id, currentUser.id, currentUser.id);
         alert('ปิดการซื้อขายและลบข้อมูลแชทเรียบร้อยแล้ว');
         closeAuctionChatModal();
@@ -1106,15 +1099,12 @@
         return;
       }
 
-      // เงื่อนไข 2: คนละคนกัน
       if (activeChatMetaData && activeChatMetaData.requesterId && activeChatMetaData.requesterId !== currentUser.id) {
-        // อีกฝ่ายเคยขอมาแล้ว เรากดซ้ำเพื่อยืนยัน -> ปิดห้องและลบข้อมูลถาวรทันที!
         await deleteEntireChatRoom(activeAuction.id, currentUser.id, targetAuctionChatUserId);
         alert('ทั้งสองฝ่ายยืนยันปิดการซื้อขายเรียบร้อย ระบบได้ลบข้อมูลแชทถาวรแล้ว');
         closeAuctionChatModal();
         openAuctionInboxModal();
       } else {
-        // เราเป็นคนเริ่มกดขอคนแรก -> ส่งข้อความแจ้งเตือนเข้าแชท (ภาพ C) และแสดง Modal B
         const alertMsg = `🔒 [${myName}] ได้ส่งคำขอปิดการซื้อขาย/สนทนาแล้ว ขอให้คุณยืนยันโดยการกดปุ่ม 'ปิดการซื้อขาย' มุมขวาบนของหน้าต่างแชท (คำเตือน: หากกดยืนยันแล้ว ข้อมูลแชททั้งหมดจะถูกลบถาวรและไม่สามารถกู้คืนได้)`;
         
         await supabaseClient.from('auction_messages').insert([{
@@ -1129,7 +1119,6 @@
         await fetchAuctionChatMetaData(activeAuction.id, targetAuctionChatUserId);
         await fetchAuctionChatMessages(activeAuction.id, targetAuctionChatUserId);
 
-        // แสดง Modal สำเร็จ (ภาพ B)
         const modal = document.getElementById('trade-confirm-modal');
         const desc = document.getElementById('trade-modal-desc');
         const buttons = document.getElementById('trade-modal-buttons');
@@ -1143,10 +1132,8 @@
       }
     };
 
-    // ฟังก์ชันลบห้องแชทและรูปภาพใน Storage ถาวร
     async function deleteEntireChatRoom(auctionId, userA, userB) {
       try {
-        // ดึงข้อความทั้งหมดในห้องนี้เพื่อตรวจสอบหารูปภาพและลบออกจาก Storage
         const { data: allMsgs } = await supabaseClient
           .from('auction_messages')
           .select('content')
@@ -1164,7 +1151,6 @@
           }
         }
 
-        // ลบข้อมูลข้อความออกจากตารางฐานข้อมูล
         await supabaseClient
           .from('auction_messages')
           .delete()
@@ -1203,7 +1189,6 @@
       openAuctionInboxModal();
     };
 
-    // 🌟 ฟังก์ชันเปิด-ปิด Lightbox สำหรับดูรูปภาพขนาดใหญ่ในแชท
     window.openLightbox = function(imageUrl) {
       const modal = document.getElementById('image-lightbox-modal');
       const img = document.getElementById('lightbox-img');
@@ -1244,6 +1229,7 @@
         }]);
 
         if (insErr) throw insErr;
+        // บังคับโหลดข้อความทันทีฝั่งผู้ส่ง
         await fetchAuctionChatMessages(activeAuction.id, targetAuctionChatUserId);
       } catch (err) {
         alert('อัปโหลดรูปภาพไม่สำเร็จ: ' + err.message);
@@ -1455,17 +1441,24 @@
       container.scrollTop = container.scrollHeight;
     }
 
+    // 🌟 ปรับปรุง Realtime Subscription ให้ดักจับทั้ง INSERT และ DELETE ทันทีแบบวินาทีต่อวินาที
     function subscribeAuctionChatRealtime(auctionId, otherUserId) {
       if (aucChatChannel) supabaseClient.removeChannel(aucChatChannel);
-      aucChatChannel = supabaseClient.channel(`auc-chat-${auctionId}-${otherUserId}`)
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'auction_messages', filter: `auction_id=eq.${auctionId}` }, async (payload) => {
+      aucChatChannel = supabaseClient.channel(`auc-chat-room-${auctionId}-${otherUserId}`)
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'auction_messages', filter: `auction_id=eq.${auctionId}` }, async (payload) => {
           const newMsg = payload.new;
           if (newMsg && ((newMsg.sender_id === currentUser.id && newMsg.receiver_id === otherUserId) || (newMsg.sender_id === otherUserId && newMsg.receiver_id === currentUser.id))) {
             await markMessagesAsRead(auctionId, otherUserId);
             await fetchAuctionChatMetaData(auctionId, otherUserId);
-            fetchAuctionChatMessages(auctionId, otherUserId);
+            await fetchAuctionChatMessages(auctionId, otherUserId);
             updateUnreadBadgeCount();
           }
+        })
+        .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'auction_messages', filter: `auction_id=eq.${auctionId}` }, async () => {
+          // หากมีการลบห้องแชท (ปิดการซื้อขายสำเร็จ) ให้เด้งออกไปหน้า Inbox ทันที
+          alert('การซื้อขายถูกปิดและข้อมูลถูกลบเรียบร้อยแล้ว');
+          closeAuctionChatModal();
+          openAuctionInboxModal();
         })
         .subscribe();
     }
@@ -1491,6 +1484,7 @@
       if (error) {
         alert('ส่งข้อความไม่สำเร็จ: ' + error.message);
       } else {
+        // บังคับดึงข้อความทันทีเพื่อความลื่นไหลสูงสุดของผู้ส่ง
         await fetchAuctionChatMessages(activeAuction.id, targetAuctionChatUserId);
       }
     });
