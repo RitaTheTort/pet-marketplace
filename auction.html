@@ -24,13 +24,13 @@
     </div>
   </header>
 
-  <!-- 🌟 แถบเมนูลอยด้านล่างพร้อม Badge แจ้งเตือนข้อความ -->
+  <!-- 🌟 แถบเมนูลอยด้านล่าง (Quick Action Bar ตรึงติดหน้าจอไม่ว่าจะเลื่อนไปไหน) -->
   <div class="fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-md border-t border-slate-800 text-white py-3 px-4 z-40 shadow-2xl flex justify-between items-center max-w-xl mx-auto md:rounded-t-2xl">
     <a href="index.html" class="flex items-center gap-1.5 text-slate-300 hover:text-white font-bold text-xs md:text-sm transition bg-slate-800 hover:bg-slate-700 px-4 py-2.5 rounded-xl border border-slate-700 shadow-sm">
       &larr; กลับหน้าหลักตลาด
     </a>
-    <div id="quick-action-chat-container" class="relative">
-      <!-- ปุ่มแชทพร้อม Badge จะแสดงที่นี่เมื่อเข้าสู่ระบบ -->
+    <div id="quick-action-chat-container">
+      <!-- ปุ่มแชทเด่นจะแสดงเฉพาะตอนเข้าสู่ระบบแล้ว -->
     </div>
   </div>
 
@@ -88,7 +88,8 @@
         <button onclick="closeSellerRoomsModal()" class="text-slate-400 hover:text-white text-2xl font-bold px-2 py-0.5 rounded-lg transition">&times;</button>
       </div>
       <div class="p-4 md:p-6 bg-slate-50 overflow-y-auto flex-1">
-        <div id="seller-rooms-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-6"></div>
+        <div id="seller-rooms-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-6">
+          </div>
       </div>
     </div>
   </div>
@@ -122,13 +123,15 @@
             </div>
             <h2 id="sa-title" class="text-lg md:text-xl font-extrabold text-slate-900">ชื่อสินค้า</h2>
             <p id="sa-desc" class="text-xs text-slate-500 mt-1 whitespace-pre-wrap">รายละเอียดเพิ่มเติม...</p>
-            <p id="sa-retention-info" class="text-[10px] text-slate-400 mt-2 italic">ℹ️ ข้อมูลการประมูลนี้จะถูกจัดเก็บรักษาไว้เป็นเวลา 30 วันหลังสิ้นสุดการประมูล</p>
+            <p id="sa-retention-info" class="text-[10px] text-slate-400 mt-2 italic">ℹ️ ข้อมูลการประมูลนี้จะถูกจัดเก็บรักษาไว้เป็นเวลา 90 วันหลังสิ้นสุดการประมูล</p>
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div class="bg-red-50/80 backdrop-blur-sm text-red-600 p-3.5 rounded-xl border border-red-200 text-center shadow-sm">
               <p class="text-[10px] text-red-700/80 font-bold uppercase tracking-wider mb-1">เวลาประมูลคงเหลือ</p>
-              <div id="sa-timer" class="text-2xl font-mono font-black tracking-widest text-red-600">00:00:00</div>
+              <div id="sa-timer" class="text-2xl font-mono font-black tracking-widest text-red-600">
+                00:00:00
+              </div>
             </div>
             <div class="bg-emerald-50 p-3.5 rounded-xl border border-emerald-200 flex flex-col justify-between">
               <p class="text-[10px] text-emerald-700 font-semibold uppercase tracking-wider">ราคาประมูลปัจจุบัน</p>
@@ -173,7 +176,9 @@
 
       <div id="bid-confirm-modal" class="absolute inset-0 bg-slate-900/80 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden p-6 text-center space-y-4">
-          <div class="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-2xl font-bold">🔨</div>
+          <div class="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-2xl font-bold">
+            🔨
+          </div>
           <h3 class="text-lg font-extrabold text-slate-900">ยืนยันการเสนอราคาของคุณ</h3>
           <p class="text-xs text-slate-600">คุณกำลังจะเสนอราคาประมูลใหม่ที่ยอดเงิน:</p>
           <div class="bg-emerald-50 border border-emerald-200 py-3 rounded-xl">
@@ -181,8 +186,12 @@
           </div>
           <p class="text-[11px] text-amber-600 font-medium">⚠️ เมื่อยืนยันแล้วจะไม่สามารถยกเลิกได้ โปรดตรวจสอบความถูกต้อง</p>
           <div class="grid grid-cols-2 gap-3 pt-2">
-            <button onclick="closeConfirmModal()" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 py-3 rounded-xl font-bold text-sm transition">ยกเลิก</button>
-            <button onclick="submitBid()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-xl font-bold text-sm shadow-lg transition">ใช่ (ยืนยัน)</button>
+            <button onclick="closeConfirmModal()" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 py-3 rounded-xl font-bold text-sm transition">
+              ยกเลิก
+            </button>
+            <button onclick="submitBid()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-xl font-bold text-sm shadow-lg transition">
+              ใช่ (ยืนยัน)
+            </button>
           </div>
         </div>
       </div>
@@ -190,12 +199,13 @@
     </div>
   </div>
 
-  <!-- หน้าต่างแชทเฉพาะกิจพร้อม Quick Actions และส่งสลิป -->
   <div id="auction-chat-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-[80] p-4">
-    <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg h-[680px] flex flex-col overflow-hidden relative">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg h-[620px] flex flex-col overflow-hidden relative">
       <div class="bg-slate-900 text-white px-5 py-3 flex justify-between items-center border-b border-slate-800">
         <div class="flex items-center space-x-3 min-w-0 pr-2">
-          <div class="w-9 h-9 rounded-full bg-red-600 flex items-center justify-center font-bold text-sm text-white shrink-0" id="auc-chat-avatar">A</div>
+          <div class="w-9 h-9 rounded-full bg-red-600 flex items-center justify-center font-bold text-sm text-white shrink-0" id="auc-chat-avatar">
+            A
+          </div>
           <div class="min-w-0">
             <h4 id="auc-chat-name" class="font-bold text-sm leading-tight truncate">คู่สนทนา</h4>
             <p id="auc-chat-title" class="text-[11px] text-red-300 truncate max-w-[180px]">ห้องแชทประมูล</p>
@@ -204,23 +214,15 @@
         <button onclick="closeAuctionChatModal()" class="text-slate-400 hover:text-white text-xl font-bold px-1">&times;</button>
       </div>
 
-      <div id="seller-quick-actions" class="bg-slate-100 px-3 py-2 border-b border-slate-200 flex gap-2 overflow-x-auto shrink-0 hidden">
-        <button type="button" onclick="sendQuickAction('bank')" class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 text-[11px] font-bold px-3 py-1.5 rounded-lg whitespace-nowrap shadow-sm transition">💳 ส่งเลขบัญชี</button>
-        <button type="button" onclick="sendQuickAction('shipping')" class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 text-[11px] font-bold px-3 py-1.5 rounded-lg whitespace-nowrap shadow-sm transition">📦 ข้อมูลจัดส่ง/จุดนัดรับ</button>
-        <button type="button" onclick="sendQuickAction('summary')" class="bg-purple-600 hover:bg-purple-700 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg whitespace-nowrap shadow-sm transition">💰 สรุปยอดชำระ</button>
-      </div>
-
       <div id="auc-chat-messages" class="flex-1 p-4 overflow-y-auto space-y-3 bg-slate-50 text-sm">
         <div class="text-center text-xs text-slate-400 py-4">กำลังโหลดข้อความประมูล...</div>
       </div>
 
       <form id="auc-chat-form" class="p-3 bg-white border-t border-slate-200 flex items-center space-x-2 shrink-0">
-        <label class="cursor-pointer bg-slate-100 hover:bg-slate-200 text-slate-600 p-2.5 rounded-xl transition shrink-0" title="แนบสลิป / รูปภาพ">
-          📷
-          <input type="file" id="auc-chat-file" accept="image/*" class="hidden" onchange="sendChatImage(this)">
-        </label>
         <input type="text" id="auc-chat-input" placeholder="พิมพ์ข้อความสอบถามการประมูล..." class="flex-1 px-4 py-2 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500">
-        <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl text-sm font-bold transition whitespace-nowrap shrink-0">ส่ง</button>
+        <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl text-sm font-bold transition whitespace-nowrap shrink-0">
+          ส่ง
+        </button>
       </form>
     </div>
   </div>
@@ -268,15 +270,9 @@
             <input type="number" id="auc-start-price" required placeholder="เช่น 10000" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:outline-none">
           </div>
         </div>
-        <div class="grid grid-cols-2 gap-4">
-          <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">ราคาซื้อทันที (Buy-It-Now)</label>
-            <input type="number" id="auc-buyout-price" placeholder="ไม่บังคับ เช่น 25000" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:outline-none">
-          </div>
-          <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">ค่าจัดส่งสำหรับผู้ชนะ (บาท)</label>
-            <input type="number" id="auc-shipping-fee" value="0" min="0" placeholder="เช่น 150" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:outline-none">
-          </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">ราคาซื้อทันที (Buy-It-Now)</label>
+          <input type="number" id="auc-buyout-price" placeholder="ไม่บังคับ เช่น 25000" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:outline-none">
         </div>
 
         <div>
@@ -316,12 +312,18 @@
 
   <div id="auction-confirm-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm hidden items-center justify-center z-[60] p-4">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden p-6 text-center space-y-4">
-      <div class="w-14 h-14 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto text-2xl font-bold">⚠️</div>
+      <div class="w-14 h-14 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto text-2xl font-bold">
+        ⚠️
+      </div>
       <h3 class="text-lg font-extrabold text-slate-900">ยืนยันการเปิดห้องประมูล</h3>
       <p class="text-xs text-slate-600">เมื่อกดยืนยันแล้ว <strong class="text-red-600">จะไม่สามารถแก้ไขรายละเอียดหรือราคาเริ่มต้นได้อีก</strong> หากต้องการเปลี่ยนแปลงจะต้องลบโดยการแจ้งแอดมินเท่านั้น</p>
       <div class="grid grid-cols-2 gap-3 pt-2">
-        <button type="button" onclick="closeAuctionConfirmModal()" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 py-3 rounded-xl font-bold text-sm transition">ตรวจสอบอีกครั้ง</button>
-        <button type="button" onclick="executeCreateAuction()" id="final-submit-auc-btn" class="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl font-bold text-sm shadow-lg transition">ยืนยันเปิดประมูล</button>
+        <button type="button" onclick="closeAuctionConfirmModal()" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 py-3 rounded-xl font-bold text-sm transition">
+          ตรวจสอบอีกครั้ง
+        </button>
+        <button type="button" onclick="executeCreateAuction()" id="final-submit-auc-btn" class="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl font-bold text-sm shadow-lg transition">
+          ยืนยันเปิดประมูล
+        </button>
       </div>
     </div>
   </div>
@@ -391,17 +393,15 @@
     let userFavorites = [];
     let currentAuctionCategory = 'ALL';
 
+    // ตัวแปรสำหรับแชทหน้าประมูลโดยเฉพาะ (ตาราง auction_messages)
     let aucChatChannel = null;
     let targetAuctionChatUserId = null;
-    let sellerBankInfo = null;
 
-    // 🌟 อัปเดตฟังก์ชัน updateAuthUI ของไฟล์ล่าสุด ให้ดึง kyc_status และ profiles มาเทียบอย่างถูกต้องแม่นยำที่สุด
     async function updateAuthUI(user) {
       currentUser = user;
       currentUserRole = 'user';
       currentKycStatus = 'unverified';
       userFavorites = [];
-      sellerBankInfo = null;
       const container = document.getElementById('auth-buttons-container');
       const quickChatContainer = document.getElementById('quick-action-chat-container');
       const createAucBtn = document.getElementById('open-create-auc-btn');
@@ -411,21 +411,13 @@
 
         const { data: profileData } = await supabaseClient
           .from('profiles')
-          .select('role, kyc_status, bank_name, bank_account, account_name, bank_info, shipping_info, full_name')
+          .select('role, kyc_status')
           .eq('id', user.id)
           .single();
 
         if (profileData) {
           if (profileData.role) currentUserRole = profileData.role;
-          
-          const kycVal = profileData.kyc_status;
-          if (kycVal === true || kycVal === 1 || (typeof kycVal === 'string' && kycVal.toLowerCase() === 'approved')) {
-            currentKycStatus = 'approved';
-          } else {
-            currentKycStatus = kycVal || 'unverified';
-          }
-
-          sellerBankInfo = profileData;
+          if (profileData.kyc_status) currentKycStatus = profileData.kyc_status;
         }
 
         const { data: favData } = await supabaseClient
@@ -444,7 +436,15 @@
           </div>
         `;
 
-        updateUnreadBadgeCount();
+        // 🌟 แสดงปุ่มแชทรวมประมูลที่แถบเมนูลอยด้านล่าง ให้โดดเด่นสะดุดตา
+        if (quickChatContainer) {
+          quickChatContainer.innerHTML = `
+            <button onclick="openAuctionInboxModal()" class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-extrabold px-6 py-2.5 rounded-xl text-xs md:text-sm transition shadow-lg shadow-blue-500/30 flex items-center gap-2 animate-pulse">
+              💬 แชทรวมประมูล
+            </button>
+          `;
+        }
+
         if (createAucBtn) createAucBtn.classList.remove('hidden');
       } else {
         container.innerHTML = `
@@ -457,37 +457,11 @@
       fetchAuctions();
     }
 
-    async function updateUnreadBadgeCount() {
-      const quickChatContainer = document.getElementById('quick-action-chat-container');
-      if (!currentUser || !quickChatContainer) return;
-
-      const { data: unreadMsgs } = await supabaseClient
-        .from('auction_messages')
-        .select('id')
-        .eq('receiver_id', currentUser.id)
-        .eq('is_read', false);
-
-      const unreadCount = unreadMsgs ? unreadMsgs.length : 0;
-
-      quickChatContainer.innerHTML = `
-        <button onclick="openAuctionInboxModal()" class="relative bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-extrabold px-6 py-2.5 rounded-xl text-xs md:text-sm transition shadow-lg shadow-blue-500/35 flex items-center gap-2">
-          💬 แชทรวมประมูล
-          ${unreadCount > 0 ? `
-            <span class="absolute -top-1.5 -right-1.5 bg-red-600 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow-md animate-bounce">
-              ${unreadCount}
-            </span>
-            <span class="absolute -top-1 -right-1 w-6 h-6 bg-red-500 rounded-full animate-ping opacity-75"></span>
-          ` : ''}
-        </button>
-      `;
-    }
-
     window.handleSignOut = async function() {
       await supabaseClient.auth.signOut();
       currentUserRole = 'user';
       currentKycStatus = 'unverified';
       userFavorites = [];
-      sellerBankInfo = null;
       updateAuthUI(null);
     };
 
@@ -495,8 +469,8 @@
       event.stopPropagation();
       if (!currentUser) {
         alert('กรุณาเข้าสู่ระบบก่อนกดติดตามหน้าร้านครับ');
-        document.getElementById('auth-modal').classList.add('flex');
         document.getElementById('auth-modal').classList.remove('hidden');
+        document.getElementById('auth-modal').classList.add('flex');
         return;
       }
 
@@ -513,13 +487,10 @@
 
     window.openCreateAuctionModal = function() {
       if (!currentUser) { alert('กรุณาเข้าสู่ระบบก่อนเปิดประมูล'); return; }
-      
-      const isAdmin = (currentUserRole === 'admin' || currentUserRole === 'super_admin');
-      if (currentKycStatus !== 'approved' && !isAdmin) {
+      if (currentKycStatus !== 'approved') {
         alert('⚠️ คุณจำเป็นต้องผ่านการยืนยันตัวตน (KYC) ก่อน จึงจะสามารถเปิดห้องประมูลได้ครับ');
         return;
       }
-
       lockBodyScroll();
       document.getElementById('create-auction-modal').classList.remove('hidden');
       document.getElementById('create-auction-modal').classList.add('flex');
@@ -581,7 +552,6 @@
       const species = document.getElementById('auc-species').value;
       const startPrice = parseFloat(document.getElementById('auc-start-price').value);
       const buyoutPrice = document.getElementById('auc-buyout-price').value ? parseFloat(document.getElementById('auc-buyout-price').value) : null;
-      const shippingFee = parseFloat(document.getElementById('auc-shipping-fee').value) || 0;
       
       const days = parseInt(document.getElementById('auc-days').value) || 0;
       const hours = parseInt(document.getElementById('auc-hours').value) || 0;
@@ -590,7 +560,6 @@
 
       const payload = {
         title, species, start_price: startPrice, current_price: startPrice, buyout_price: buyoutPrice,
-        shipping_fee: shippingFee,
         images: [document.getElementById('auc-image-url').value],
         description: document.getElementById('auc-description').value.trim(),
         seller_id: currentUser.id,
@@ -606,7 +575,6 @@
         closeCreateAuctionModal();
         document.getElementById('create-auction-form').reset();
         document.getElementById('auc-image-url').value = '';
-        document.getElementById('auc-shipping-fee').value = '0';
         fetchAuctions();
       } catch (err) {
         alert(`เกิดข้อผิดพลาด: ${err.message}`);
@@ -903,11 +871,12 @@
       }
     }
 
+    // 🌟 ฟังก์ชันเปิดแชทติดต่อผู้เปิดประมูล
     window.openAuctionSellerChat = function() {
       if (!currentUser) {
         alert('กรุณาเข้าสู่ระบบก่อนติดต่อครับ');
-        document.getElementById('auth-modal').classList.add('flex');
         document.getElementById('auth-modal').classList.remove('hidden');
+        document.getElementById('auth-modal').classList.add('flex');
         return;
       }
       if (!activeAuction) return;
@@ -922,6 +891,7 @@
       openAuctionChat(activeAuction, activeAuction.seller_id, activeAuction.seller_name || 'ผู้ขาย');
     };
 
+    // 🌟 ฟังก์ชันเปิดแชทติดต่อผู้ชนะการประมูล
     window.openWinnerChat = async function() {
       if (!currentUser || !activeAuction) return;
 
@@ -954,8 +924,7 @@
           sender_id: currentUser.id,
           receiver_id: winnerId,
           sender_name: myName,
-          content: welcomeText,
-          is_read: false
+          content: welcomeText
         }]);
         await fetchAuctionChatMessages(activeAuction.id, winnerId);
       }
@@ -970,34 +939,12 @@
       document.getElementById('auc-chat-avatar').innerText = (otherUserName || 'C').charAt(0).toUpperCase();
       document.getElementById('auc-chat-title').innerText = `ประมูล: ${auc.title || 'สินค้า'}`;
 
-      const quickActionEl = document.getElementById('seller-quick-actions');
-      if (quickActionEl) {
-        if (auc.seller_id === currentUser.id) {
-          quickActionEl.classList.remove('hidden');
-        } else {
-          quickActionEl.classList.add('hidden');
-        }
-      }
-
       lockBodyScroll();
       document.getElementById('auction-chat-modal').classList.remove('hidden');
       document.getElementById('auction-chat-modal').classList.add('flex');
 
-      await markMessagesAsRead(auc.id, otherUserId);
       await fetchAuctionChatMessages(auc.id, otherUserId);
       subscribeAuctionChatRealtime(auc.id, otherUserId);
-      updateUnreadBadgeCount();
-    }
-
-    async function markMessagesAsRead(auctionId, otherUserId) {
-      if (!currentUser) return;
-      await supabaseClient
-        .from('auction_messages')
-        .update({ is_read: true })
-        .eq('auction_id', auctionId)
-        .eq('sender_id', otherUserId)
-        .eq('receiver_id', currentUser.id)
-        .eq('is_read', false);
     }
 
     function closeAuctionChatModal() {
@@ -1008,80 +955,9 @@
         supabaseClient.removeChannel(aucChatChannel);
         aucChatChannel = null;
       }
-      updateUnreadBadgeCount();
     }
 
-    async function sendQuickAction(type) {
-      if (!currentUser || !activeAuction || !targetAuctionChatUserId) return;
-      const myName = currentUser.user_metadata?.full_name || currentUser.email.split('@')[0];
-      let content = '';
-
-      if (type === 'bank') {
-        if (!sellerBankInfo || !sellerBankInfo.bank_account && !sellerBankInfo.bank_info) {
-          alert('⚠️ กรุณาตั้งค่าข้อมูลบัญชีธนาคารของคุณในหน้าจัดการบัญชีก่อนครับ');
-          return;
-        }
-        const bAcc = sellerBankInfo.bank_account || sellerBankInfo.bank_info || '-';
-        content = `💳 ข้อมูลโอนเงินชำระสินค้า:\nธนาคาร: ${sellerBankInfo.bank_name || '-'}\nเลขบัญชี: ${bAcc}\nชื่อบัญชี: ${sellerBankInfo.account_name || myName}`;
-      } else if (type === 'shipping') {
-        content = `📦 ข้อมูลการจัดส่ง / จุดนัดรับ:\n${sellerBankInfo.shipping_info || 'จัดส่งพัสดุแพ็คควบคุมอุณหภูมิอย่างดี หรือนัดรับสินค้าตามตกลง'}`;
-      } else if (type === 'summary') {
-        const finalPrice = Number(activeAuction.current_price || 0);
-        const shippingFee = Number(activeAuction.shipping_fee || 0);
-        const netTotal = finalPrice + shippingFee;
-        content = `💰 สรุปยอดชำระเงินค่าประมูล:\n- ราคาปิดประมูล: ฿${finalPrice.toLocaleString()}\n- ค่าจัดส่ง: ฿${shippingFee.toLocaleString()}\n👉 ยอดรวมสุทธิ: ฿${netTotal.toLocaleString()}`;
-      }
-
-      if (!content) return;
-
-      const { error } = await supabaseClient.from('auction_messages').insert([{
-        auction_id: activeAuction.id,
-        sender_id: currentUser.id,
-        receiver_id: targetAuctionChatUserId,
-        sender_name: myName,
-        content: content,
-        is_read: false
-      }]);
-
-      if (error) {
-        alert('ส่งข้อความด่วนไม่สำเร็จ: ' + error.message);
-      } else {
-        await fetchAuctionChatMessages(activeAuction.id, targetAuctionChatUserId);
-      }
-    }
-
-    async function sendChatImage(inputEl) {
-      const file = inputEl.files[0];
-      if (!file || !currentUser || !activeAuction || !targetAuctionChatUserId) return;
-
-      try {
-        const optimizedFile = await compressImage(file, 1000, 0.75);
-        const fileName = `slip_${Date.now()}_${Math.random()}.${file.name.split('.').pop()}`;
-        const { error: uploadErr } = await supabaseClient.storage.from('pet-images').upload(fileName, optimizedFile);
-        if (uploadErr) throw uploadErr;
-
-        const { data: pubData } = await supabaseClient.storage.from('pet-images').getPublicUrl(fileName);
-        const imageUrl = pubData.publicUrl;
-        const myName = currentUser.user_metadata?.full_name || currentUser.email.split('@')[0];
-
-        const { error: insErr } = await supabaseClient.from('auction_messages').insert([{
-          auction_id: activeAuction.id,
-          sender_id: currentUser.id,
-          receiver_id: targetAuctionChatUserId,
-          sender_name: myName,
-          content: imageUrl,
-          is_read: false
-        }]);
-
-        if (insErr) throw insErr;
-        await fetchAuctionChatMessages(activeAuction.id, targetAuctionChatUserId);
-      } catch (err) {
-        alert('อัปโหลดรูปภาพไม่สำเร็จ: ' + err.message);
-      } finally {
-        inputEl.value = '';
-      }
-    }
-
+    // Modal: กล่องข้อความรวม Inbox สำหรับหน้าประมูล
     window.openAuctionInboxModal = async function() {
       if (!currentUser) return;
       lockBodyScroll();
@@ -1112,12 +988,8 @@
             otherUserId: otherUserId,
             otherUserName: (msg.sender_id === currentUser.id) ? 'คู่สนทนา' : (msg.sender_name || 'ผู้ซื้อ/ผู้ขาย'),
             lastMessage: msg.content || '',
-            lastTime: msg.created_at,
-            unreadCount: 0
+            lastTime: msg.created_at
           };
-        }
-        if (msg.receiver_id === currentUser.id && !msg.is_read) {
-          chatGroups[key].unreadCount += 1;
         }
       });
 
@@ -1125,29 +997,20 @@
       listContainer.innerHTML = groupList.map(item => {
         const aucObj = globalAuctions.find(a => a.id === item.auction_id) || { id: item.auction_id, title: 'สินค้าประมูล' };
         const timeStr = new Date(item.lastTime).toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-        const isImg = item.lastMessage.startsWith('http');
 
         return `
-          <div onclick="selectAuctionChatFromInbox('${item.auction_id}', '${item.otherUserId}', '${item.otherUserName}', '${aucObj.title}')" class="p-3.5 hover:bg-slate-100 cursor-pointer rounded-xl transition flex justify-between items-center relative">
-            <div class="flex items-center space-x-3 min-w-0 pr-2">
-              <div class="relative w-10 h-10 rounded-full bg-red-600 text-white font-bold flex items-center justify-center text-sm shrink-0">
+          <div onclick="selectAuctionChatFromInbox('${item.auction_id}', '${item.otherUserId}', '${item.otherUserName}', '${aucObj.title}')" class="p-3.5 hover:bg-slate-100 cursor-pointer rounded-xl transition flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+              <div class="relative w-10 h-10 rounded-full bg-red-600 text-white font-bold flex items-center justify-center text-sm">
                 ${item.otherUserName.charAt(0).toUpperCase()}
-                ${item.unreadCount > 0 ? `<span class="absolute -top-1 -right-1 bg-red-600 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center animate-bounce">${item.unreadCount}</span>` : ''}
               </div>
-              <div class="min-w-0">
-                <p class="font-bold text-slate-800 text-sm truncate">${item.otherUserName}</p>
-                <p class="text-xs text-red-600 font-semibold truncate">${aucObj.title}</p>
-                <p class="text-xs text-slate-500 truncate">${isImg ? '📷 [รูปภาพ/สลิป]' : item.lastMessage}</p>
+              <div>
+                <p class="font-bold text-slate-800 text-sm">${item.otherUserName}</p>
+                <p class="text-xs text-red-600 font-semibold truncate max-w-[180px]">${aucObj.title}</p>
+                <p class="text-xs text-slate-500 truncate max-w-[200px]">${item.lastMessage}</p>
               </div>
             </div>
-            <div class="text-right shrink-0">
-              <span class="text-[10px] text-slate-400 block">${timeStr}</span>
-              ${item.unreadCount > 0 ? `
-                <span class="inline-block mt-1 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full animate-pulse">
-                  ใหม่ (${item.unreadCount})
-                </span>
-              ` : ''}
-            </div>
+            <span class="text-[10px] text-slate-400">${timeStr}</span>
           </div>
         `;
       }).join('');
@@ -1190,30 +1053,19 @@
       container.innerHTML = data.map(msg => {
         const isMe = msg.sender_id === currentUser.id;
         const timeStr = new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        const isWinnerWelcome = msg.content && msg.content.includes("ยินดีด้วย!!");
-        const isImg = msg.content && msg.content.startsWith('http');
         
-        let bubbleContent = `<p class="whitespace-pre-wrap">${msg.content}</p>`;
-        if (isImg) {
-          bubbleContent = `<a href="${msg.content}" target="_blank"><img src="${msg.content}" class="w-40 h-auto rounded-lg shadow cursor-pointer hover:opacity-90 transition"></a>`;
-        }
-
+        const isWinnerWelcome = msg.content && msg.content.includes("ยินดีด้วย!!");
         const contentBubbleStyle = isWinnerWelcome 
           ? `bg-amber-100 text-amber-900 border-2 border-amber-400 font-extrabold text-sm md:text-base p-3 rounded-2xl shadow-md my-1 text-center` 
           : `max-w-[75%] px-3.5 py-2 rounded-2xl text-xs ${isMe ? 'bg-red-600 text-white rounded-br-none' : 'bg-white text-slate-800 border border-slate-200 rounded-bl-none shadow-sm'}`;
-
-        const readStatusText = msg.is_read ? '<span class="text-[9px] text-emerald-500 font-bold ml-1">✓✓ อ่านแล้ว</span>' : '<span class="text-[9px] text-slate-300 ml-1">✓ ส่งแล้ว</span>';
 
         return `
           <div class="flex flex-col ${isMe && !isWinnerWelcome ? 'items-end' : 'items-start'} ${isWinnerWelcome ? 'items-center w-full my-2' : ''}">
             <span class="text-[10px] text-slate-400 mb-0.5 px-1">${isMe ? 'คุณ' : (msg.sender_name || 'คู่สนทนา')}</span>
             <div class="${contentBubbleStyle}">
-              ${bubbleContent}
+              <p class="whitespace-pre-wrap">${msg.content}</p>
             </div>
-            <div class="flex items-center gap-1 mt-0.5 px-1">
-              <span class="text-[9px] text-slate-400">${timeStr}</span>
-              ${isMe && !isWinnerWelcome ? readStatusText : ''}
-            </div>
+            <span class="text-[9px] text-slate-400 mt-0.5 px-1">${timeStr}</span>
           </div>
         `;
       }).join('');
@@ -1223,12 +1075,10 @@
     function subscribeAuctionChatRealtime(auctionId, otherUserId) {
       if (aucChatChannel) supabaseClient.removeChannel(aucChatChannel);
       aucChatChannel = supabaseClient.channel(`auc-chat-${auctionId}-${otherUserId}`)
-        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'auction_messages', filter: `auction_id=eq.${auctionId}` }, async (payload) => {
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'auction_messages', filter: `auction_id=eq.${auctionId}` }, (payload) => {
           const newMsg = payload.new;
           if ((newMsg.sender_id === currentUser.id && newMsg.receiver_id === otherUserId) || (newMsg.sender_id === otherUserId && newMsg.receiver_id === currentUser.id)) {
-            await markMessagesAsRead(auctionId, otherUserId);
             fetchAuctionChatMessages(auctionId, otherUserId);
-            updateUnreadBadgeCount();
           }
         })
         .subscribe();
@@ -1248,8 +1098,7 @@
         sender_id: currentUser.id,
         receiver_id: targetAuctionChatUserId,
         sender_name: myName,
-        content: content,
-        is_read: false
+        content: content
       }]);
 
       if (error) {
@@ -1462,19 +1311,19 @@
     window.confirmBidPrompt = function() {
       if (!currentUser) {
         alert('กรุณาเข้าสู่ระบบก่อนเสนอราคาครับ');
-        document.getElementById('auth-modal').classList.add('flex');
         document.getElementById('auth-modal').classList.remove('hidden');
+        document.getElementById('auth-modal').classList.add('flex');
         return;
       }
 
-      const isAdmin = (currentUserRole === 'admin' || currentUserRole === 'super_admin');
-      if (currentKycStatus !== 'approved' && !isAdmin) {
+      if (currentKycStatus !== 'approved') {
         alert('⚠️ คุณจำเป็นต้องผ่านการยืนยันตัวตน (KYC) ก่อน จึงจะสามารถเสนอราคาได้ครับ');
         return;
       }
 
       if (!activeAuction) return;
 
+      const isAdmin = (currentUserRole === 'admin' || currentUserRole === 'super_admin');
       if (activeAuction.seller_id === currentUser.id && !isAdmin) {
         alert('คุณไม่สามารถเสนอราคาสินค้าของตนเองได้ครับ');
         return;
