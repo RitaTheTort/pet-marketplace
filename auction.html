@@ -421,7 +421,7 @@
     let targetAuctionChatUserId = null;
     let sellerBankInfo = null;
 
-    // 🌟 ดึงตรรกะเช็ก KYC ที่เสถียรที่สุดกลับมาใส่
+    // 🌟 1. แยกตรรกะเช็ก KYC ออกมาให้ชัดเจนและรอดปลอดภัย 100%
     async function updateAuthUI(user) {
       currentUser = user;
       currentUserRole = 'user';
@@ -435,33 +435,39 @@
       if (user) {
         const displayName = user.user_metadata?.full_name || user.email.split('@')[0];
 
-        const { data: profileData } = await supabaseClient
-          .from('profiles')
-          .select('role, kyc_status, bank_name, bank_account, account_name, bank_info, shipping_info, full_name')
-          .eq('id', user.id)
-          .single();
+        try {
+          const { data: profileData } = await supabaseClient
+            .from('profiles')
+            .select('role, kyc_status, bank_name, bank_account, account_name, bank_info, shipping_info, full_name')
+            .eq('id', user.id)
+            .single();
 
-        if (profileData) {
-          if (profileData.role) currentUserRole = profileData.role;
-          
-          const kycVal = profileData.kyc_status;
-          if (kycVal === true || kycVal === 1 || (typeof kycVal === 'string' && kycVal.toLowerCase() === 'approved')) {
-            currentKycStatus = 'approved';
-          } else {
-            currentKycStatus = kycVal || 'unverified';
+          if (profileData) {
+            if (profileData.role) currentUserRole = profileData.role;
+            
+            const kycVal = profileData.kyc_status;
+            if (kycVal === true || kycVal === 1 || (typeof kycVal === 'string' && kycVal.toLowerCase() === 'approved')) {
+              currentKycStatus = 'approved';
+            } else {
+              currentKycStatus = kycVal || 'unverified';
+            }
+
+            sellerBankInfo = profileData;
           }
-
-          sellerBankInfo = profileData;
+        } catch (e) {
+          console.error("Profile load error:", e);
         }
 
-        const { data: favData } = await supabaseClient
-          .from('favorite_sellers')
-          .select('seller_id')
-          .eq('user_id', user.id);
+        try {
+          const { data: favData } = await supabaseClient
+            .from('favorite_sellers')
+            .select('seller_id')
+            .eq('user_id', user.id);
 
-        if (favData) {
-          userFavorites = favData.map(f => f.seller_id);
-        }
+          if (favData) {
+            userFavorites = favData.map(f => f.seller_id);
+          }
+        } catch (e) {}
 
         container.innerHTML = `
           <div class="flex items-center space-x-2 bg-slate-800 px-3 py-1.5 rounded-lg text-xs text-white">
@@ -470,7 +476,19 @@
           </div>
         `;
 
-        updateUnreadBadgeCount();
+        // โหลดระบบแจ้งเตือนแชทแยกต่างหากด้วย try/catch ป้องกันข้อผิดพลาดตารางขัดข้อง
+        try {
+          updateUnreadBadgeCount();
+        } catch (e) {
+          if (quickChatContainer) {
+            quickChatContainer.innerHTML = `
+              <button onclick="openAuctionInboxModal()" class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-extrabold px-6 py-2.5 rounded-xl text-xs md:text-sm shadow-lg">
+                💬 แชทรวมประมูล
+              </button>
+            `;
+          }
+        }
+
         if (createAucBtn) createAucBtn.classList.remove('hidden');
       } else {
         container.innerHTML = `
