@@ -24,13 +24,16 @@
     </div>
   </header>
 
-  <!-- 🌟 แถบเมนูลอยด้านล่าง (เพิ่มปุ่ม "ห้องประมูลของฉัน" ตรงกลางพอดี) -->
+  <!-- 🌟 แถบเมนูลอยด้านล่าง -->
   <div class="fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-md border-t border-slate-800 text-white py-3 px-4 z-40 shadow-2xl flex justify-between items-center max-w-xl mx-auto md:rounded-t-2xl">
     <a href="index.html" class="flex items-center gap-1.5 text-slate-300 hover:text-white font-bold text-xs md:text-sm transition bg-slate-800 hover:bg-slate-700 px-3.5 py-2.5 rounded-xl border border-slate-700 shadow-sm">
       &larr; กลับหน้าหลัก
     </a>
     
-    <div id="my-auctions-nav-btn-container"></div>
+    <div class="flex items-center gap-2">
+      <div id="admin-hall-nav-btn-container"></div>
+      <div id="my-auctions-nav-btn-container"></div>
+    </div>
 
     <div id="quick-action-chat-container" class="relative"></div>
   </div>
@@ -79,7 +82,7 @@
     </div>
   </main>
 
-  <!-- 🌟 Modal: ห้องประมูลของฉัน (จัดการสถานะสินค้า + ปุ่มลิงก์ไปห้องประมูล) -->
+  <!-- 🌟 Modal: ห้องประมูลของฉัน (My Auctions Dashboard) -->
   <div id="my-auctions-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden items-center justify-center z-50 p-3 md:p-6 overflow-y-auto">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl overflow-hidden my-auto relative flex flex-col max-h-[90vh]">
       <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center shrink-0 sticky top-0 z-20 shadow">
@@ -96,6 +99,43 @@
         </div>
         <div id="my-auctions-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4 pb-4">
           <div class="col-span-full text-center py-8 text-slate-400 text-xs">กำลังโหลดรายการของคุณ...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🌟 Modal: ฮอลประมูล (Admin Auction Hall & Overview) -->
+  <div id="admin-hall-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden items-center justify-center z-50 p-3 md:p-6 overflow-y-auto">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-5xl overflow-hidden my-auto relative flex flex-col max-h-[90vh]">
+      <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center shrink-0 sticky top-0 z-20 shadow">
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping"></span>
+          <h3 class="font-bold text-base md:text-lg">🏛️ ฮอลประมูล (Admin Auction Hall & Overview)</h3>
+        </div>
+        <button onclick="closeAdminHallModal()" class="text-slate-400 hover:text-white text-2xl font-bold px-2 py-0.5 rounded-lg transition">&times;</button>
+      </div>
+
+      <div class="p-4 md:p-6 bg-slate-50 overflow-y-auto flex-1 space-y-6">
+        <!-- 📊 แผงสถิติภาพรวมตลาดประมูล -->
+        <div class="bg-white p-4 md:p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+          <h4 class="font-extrabold text-slate-900 text-sm flex items-center gap-2">
+            <span>📈 ภาพรวมสถิติตลาดประมูลและคำสั่งซื้อ</span>
+          </h4>
+          <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 text-center" id="admin-stats-container">
+            <!-- เรนเดอร์สถิติผ่าน JS -->
+          </div>
+        </div>
+
+        <!-- แถบฟิลเตอร์สถานะคำสั่งซื้อสำหรับแอดมิน -->
+        <div class="flex flex-wrap items-center gap-2 pb-2 border-b border-slate-200" id="admin-filter-tabs">
+          <button onclick="filterAdminHall('ALL')" class="admin-hall-tab bg-slate-900 text-white px-3.5 py-1.5 rounded-full text-xs font-bold transition shadow-sm">ทั้งหมด</button>
+          <button onclick="filterAdminHall('รอการชำระเงิน')" class="admin-hall-tab bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 px-3.5 py-1.5 rounded-full text-xs font-bold transition">⏳ รอการชำระเงิน</button>
+          <button onclick="filterAdminHall('ชำระเงินแล้ว')" class="admin-hall-tab bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 px-3.5 py-1.5 rounded-full text-xs font-bold transition">💳 ชำระเงินแล้ว</button>
+          <button onclick="filterAdminHall('จัดส่งสำเร็จแล้ว')" class="admin-hall-tab bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 px-3.5 py-1.5 rounded-full text-xs font-bold transition">🚚 จัดส่งสำเร็จแล้ว</button>
+        </div>
+
+        <div id="admin-hall-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4 pb-4">
+          <div class="col-span-full text-center py-8 text-slate-400 text-xs">กำลังโหลดรายการฮอลประมูล...</div>
         </div>
       </div>
     </div>
@@ -144,7 +184,7 @@
               </div>
             </div>
 
-            <!-- 🌟 ปุ่มพิเศษสำหรับผู้เปิดประมูล: กลับไปห้องประมูลของฉัน -->
+            <!-- ปุ่มพิเศษสำหรับผู้เปิดประมูล -->
             <div id="seller-back-dashboard-container" class="my-2"></div>
 
             <h2 id="sa-title" class="text-lg md:text-xl font-extrabold text-slate-900">ชื่อสินค้า</h2>
@@ -452,6 +492,7 @@
     let targetAuctionChatUserId = null;
     let cachedInboxGroups = [];
     let activeChatMetaData = null;
+    let currentAdminHallFilter = 'ALL';
 
     async function updateAuthUI(user) {
       currentUser = user;
@@ -461,6 +502,7 @@
       const container = document.getElementById('auth-buttons-container');
       const quickChatContainer = document.getElementById('quick-action-chat-container');
       const myAuctionsNavContainer = document.getElementById('my-auctions-nav-btn-container');
+      const adminHallNavContainer = document.getElementById('admin-hall-nav-btn-container');
       const createAucBtn = document.getElementById('open-create-auc-btn');
 
       if (user) {
@@ -495,10 +537,23 @@
 
         if (myAuctionsNavContainer) {
           myAuctionsNavContainer.innerHTML = `
-            <button onclick="openMyAuctionsModal()" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-xs px-3.5 py-2.5 rounded-xl shadow-md transition flex items-center gap-1.5 whitespace-nowrap">
+            <button onclick="openMyAuctionsModal()" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-xs px-3 py-2.5 rounded-xl shadow-md transition flex items-center gap-1 whitespace-nowrap">
               📦 ห้องของฉัน
             </button>
           `;
+        }
+
+        // 🌟 แสดงปุ่ม "ฮอลประมูล" เฉพาะผู้ที่มีสิทธิ์ Admin / Super Admin
+        if (adminHallNavContainer) {
+          if (currentUserRole === 'admin' || currentUserRole === 'super_admin') {
+            adminHallNavContainer.innerHTML = `
+              <button onclick="openAdminHallModal()" class="bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white font-bold text-xs px-3 py-2.5 rounded-xl shadow-md transition flex items-center gap-1 whitespace-nowrap">
+                🏛️ ฮอลประมูล
+              </button>
+            `;
+          } else {
+            adminHallNavContainer.innerHTML = '';
+          }
         }
 
         updateUnreadBadgeCount();
@@ -508,6 +563,7 @@
           <button onclick="document.getElementById('auth-modal').classList.add('flex'); document.getElementById('auth-modal').classList.remove('hidden');" class="bg-blue-600 text-white px-3.5 py-1.5 rounded-lg text-xs font-bold shadow">เข้าสู่ระบบ</button>
         `;
         if (myAuctionsNavContainer) myAuctionsNavContainer.innerHTML = '';
+        if (adminHallNavContainer) adminHallNavContainer.innerHTML = '';
         if (quickChatContainer) quickChatContainer.innerHTML = '';
         if (createAucBtn) createAucBtn.classList.add('hidden');
       }
@@ -540,6 +596,7 @@
       `;
     }
 
+    // 🌟 ฟังก์ชันเปิด-ปิด และเรนเดอร์ข้อมูลใน Modal "ห้องประมูลของฉัน"
     window.openMyAuctionsModal = async function() {
       if (!currentUser) return;
       lockBodyScroll();
@@ -602,6 +659,164 @@
       unlockBodyScroll();
       document.getElementById('my-auctions-modal').classList.add('hidden');
       document.getElementById('my-auctions-modal').classList.remove('flex');
+    };
+
+    // 🌟 ฟังก์ชันเปิด-ปิด และเรนเดอร์ข้อมูลใน Modal "ฮอลประมูล (Admin Hall)"
+    window.openAdminHallModal = async function() {
+      if (!currentUser || (currentUserRole !== 'admin' && currentUserRole !== 'super_admin')) return;
+      lockBodyScroll();
+      const modal = document.getElementById('admin-hall-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      await renderAdminHallData();
+    };
+
+    window.closeAdminHallModal = function() {
+      unlockBodyScroll();
+      document.getElementById('admin-hall-modal').classList.add('hidden');
+      document.getElementById('admin-hall-modal').classList.remove('flex');
+    };
+
+    window.filterAdminHall = async function(status) {
+      currentAdminHallFilter = status;
+      const tabs = document.querySelectorAll('.admin-hall-tab');
+      tabs.forEach(tab => {
+        tab.className = 'admin-hall-tab bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 px-3.5 py-1.5 rounded-full text-xs font-bold transition';
+      });
+      event.target.className = 'admin-hall-tab bg-slate-900 text-white px-3.5 py-1.5 rounded-full text-xs font-bold transition shadow-sm';
+      await renderAdminHallData();
+    };
+
+    async function renderAdminHallData() {
+      const grid = document.getElementById('admin-hall-grid');
+      const statsContainer = document.getElementById('admin-stats-container');
+      grid.innerHTML = '<div class="col-span-full text-center py-8 text-slate-400 text-xs">กำลังโหลดฮอลประมูล...</div>';
+
+      const { data, error } = await supabaseClient
+        .from('auctions')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error || !data) {
+        grid.innerHTML = `<div class="col-span-full text-center py-8 text-red-500 text-xs">โหลดข้อมูลไม่สำเร็จ: ${error?.message || ''}</div>`;
+        return;
+      }
+
+      // 📊 คำนวณสถิติภาพรวม
+      const totalCount = data.length;
+      const waitingCount = data.filter(d => (d.order_status || 'รอการชำระเงิน') === 'รอการชำระเงิน').length;
+      const paidCount = data.filter(d => d.order_status === 'ชำระเงินแล้ว').length;
+      const shippedCount = data.filter(d => d.order_status === 'จัดส่งสำเร็จแล้ว').length;
+
+      const waitingPct = totalCount > 0 ? ((waitingCount / totalCount) * 100).toFixed(1) : 0;
+      const paidPct = totalCount > 0 ? ((paidCount / totalCount) * 100).toFixed(1) : 0;
+      const shippedPct = totalCount > 0 ? ((shippedCount / totalCount) * 100).toFixed(1) : 0;
+
+      statsContainer.innerHTML = `
+        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+          <p class="text-[10px] text-slate-500 font-bold uppercase">สินค้าทั้งหมด</p>
+          <p class="text-xl font-black text-slate-900 mt-1">${totalCount} ชิ้น</p>
+        </div>
+        <div class="bg-amber-50 p-3 rounded-xl border border-amber-200">
+          <p class="text-[10px] text-amber-700 font-bold uppercase">รอการชำระเงิน</p>
+          <p class="text-xl font-black text-amber-800 mt-1">${waitingCount} ชิ้น <span class="text-xs font-normal">(${waitingPct}%)</span></p>
+        </div>
+        <div class="bg-blue-50 p-3 rounded-xl border border-blue-200">
+          <p class="text-[10px] text-blue-700 font-bold uppercase">ชำระเงินแล้ว</p>
+          <p class="text-xl font-black text-blue-800 mt-1">${paidCount} ชิ้น <span class="text-xs font-normal">(${paidPct}%)</span></p>
+        </div>
+        <div class="bg-emerald-50 p-3 rounded-xl border border-emerald-200">
+          <p class="text-[10px] text-emerald-700 font-bold uppercase">จัดส่งสำเร็จแล้ว</p>
+          <p class="text-xl font-black text-emerald-800 mt-1">${shippedCount} ชิ้น <span class="text-xs font-normal">(${shippedPct}%)</span></p>
+        </div>
+      `;
+
+      // กรองข้อมูลตามที่เลือก
+      const filtered = data.filter(d => {
+        const st = d.order_status || 'รอการชำระเงิน';
+        if (currentAdminHallFilter === 'ALL') return true;
+        return st === currentAdminHallFilter;
+      });
+
+      if (!filtered.length) {
+        grid.innerHTML = `<div class="col-span-full text-center py-12 text-slate-400 text-xs bg-white rounded-xl border border-slate-200">ไม่พบรายการสินค้าในหมวดหมู่นี้</div>`;
+        return;
+      }
+
+      grid.innerHTML = filtered.map(auc => {
+        const currentStatus = auc.order_status || 'รอการชำระเงิน';
+        let statusBadgeColor = 'bg-amber-100 text-amber-800 border-amber-300';
+        if (currentStatus === 'ชำระเงินแล้ว') statusBadgeColor = 'bg-blue-100 text-blue-800 border-blue-300';
+        if (currentStatus === 'จัดส่งสำเร็จแล้ว') statusBadgeColor = 'bg-emerald-100 text-emerald-800 border-emerald-300';
+
+        return `
+          <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex flex-col justify-between space-y-3 relative">
+            <button onclick="adminDeleteAuction('${auc.id}', '${auc.images?.[0] || ''}')" class="absolute top-3 right-3 bg-red-100 hover:bg-red-600 text-red-600 hover:text-white p-2 rounded-xl text-xs font-bold transition shadow-sm" title="ลบโพสต์นี้ถาวร">🗑️</button>
+            
+            <div class="flex items-center space-x-3 pr-8">
+              <img src="${auc.images?.[0] || ''}" class="w-20 h-20 rounded-xl object-cover border border-slate-100 shrink-0">
+              <div class="min-w-0 flex-1">
+                <span class="text-[10px] font-bold uppercase bg-red-50 text-red-600 px-2 py-0.5 rounded">${auc.species}</span>
+                <h4 class="font-bold text-slate-900 text-sm truncate mt-1">${auc.title}</h4>
+                <p class="text-[11px] text-slate-500 truncate">ผู้ขาย: <strong class="text-slate-700">${auc.seller_name || 'ผู้ขาย'}</strong></p>
+                <p class="text-xs text-emerald-700 font-extrabold mt-0.5">ราคา: ฿${Number(auc.current_price).toLocaleString()} | ผู้ชนะ: ${auc.last_bidder_name || '-'}</p>
+              </div>
+            </div>
+
+            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
+              <div class="flex justify-between items-center text-xs">
+                <span class="font-bold text-slate-700">สถานะคำสั่งซื้อ:</span>
+                <span class="px-2.5 py-0.5 rounded-full font-bold text-[11px] border ${statusBadgeColor}">${currentStatus}</span>
+              </div>
+              <div class="flex gap-1.5 pt-1">
+                <button onclick="updateAdminAuctionOrderStatus('${auc.id}', 'รอการชำระเงิน')" class="flex-1 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-[10px] font-bold transition">รอชำระเงิน</button>
+                <button onclick="updateAdminAuctionOrderStatus('${auc.id}', 'ชำระเงินแล้ว')" class="flex-1 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[10px] font-bold transition shadow-sm">ชำระเงินแล้ว</button>
+                <button onclick="updateAdminAuctionOrderStatus('${auc.id}', 'จัดส่งสำเร็จแล้ว')" class="flex-1 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[10px] font-bold transition shadow-sm">ส่งสำเร็จ</button>
+              </div>
+            </div>
+
+            <button onclick="closeAdminHallModal(); openSingleAuctionModal('${auc.id}')" class="w-full bg-slate-900 hover:bg-slate-800 text-white py-2 rounded-xl text-xs font-bold transition shadow-sm flex items-center justify-center gap-1">
+              🔍 ไปที่ห้องประมูลสด
+            </button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    window.updateAdminAuctionOrderStatus = async function(auctionId, newStatus) {
+      if (!currentUser || (currentUserRole !== 'admin' && currentUserRole !== 'super_admin')) return;
+      try {
+        const { error } = await supabaseClient
+          .from('auctions')
+          .update({ order_status: newStatus })
+          .eq('id', auctionId);
+
+        if (error) throw error;
+        alert(`แอดมินอัปเดตสถานะเป็น "${newStatus}" เรียบร้อย!`);
+        await renderAdminHallData();
+        fetchAuctions();
+      } catch (err) {
+        alert('อัปเดตสถานะไม่สำเร็จ: ' + err.message);
+      }
+    };
+
+    window.adminDeleteAuction = async function(aucId, imageUrl) {
+      if (!currentUser || (currentUserRole !== 'admin' && currentUserRole !== 'super_admin')) return;
+      if (!confirm('⚠️ คำเตือนแอดมิน: คุณต้องการลบโพสต์ประมูลนี้อย่างถาวรใช่หรือไม่? ข้อมูลทั้งหมดจะหายไป')) return;
+
+      try {
+        await supabaseClient.from('auction_bids').delete().eq('auction_id', aucId);
+        if (imageUrl) {
+          const parts = imageUrl.split('/pet-images/');
+          if (parts.length > 1) await supabaseClient.storage.from('pet-images').remove([parts[1]]);
+        }
+        await supabaseClient.from('auctions').delete().eq('id', aucId);
+        alert('ลบโพสต์ประมูลเรียบร้อยแล้ว');
+        await renderAdminHallData();
+        fetchAuctions();
+      } catch (err) {
+        alert('เกิดข้อผิดพลาดในการลบ: ' + err.message);
+      }
     };
 
     window.updateAuctionOrderStatus = async function(auctionId, newStatus) {
@@ -987,7 +1202,6 @@
       document.getElementById('sa-image').src = activeAuction.images?.[0] || '';
       document.getElementById('sa-current-price').innerText = `฿${Number(activeAuction.current_price).toLocaleString()}`;
 
-      // 🌟 ตรวจสอบและแสดงปุ่ม "กลับไปห้องประมูลของฉัน" สำหรับผู้เปิดประมูล
       renderSellerDashboardReturnButton();
 
       const buyoutBox = document.getElementById('sa-buyout-box');
@@ -1014,7 +1228,6 @@
       document.getElementById('single-auction-modal').classList.add('flex');
     };
 
-    // 🌟 ฟังก์ชันเรนเดอร์ปุ่มกลับหน้าห้องของฉันในห้องประมูลสด
     function renderSellerDashboardReturnButton() {
       const container = document.getElementById('seller-back-dashboard-container');
       if (!container || !currentUser || !activeAuction) return;
