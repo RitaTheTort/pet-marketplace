@@ -29,7 +29,7 @@
     <a href="index.html" class="flex items-center gap-1.5 text-slate-300 hover:text-white font-bold text-xs md:text-sm transition bg-slate-800 hover:bg-slate-700 px-4 py-2.5 rounded-xl border border-slate-700 shadow-sm">
       &larr; กลับหน้าหลักตลาด
     </a>
-    <div id="quick-action-chat-container"></div>
+    <div id="quick-action-chat-container" class="relative"></div>
   </div>
 
   <section class="bg-gradient-to-r from-red-900 to-slate-900 text-white py-10 px-4">
@@ -188,7 +188,6 @@
     </div>
   </div>
 
-  <!-- 🌟 หน้าต่างแชท (เพิ่มปุ่มแนบรูปภาพ / สลิป พร้อมข้อความแจ้งเตือน 30 วัน) -->
   <div id="auction-chat-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-[80] p-4">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg h-[650px] flex flex-col overflow-hidden relative">
       <div class="bg-slate-900 text-white px-5 py-3 flex justify-between items-center border-b border-slate-800">
@@ -202,7 +201,6 @@
         <button onclick="closeAuctionChatModal()" class="text-slate-400 hover:text-white text-xl font-bold px-1">&times;</button>
       </div>
 
-      <!-- ข้อความแจ้งเตือนนโยบายเก็บรักษาข้อมูลแชท 30 วัน -->
       <div class="bg-amber-50 border-b border-amber-200 px-3 py-1.5 text-center shrink-0">
         <p class="text-[10px] text-amber-800 font-medium">ℹ️ รูปภาพและประวัติการสนทนาจะถูกลบอัตโนมัติใน 30 วัน หรือเมื่อมีการปิดการซื้อขาย</p>
       </div>
@@ -211,7 +209,6 @@
         <div class="text-center text-xs text-slate-400 py-4">กำลังโหลดข้อความประมูล...</div>
       </div>
 
-      <!-- ฟอร์มส่งข้อความ + ปุ่มแนบรูปภาพ -->
       <form id="auc-chat-form" class="p-3 bg-white border-t border-slate-200 flex items-center space-x-2 shrink-0">
         <label class="cursor-pointer bg-slate-100 hover:bg-slate-200 text-slate-600 p-2.5 rounded-xl transition shrink-0" title="แนบสลิป / รูปภาพ">
           📷
@@ -426,13 +423,8 @@
           </div>
         `;
 
-        if (quickChatContainer) {
-          quickChatContainer.innerHTML = `
-            <button onclick="openAuctionInboxModal()" class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-extrabold px-6 py-2.5 rounded-xl text-xs md:text-sm transition shadow-lg shadow-blue-500/30 flex items-center gap-2 animate-pulse">
-              💬 แชทรวมประมูล
-            </button>
-          `;
-        }
+        // 🌟 เรียกใช้ฟังก์ชันอัปเดต Badge นับจำนวนข้อความที่ยังไม่ได้อ่าน
+        updateUnreadBadgeCount();
 
         if (createAucBtn) createAucBtn.classList.remove('hidden');
       } else {
@@ -444,6 +436,32 @@
       }
       if (activeAuction) updateBidButtonState();
       fetchAuctions();
+    }
+
+    // 🌟 สเต็ปที่ 1: ฟังก์ชันคำนวณและแสดง Badge แจ้งเตือนข้อความที่ปุ่มรวมด้านนอก
+    async function updateUnreadBadgeCount() {
+      const quickChatContainer = document.getElementById('quick-action-chat-container');
+      if (!currentUser || !quickChatContainer) return;
+
+      const { data: unreadMsgs } = await supabaseClient
+        .from('auction_messages')
+        .select('id')
+        .eq('receiver_id', currentUser.id)
+        .eq('is_read', false);
+
+      const unreadCount = unreadMsgs ? unreadMsgs.length : 0;
+
+      quickChatContainer.innerHTML = `
+        <button onclick="openAuctionInboxModal()" class="relative bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-extrabold px-6 py-2.5 rounded-xl text-xs md:text-sm transition shadow-lg shadow-blue-500/35 flex items-center gap-2">
+          💬 แชทรวมประมูล
+          ${unreadCount > 0 ? `
+            <span class="absolute -top-1.5 -right-1.5 bg-red-600 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow-md animate-bounce">
+              ${unreadCount}
+            </span>
+            <span class="absolute -top-1 -right-1 w-6 h-6 bg-red-500 rounded-full animate-ping opacity-75"></span>
+          ` : ''}
+        </button>
+      `;
     }
 
     window.handleSignOut = async function() {
@@ -930,8 +948,21 @@
       document.getElementById('auction-chat-modal').classList.remove('hidden');
       document.getElementById('auction-chat-modal').classList.add('flex');
 
+      await markMessagesAsRead(auc.id, otherUserId);
       await fetchAuctionChatMessages(auc.id, otherUserId);
       subscribeAuctionChatRealtime(auc.id, otherUserId);
+      updateUnreadBadgeCount();
+    }
+
+    async function markMessagesAsRead(auctionId, otherUserId) {
+      if (!currentUser) return;
+      await supabaseClient
+        .from('auction_messages')
+        .update({ is_read: true })
+        .eq('auction_id', auctionId)
+        .eq('sender_id', otherUserId)
+        .eq('receiver_id', currentUser.id)
+        .eq('is_read', false);
     }
 
     function closeAuctionChatModal() {
@@ -942,15 +973,14 @@
         supabaseClient.removeChannel(aucChatChannel);
         aucChatChannel = null;
       }
+      updateUnreadBadgeCount();
     }
 
-    // 🌟 สเต็ปที่ 1: เพิ่มฟังก์ชันส่งและบีบอัดภาพ/สลิปในแชท (ใช้ Bucket chat-images)
     async function sendChatImage(inputEl) {
       const file = inputEl.files[0];
       if (!file || !currentUser || !activeAuction || !targetAuctionChatUserId) return;
 
       try {
-        // บีบอัดภาพอัตโนมัติ (max width 1200px, quality 0.8)
         const optimizedFile = await compressImage(file, 1200, 0.8);
         const fileName = `chat_${Date.now()}_${Math.random()}.${file.name.split('.').pop()}`;
         
@@ -966,7 +996,8 @@
           sender_id: currentUser.id,
           receiver_id: targetAuctionChatUserId,
           sender_name: myName,
-          content: imageUrl
+          content: imageUrl,
+          is_read: false
         }]);
 
         if (insErr) throw insErr;
@@ -1102,10 +1133,12 @@
     function subscribeAuctionChatRealtime(auctionId, otherUserId) {
       if (aucChatChannel) supabaseClient.removeChannel(aucChatChannel);
       aucChatChannel = supabaseClient.channel(`auc-chat-${auctionId}-${otherUserId}`)
-        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'auction_messages', filter: `auction_id=eq.${auctionId}` }, (payload) => {
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'auction_messages', filter: `auction_id=eq.${auctionId}` }, async (payload) => {
           const newMsg = payload.new;
-          if ((newMsg.sender_id === currentUser.id && newMsg.receiver_id === otherUserId) || (newMsg.sender_id === otherUserId && newMsg.receiver_id === currentUser.id)) {
+          if (newMsg && ((newMsg.sender_id === currentUser.id && newMsg.receiver_id === otherUserId) || (newMsg.sender_id === otherUserId && newMsg.receiver_id === currentUser.id))) {
+            await markMessagesAsRead(auctionId, otherUserId);
             fetchAuctionChatMessages(auctionId, otherUserId);
+            updateUnreadBadgeCount();
           }
         })
         .subscribe();
@@ -1125,7 +1158,8 @@
         sender_id: currentUser.id,
         receiver_id: targetAuctionChatUserId,
         sender_name: myName,
-        content: content
+        content: content,
+        is_read: false
       }]);
 
       if (error) {
