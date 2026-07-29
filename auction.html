@@ -96,7 +96,8 @@
         <button onclick="closeMyAuctionsModal()" class="text-slate-400 hover:text-white text-2xl font-bold px-2 py-0.5 rounded-lg transition">&times;</button>
       </div>
 
-      <div class="p-4 md:p-6 bg-slate-50 overflow-y-auto flex-1 space-y-6">
+      <!-- 🌟 เพิ่ม id ให้ scroll container เพื่อใช้ล็อกตำแหน่งจอ -->
+      <div id="my-modal-scroll-container" class="p-4 md:p-6 bg-slate-50 overflow-y-auto flex-1 space-y-6">
         <div class="bg-white p-4 md:p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
           <h4 class="font-extrabold text-slate-900 text-sm flex items-center gap-2">
             <span>📈 ภาพรวมสถิติสินค้าและคำสั่งซื้อของคุณ</span>
@@ -129,7 +130,8 @@
         <button onclick="closeAdminHallModal()" class="text-slate-400 hover:text-white text-2xl font-bold px-2 py-0.5 rounded-lg transition">&times;</button>
       </div>
 
-      <div class="p-4 md:p-6 bg-slate-50 overflow-y-auto flex-1 space-y-6">
+      <!-- 🌟 เพิ่ม id ให้ scroll container ของแอดมินด้วย -->
+      <div id="admin-modal-scroll-container" class="p-4 md:p-6 bg-slate-50 overflow-y-auto flex-1 space-y-6">
         <div class="bg-white p-4 md:p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
           <h4 class="font-extrabold text-slate-900 text-sm flex items-center gap-2">
             <span>📈 ภาพรวมสถิติตลาดประมูลและคำสั่งซื้อ</span>
@@ -456,7 +458,6 @@
     function lockBodyScroll() { document.body.style.overflow = 'hidden'; }
     function unlockBodyScroll() { document.body.style.overflow = ''; }
 
-    // 🌟 ฟังก์ชันแสดง Toast Notification แบบไม่เด้งขัดจังหวะหน้าจอ
     function showToast(message) {
       const container = document.getElementById('toast-container');
       if (!container) return;
@@ -644,6 +645,9 @@
     };
 
     async function renderMyAuctionsData() {
+      const scrollContainer = document.getElementById('my-modal-scroll-container');
+      const savedScrollTop = scrollContainer ? scrollContainer.scrollTop : 0; // 🌟 บันทึกตำแหน่งจอเดิม
+
       const grid = document.getElementById('my-auctions-grid');
       const statsContainer = document.getElementById('my-stats-container');
       grid.innerHTML = '<div class="col-span-full text-center py-8 text-slate-400 text-xs">กำลังโหลดรายการห้องประมูลของคุณ...</div>';
@@ -734,6 +738,11 @@
           </div>
         `;
       }).join('');
+
+      // 🌟 คืนค่าตำแหน่ง Scroll เดิมทันทีหลังจากเรนเดอร์เสร็จ
+      if (scrollContainer) {
+        scrollContainer.scrollTop = savedScrollTop;
+      }
     };
 
     window.closeMyAuctionsModal = function() {
@@ -786,6 +795,9 @@
     };
 
     async function renderAdminHallData() {
+      const scrollContainer = document.getElementById('admin-modal-scroll-container');
+      const savedScrollTop = scrollContainer ? scrollContainer.scrollTop : 0; // 🌟 บันทึกตำแหน่งจอเดิมฝั่งแอดมิน
+
       const grid = document.getElementById('admin-hall-grid');
       const statsContainer = document.getElementById('admin-stats-container');
       grid.innerHTML = '<div class="col-span-full text-center py-8 text-slate-400 text-xs">กำลังโหลดฮอลประมูล...</div>';
@@ -877,6 +889,11 @@
           </div>
         `;
       }).join('');
+
+      // 🌟 คืนค่าตำแหน่ง Scroll เดิมฝั่งแอดมินทันที
+      if (scrollContainer) {
+        scrollContainer.scrollTop = savedScrollTop;
+      }
     }
 
     // 🌟 อัปเดตสถานะฝั่งแอดมินแบบ Silent Update (ไม่เด้งขึ้นบน)
