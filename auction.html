@@ -188,7 +188,7 @@
     </div>
   </div>
 
-  <!-- 🌟 หน้าต่างแชทรวมห้องประมูล (เพิ่มปุ่มย้อนกลับ ⟵ ห่างจากกากบาทอย่างปลอดภัย) -->
+  <!-- 🌟 หน้าต่างแชทรวมห้องประมูล -->
   <div id="auction-chat-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-[80] p-4">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg h-[650px] flex flex-col overflow-hidden relative">
       <div class="bg-slate-900 text-white px-5 py-3 flex justify-between items-center border-b border-slate-800 shrink-0">
@@ -200,7 +200,6 @@
           </div>
         </div>
         
-        <!-- ส่วนปุ่มย้อนกลับ (⟵) และปุ่มกากบาท (×) เว้นระยะห่างกดง่าย ไม่ชนกัน -->
         <div class="flex items-center space-x-3 shrink-0">
           <button onclick="backToAuctionInbox()" class="text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 text-xs font-bold px-2.5 py-1.5 rounded-lg transition flex items-center gap-1 shadow-sm" title="กลับไปหน้ากล่องข้อความ">
             &larr; กลับ
@@ -225,6 +224,14 @@
         <input type="text" id="auc-chat-input" placeholder="พิมพ์ข้อความสอบถามการประมูล..." class="flex-1 px-4 py-2 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500">
         <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl text-sm font-bold transition whitespace-nowrap shrink-0">ส่ง</button>
       </form>
+    </div>
+  </div>
+
+  <!-- 🌟 Lightbox Modal สำหรับดูรูปภาพขนาดใหญ่เต็มจอ (พร้อมปุ่มกากบาทปิด) -->
+  <div id="image-lightbox-modal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md hidden items-center justify-center z-[100] p-4">
+    <button onclick="closeLightboxModal()" class="absolute top-4 right-4 bg-slate-800/80 hover:bg-slate-700 text-white text-3xl font-bold w-12 h-12 rounded-full flex items-center justify-center transition shadow-lg z-10" title="ปิด">&times;</button>
+    <div class="relative max-w-4xl max-h-[90vh] w-full flex items-center justify-center overflow-hidden">
+      <img id="lightbox-img" src="" class="max-w-full max-h-[85vh] object-contain rounded-xl shadow-2xl">
     </div>
   </div>
 
@@ -490,7 +497,7 @@
       event.stopPropagation();
       if (!currentUser) {
         alert('กรุณาเข้าสู่ระบบก่อนกดติดตามหน้าร้านครับ');
-        document.getElementById('auth-modal').classList.remove('hidden');
+        document.getElementById('auth-modal').classList.add('hidden');
         document.getElementById('auth-modal').classList.add('flex');
         return;
       }
@@ -991,10 +998,25 @@
       updateUnreadBadgeCount();
     }
 
-    // 🌟 ฟังก์ชันปุ่มย้อนกลับจากหน้าห้องแชทเดี่ยว กลับสู่หน้ากล่องข้อความ Inbox รวม
     window.backToAuctionInbox = function() {
       closeAuctionChatModal();
       openAuctionInboxModal();
+    };
+
+    // 🌟 ฟังก์ชันเปิด-ปิด Lightbox สำหรับดูรูปภาพขนาดใหญ่ในแชท
+    window.openLightbox = function(imageUrl) {
+      const modal = document.getElementById('image-lightbox-modal');
+      const img = document.getElementById('lightbox-img');
+      img.src = imageUrl;
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    };
+
+    window.closeLightboxModal = function() {
+      const modal = document.getElementById('image-lightbox-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+      document.getElementById('lightbox-img').src = '';
     };
 
     async function sendChatImage(inputEl) {
@@ -1202,7 +1224,8 @@
         
         let bubbleContent = `<p class="whitespace-pre-wrap">${msg.content}</p>`;
         if (isImg) {
-          bubbleContent = `<a href="${msg.content}" target="_blank"><img src="${msg.content}" class="w-40 h-auto rounded-lg shadow cursor-pointer hover:opacity-90 transition"></a>`;
+          // เปลี่ยนจากการเปิดแท็บใหม่ เป็นการเรียกเปิด Lightbox Modal ภายในหน้าแชท
+          bubbleContent = `<img src="${msg.content}" onclick="openLightbox('${msg.content}')" class="w-40 h-auto rounded-lg shadow cursor-pointer hover:opacity-90 transition">`;
         }
 
         const contentBubbleStyle = isWinnerWelcome 
