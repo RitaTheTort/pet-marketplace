@@ -548,7 +548,7 @@
     let currentKycStatus = 'unverified';
     let globalAuctions = [];
     let activeAuction = null;
-    let lastActiveSellerId = null; // 🌟 ตัวแปรเก็บรหัสร้านค้าล่าสุดเพื่อใช้ย้อนกลับเมื่อปิดห้องประมูลสด
+    let lastActiveSellerId = null;
     let selectedIncrement = 100;
     let singleRoomInterval = null;
     let activeSubscription = null;
@@ -1276,6 +1276,7 @@
               </div>
             </div>
             <div class="p-5 pt-0">
+              <!-- 🌟 แก้ไขปุ่มให้เรียก openSellerRoomsModal('${seller.seller_id}') ให้ถูกต้อง -->
               <button onclick="openSellerRoomsModal('${seller.seller_id}')" class="w-full bg-slate-900 hover:bg-slate-800 text-white py-2.5 rounded-xl text-xs font-bold shadow transition flex items-center justify-center gap-1">
                 🚪 เข้าสู่ห้องประมูล (${itemCount} รายการ)
               </button>
@@ -1322,7 +1323,7 @@
     }
 
     window.openSellerRoomsModal = function(sellerId) {
-      lastActiveSellerId = sellerId; // 🌟 บันทึกรหัสร้านค้าล่าสุด
+      lastActiveSellerId = sellerId;
       let sellerAuctions = globalAuctions.filter(a => (a.seller_id || 'unknown') === sellerId);
       if (!sellerAuctions.length) return;
 
@@ -1334,7 +1335,6 @@
         return new Date(a.expires_at).getTime() - new Date(b.expires_at).getTime();
       });
 
-      // 🌟 อัปเดตหัวข้อการ์ดห้องประมูลให้เหลือแค่ "ห้องประมูล" ตามคำขอ
       document.getElementById('modal-seller-title').innerText = `🔨 ห้องประมูล - ร้านคุณ ${sellerAuctions[0].seller_name || 'ผู้ขายทั่วไป'}`;
       const grid = document.getElementById('seller-rooms-grid');
       
@@ -1343,7 +1343,6 @@
         return `
           <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col justify-between hover:shadow-md transition relative">
             <div>
-              <!-- 🌟 ปรับรูปภาพในการ์ดห้องประมูลให้อยู่ในกรอบพอดี ไม่เพี้ยน -->
               <div class="h-48 bg-slate-900 relative flex items-center justify-center">
                 <img src="${auc.images?.[0] || ''}" class="max-w-full max-h-full object-contain">
                 <span class="absolute top-3 left-3 bg-red-600 text-white font-bold text-xs px-2.5 py-1 rounded shadow">LIVE</span>
@@ -1356,7 +1355,7 @@
                 <div class="bg-emerald-50 p-3 rounded-xl border border-emerald-100 flex justify-between items-center"><div><p class="text-[10px] text-emerald-700 font-medium">ราคาปัจจุบัน</p><p class="text-lg font-black text-emerald-800">฿${Number(auc.current_price).toLocaleString()}</p></div><div class="text-right"><p class="text-[10px] text-slate-500 font-medium">ผู้ชนะปัจจุบัน</p><p class="text-xs font-bold text-slate-700 truncate max-w-[90px]">${auc.last_bidder_name || '-'}</p></div></div>
               </div>
             </div>
-            <div class="p-4 pt-0"><button onclick="openSellerRoomsModal('${seller.seller_id}')" class="w-full bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-xl text-xs font-bold shadow transition flex items-center justify-center gap-1">🔨 เข้าร่วมห้องประมูลนี้</button></div>
+            <div class="p-4 pt-0"><button onclick="openSingleAuctionModal('${auc.id}')" class="w-full bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-xl text-xs font-bold shadow transition flex items-center justify-center gap-1">🔨 เข้าร่วมห้องประมูลนี้</button></div>
           </div>
         `;
       }).join('');
