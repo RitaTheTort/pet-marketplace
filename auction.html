@@ -9,6 +9,9 @@
 </head>
 <body id="page-body" class="bg-slate-50 text-slate-800 min-h-screen pb-24">
 
+  <!-- 🌟 Toast Notification Container สำหรับแจ้งเตือนแบบไม่เด้งขัดจังหวะ -->
+  <div id="toast-container" class="fixed top-5 right-5 z-[150] flex flex-col space-y-2 pointer-events-none"></div>
+
   <!-- Header ด้านบนแบบโล่งสะอาดตา -->
   <header class="bg-slate-900 text-white shadow-md sticky top-0 z-40">
     <div class="max-w-6xl mx-auto px-4 py-3.5 flex justify-between items-center">
@@ -82,7 +85,7 @@
     </div>
   </main>
 
-  <!-- 🌟 Modal: ห้องประมูลของฉัน (เพิ่มสถิติ + ฟิลเตอร์) -->
+  <!-- 🌟 Modal: ห้องประมูลของฉัน (My Auctions Dashboard) -->
   <div id="my-auctions-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden items-center justify-center z-50 p-3 md:p-6 overflow-y-auto">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl overflow-hidden my-auto relative flex flex-col max-h-[90vh]">
       <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center shrink-0 sticky top-0 z-20 shadow">
@@ -94,17 +97,13 @@
       </div>
 
       <div class="p-4 md:p-6 bg-slate-50 overflow-y-auto flex-1 space-y-6">
-        <!-- 📊 แผงสถิติภาพรวมร้านของฉัน -->
         <div class="bg-white p-4 md:p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
           <h4 class="font-extrabold text-slate-900 text-sm flex items-center gap-2">
             <span>📈 ภาพรวมสถิติสินค้าและคำสั่งซื้อของคุณ</span>
           </h4>
-          <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 text-center" id="my-stats-container">
-            <!-- เรนเดอร์สถิติผ่าน JS -->
-          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 text-center" id="my-stats-container"></div>
         </div>
 
-        <!-- แถบฟิลเตอร์สถานะคำสั่งซื้อในห้องของฉัน -->
         <div class="flex flex-wrap items-center gap-2 pb-2 border-b border-slate-200" id="my-filter-tabs">
           <button onclick="filterMyAuctions('ALL')" class="my-hall-tab bg-slate-900 text-white px-3.5 py-1.5 rounded-full text-xs font-bold transition shadow-sm">ทั้งหมด</button>
           <button onclick="filterMyAuctions('รอการชำระเงิน')" class="my-hall-tab bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 px-3.5 py-1.5 rounded-full text-xs font-bold transition">⏳ รอการชำระเงิน</button>
@@ -457,6 +456,25 @@
     function lockBodyScroll() { document.body.style.overflow = 'hidden'; }
     function unlockBodyScroll() { document.body.style.overflow = ''; }
 
+    // 🌟 ฟังก์ชันแสดง Toast Notification แบบไม่เด้งขัดจังหวะหน้าจอ
+    function showToast(message) {
+      const container = document.getElementById('toast-container');
+      if (!container) return;
+      const toast = document.createElement('div');
+      toast.className = 'bg-slate-900 text-white text-xs font-bold px-4 py-3 rounded-xl shadow-xl pointer-events-auto transition transform translate-y-2 opacity-0 flex items-center gap-2';
+      toast.innerHTML = `<span>✅</span> <span>${message}</span>`;
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.classList.remove('translate-y-2', 'opacity-0');
+      }, 50);
+
+      setTimeout(() => {
+        toast.classList.add('translate-y-2', 'opacity-0');
+        setTimeout(() => toast.remove(), 300);
+      }, 2500);
+    }
+
     async function compressImage(file, maxWidth = 1200, quality = 0.8) {
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -503,7 +521,7 @@
     let cachedInboxGroups = [];
     let activeChatMetaData = null;
     let currentAdminHallFilter = 'ALL';
-    let currentMyAuctionsFilter = 'ALL'; // 🌟 ตัวแปรฟิลเตอร์สำหรับห้องประมูลของฉัน
+    let currentMyAuctionsFilter = 'ALL';
 
     async function updateAuthUI(user) {
       currentUser = user;
@@ -606,7 +624,6 @@
       `;
     }
 
-    // 🌟 ฟังก์ชันฟิลเตอร์สำหรับห้องประมูลของฉัน
     window.filterMyAuctions = async function(status) {
       currentMyAuctionsFilter = status;
       const tabs = document.querySelectorAll('.my-hall-tab');
@@ -617,7 +634,6 @@
       await renderMyAuctionsData();
     };
 
-    // 🌟 ฟังก์ชันเปิด-ปิด และเรนเดอร์ข้อมูลใน Modal "ห้องประมูลของฉัน" (เพิ่มสถิติ + เปอร์เซ็นต์)
     window.openMyAuctionsModal = async function() {
       if (!currentUser) return;
       lockBodyScroll();
@@ -643,7 +659,6 @@
         return;
       }
 
-      // 📊 คำนวณสถิติภาพรวมร้านของฉัน
       const totalCount = data.length;
       const waitingCount = data.filter(d => (d.order_status || 'รอการชำระเงิน') === 'รอการชำระเงิน').length;
       const paidCount = data.filter(d => d.order_status === 'ชำระเงินแล้ว').length;
@@ -672,7 +687,6 @@
         </div>
       `;
 
-      // กรองข้อมูลตามสถานะที่เลือก
       const filtered = data.filter(d => {
         const st = d.order_status || 'รอการชำระเงิน';
         if (currentMyAuctionsFilter === 'ALL') return true;
@@ -726,6 +740,24 @@
       unlockBodyScroll();
       document.getElementById('my-auctions-modal').classList.add('hidden');
       document.getElementById('my-auctions-modal').classList.remove('flex');
+    };
+
+    // 🌟 อัปเดตสถานะแบบ Silent Update (ไม่รีเซ็ต Scroll ตำแหน่งเดิม)
+    window.updateAuctionOrderStatus = async function(auctionId, newStatus) {
+      if (!currentUser) return;
+      try {
+        const { error } = await supabaseClient
+          .from('auctions')
+          .update({ order_status: newStatus })
+          .eq('id', auctionId);
+
+        if (error) throw error;
+        showToast(`อัปเดตสถานะเป็น "${newStatus}" เรียบร้อยแล้ว`);
+        await renderMyAuctionsData();
+        fetchAuctions();
+      } catch (err) {
+        alert('อัปเดตสถานะไม่สำเร็จ: ' + err.message);
+      }
     };
 
     window.openAdminHallModal = async function() {
@@ -847,6 +879,7 @@
       }).join('');
     }
 
+    // 🌟 อัปเดตสถานะฝั่งแอดมินแบบ Silent Update (ไม่เด้งขึ้นบน)
     window.updateAdminAuctionOrderStatus = async function(auctionId, newStatus) {
       if (!currentUser || (currentUserRole !== 'admin' && currentUserRole !== 'super_admin')) return;
       try {
@@ -856,7 +889,7 @@
           .eq('id', auctionId);
 
         if (error) throw error;
-        alert(`แอดมินอัปเดตสถานะเป็น "${newStatus}" เรียบร้อย!`);
+        showToast(`แอดมินอัปเดตสถานะเป็น "${newStatus}" เรียบร้อย`);
         await renderAdminHallData();
         fetchAuctions();
       } catch (err) {
@@ -875,28 +908,11 @@
           if (parts.length > 1) await supabaseClient.storage.from('pet-images').remove([parts[1]]);
         }
         await supabaseClient.from('auctions').delete().eq('id', aucId);
-        alert('ลบโพสต์ประมูลเรียบร้อยแล้ว');
+        showToast('ลบโพสต์ประมูลเรียบร้อยแล้ว');
         await renderAdminHallData();
         fetchAuctions();
       } catch (err) {
         alert('เกิดข้อผิดพลาดในการลบ: ' + err.message);
-      }
-    };
-
-    window.updateAuctionOrderStatus = async function(auctionId, newStatus) {
-      if (!currentUser) return;
-      try {
-        const { error } = await supabaseClient
-          .from('auctions')
-          .update({ order_status: newStatus })
-          .eq('id', auctionId);
-
-        if (error) throw error;
-        alert(`อัปเดตสถานะเป็น "${newStatus}" เรียบร้อยแล้ว!`);
-        await renderMyAuctionsData(); // 🌟 อัปเดตข้อมูลใน modal ห้องของฉันทันที
-        fetchAuctions();
-      } catch (err) {
-        alert('อัปเดตสถานะไม่สำเร็จ: ' + err.message);
       }
     };
 
@@ -963,7 +979,7 @@
         if (error) throw error;
         const { data: publicUrlData } = await supabaseClient.storage.from('pet-images').getPublicUrl(fileName);
         document.getElementById('auc-image-url').value = publicUrlData.publicUrl;
-        alert('อัปโหลดและบีบอัดรูปภาพสำเร็จ!');
+        showToast('อัปโหลดและบีบอัดรูปภาพสำเร็จ!');
       } catch (err) {
         alert('อัปโหลดภาพไม่สำเร็จ: ' + err.message);
         aucImageFileInput.value = '';
@@ -1015,7 +1031,7 @@
       try {
         const { error } = await supabaseClient.from('auctions').insert([payload]);
         if (error) throw error;
-        alert('เปิดประมูลสินค้าสำเร็จเรียบร้อยแล้ว!');
+        showToast('เปิดประมูลสินค้าสำเร็จเรียบร้อยแล้ว!');
         closeCreateAuctionModal();
         document.getElementById('create-auction-form').reset();
         document.getElementById('auc-image-url').value = '';
