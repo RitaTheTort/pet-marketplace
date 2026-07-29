@@ -190,7 +190,7 @@
     </div>
   </div>
 
-  <!-- 🌟 หน้าต่างแชทใหม่พร้อม Quick Actions, แนบสลิป, สถานะการอ่าน และปิดแชท 2 ทาง -->
+  <!-- หน้าต่างแชทพร้อม Quick Actions, แนบสลิป, สถานะการอ่าน และปิดแชท 2 ทาง -->
   <div id="auction-chat-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-[80] p-4">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg h-[680px] flex flex-col overflow-hidden relative">
       <div class="bg-slate-900 text-white px-5 py-3 flex justify-between items-center border-b border-slate-800">
@@ -294,9 +294,15 @@
             <input type="number" id="auc-start-price" required placeholder="เช่น 10000" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:outline-none">
           </div>
         </div>
-        <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">ราคาซื้อทันที (Buy-It-Now)</label>
-          <input type="number" id="auc-buyout-price" placeholder="ไม่บังคับ เช่น 25000" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:outline-none">
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">ราคาซื้อทันที (Buy-It-Now)</label>
+            <input type="number" id="auc-buyout-price" placeholder="ไม่บังคับ เช่น 25000" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">ค่าจัดส่งสำหรับผู้ชนะ (บาท)</label>
+            <input type="number" id="auc-shipping-fee" value="0" min="0" placeholder="เช่น 150" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:outline-none">
+          </div>
         </div>
 
         <div>
@@ -415,6 +421,7 @@
     let targetAuctionChatUserId = null;
     let sellerBankInfo = null;
 
+    // 🌟 ดึงตรรกะเช็ก KYC ที่เสถียรที่สุดกลับมาใส่
     async function updateAuthUI(user) {
       currentUser = user;
       currentUserRole = 'user';
@@ -436,7 +443,14 @@
 
         if (profileData) {
           if (profileData.role) currentUserRole = profileData.role;
-          if (profileData.kyc_status) currentKycStatus = profileData.kyc_status;
+          
+          const kycVal = profileData.kyc_status;
+          if (kycVal === true || kycVal === 1 || (typeof kycVal === 'string' && kycVal.toLowerCase() === 'approved')) {
+            currentKycStatus = 'approved';
+          } else {
+            currentKycStatus = kycVal || 'unverified';
+          }
+
           sellerBankInfo = profileData;
         }
 
@@ -525,10 +539,13 @@
 
     window.openCreateAuctionModal = function() {
       if (!currentUser) { alert('กรุณาเข้าสู่ระบบก่อนเปิดประมูล'); return; }
-      if (currentKycStatus !== 'approved') {
+      
+      const isAdmin = (currentUserRole === 'admin' || currentUserRole === 'super_admin');
+      if (currentKycStatus !== 'approved' && !isAdmin) {
         alert('⚠️ คุณจำเป็นต้องผ่านการยืนยันตัวตน (KYC) ก่อน จึงจะสามารถเปิดห้องประมูลได้ครับ');
         return;
       }
+
       lockBodyScroll();
       document.getElementById('create-auction-modal').classList.remove('hidden');
       document.getElementById('create-auction-modal').classList.add('flex');
@@ -590,6 +607,7 @@
       const species = document.getElementById('auc-species').value;
       const startPrice = parseFloat(document.getElementById('auc-start-price').value);
       const buyoutPrice = document.getElementById('auc-buyout-price').value ? parseFloat(document.getElementById('auc-buyout-price').value) : null;
+      const shippingFee = parseFloat(document.getElementById('auc-shipping-fee').value) || 0;
       
       const days = parseInt(document.getElementById('auc-days').value) || 0;
       const hours = parseInt(document.getElementById('auc-hours').value) || 0;
@@ -598,6 +616,7 @@
 
       const payload = {
         title, species, start_price: startPrice, current_price: startPrice, buyout_price: buyoutPrice,
+        shipping_fee: shippingFee,
         images: [document.getElementById('auc-image-url').value],
         description: document.getElementById('auc-description').value.trim(),
         seller_id: currentUser.id,
@@ -613,6 +632,7 @@
         closeCreateAuctionModal();
         document.getElementById('create-auction-form').reset();
         document.getElementById('auc-image-url').value = '';
+        document.getElementById('auc-shipping-fee').value = '0';
         fetchAuctions();
       } catch (err) {
         alert(`เกิดข้อผิดพลาด: ${err.message}`);
@@ -912,8 +932,8 @@
     window.openAuctionSellerChat = function() {
       if (!currentUser) {
         alert('กรุณาเข้าสู่ระบบก่อนติดต่อครับ');
-        document.getElementById('auth-modal').classList.remove('hidden');
         document.getElementById('auth-modal').classList.add('flex');
+        document.getElementById('auth-modal').classList.remove('hidden');
         return;
       }
       if (!activeAuction) return;
@@ -1017,7 +1037,6 @@
       updateUnreadBadgeCount();
     }
 
-    // 🌟 2. Quick Actions สำหรับผู้ขาย
     async function sendQuickAction(type) {
       if (!currentUser || !activeAuction || !targetAuctionChatUserId) return;
       const myName = currentUser.user_metadata?.full_name || currentUser.email.split('@')[0];
@@ -1057,7 +1076,6 @@
       }
     }
 
-    // 🌟 1. ระบบบีบอัดรูปภาพ/สลิป และอัปโหลดไปยัง Bucket chat-images
     async function sendChatImage(inputEl) {
       const file = inputEl.files[0];
       if (!file || !currentUser || !activeAuction || !targetAuctionChatUserId) return;
@@ -1090,9 +1108,6 @@
       }
     }
 
-    // 🌟 4. ระบบปิดแชทแบบยืนยัน 2 ทาง (Dual-Confirmation Close)
-    let pendingCloseChatData = null;
-
     window.requestCloseAuctionChat = function() {
       if (!currentUser || !activeAuction || !targetAuctionChatUserId) return;
       const isOwner = activeAuction.seller_id === currentUser.id;
@@ -1115,7 +1130,6 @@
       if (!currentUser || !activeAuction || !targetAuctionChatUserId) return;
 
       try {
-        // ดึงรูปภาพทั้งหมดในแชทรวมนี้เพื่อลบออกจาก Storage Bucket (chat-images)
         const { data: allMsgs } = await supabaseClient
           .from('auction_messages')
           .select('content')
@@ -1136,7 +1150,6 @@
           }
         }
 
-        // ลบข้อความในตาราง auction_messages แบบถาวร
         const { error } = await supabaseClient
           .from('auction_messages')
           .delete()
@@ -1273,7 +1286,6 @@
           ? `bg-amber-100 text-amber-900 border-2 border-amber-400 font-extrabold text-sm md:text-base p-3 rounded-2xl shadow-md my-1 text-center` 
           : `max-w-[75%] px-3.5 py-2 rounded-2xl text-xs ${isMe ? 'bg-red-600 text-white rounded-br-none' : 'bg-white text-slate-800 border border-slate-200 rounded-bl-none shadow-sm'}`;
 
-        // 🌟 3. สถานะการอ่าน Read Receipt (✓✓ อ่านแล้ว / ✓ ส่งแล้ว)
         const readStatusText = msg.is_read ? '<span class="text-[9px] text-emerald-500 font-bold ml-1">✓✓ อ่านแล้ว</span>' : '<span class="text-[9px] text-slate-300 ml-1">✓ ส่งแล้ว</span>';
 
         return `
@@ -1534,19 +1546,19 @@
     window.confirmBidPrompt = function() {
       if (!currentUser) {
         alert('กรุณาเข้าสู่ระบบก่อนเสนอราคาครับ');
-        document.getElementById('auth-modal').classList.remove('hidden');
         document.getElementById('auth-modal').classList.add('flex');
+        document.getElementById('auth-modal').classList.remove('hidden');
         return;
       }
 
-      if (currentKycStatus !== 'approved') {
+      const isAdmin = (currentUserRole === 'admin' || currentUserRole === 'super_admin');
+      if (currentKycStatus !== 'approved' && !isAdmin) {
         alert('⚠️ คุณจำเป็นต้องผ่านการยืนยันตัวตน (KYC) ก่อน จึงจะสามารถเสนอราคาได้ครับ');
         return;
       }
 
       if (!activeAuction) return;
 
-      const isAdmin = (currentUserRole === 'admin' || currentUserRole === 'super_admin');
       if (activeAuction.seller_id === currentUser.id && !isAdmin) {
         alert('คุณไม่สามารถเสนอราคาสินค้าของตนเองได้ครับ');
         return;
