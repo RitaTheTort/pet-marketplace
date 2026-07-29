@@ -15,17 +15,17 @@
         <span class="text-2xl font-extrabold text-blue-400 tracking-wide truncate">PetMarket</span>
         <span class="text-[10px] bg-blue-900 text-blue-200 px-1.5 py-0.5 rounded shrink-0 font-semibold">Beta</span>
       </div>
-      <div class="flex items-center space-x-3 shrink-0">
-        <a href="auction.html" class="py-1.5 px-3 font-bold text-xs bg-red-600 hover:bg-red-700 text-white rounded-lg transition flex items-center gap-1 shadow-sm">
-          🔨 ตลาดประมูลสด <span class="bg-white text-red-600 px-1.5 py-0.2 rounded text-[9px] font-extrabold animate-pulse">LIVE</span>
-        </a>
-        <div class="flex items-center space-x-2" id="auth-buttons-container">
-          <button id="open-auth-modal-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-3.5 py-1.5 rounded-lg text-xs transition whitespace-nowrap shadow-sm">
-            เข้าสู่ระบบ
-          </button>
-        </div>
+      <div class="flex items-center space-x-2 shrink-0" id="auth-buttons-container">
+        <button id="open-auth-modal-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-3.5 py-1.5 rounded-lg text-xs transition whitespace-nowrap shadow-sm">
+          เข้าสู่ระบบ
+        </button>
       </div>
     </div>
+   <!-- เพิ่มปุ่มนี้ไว้ข้าง ๆ เมนูหลักใน Header หรือแถบเมนู -->
+<a href="auction.html" class="py-2 px-3.5 font-bold text-sm bg-red-600 hover:bg-red-700 text-white rounded-lg transition flex items-center gap-1 shadow-sm">
+  🔨 ตลาดประมูลสด <span class="bg-white text-red-600 px-1.5 py-0.2 rounded text-[10px] font-extrabold animate-pulse">LIVE</span>
+</a>
+
   </header>
 
   <section class="bg-gradient-to-r from-slate-900 to-slate-800 text-white py-12 px-4">
@@ -86,11 +86,8 @@
 
     <div id="admin-panel-container" class="hidden space-y-8">
       <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-        <h3 class="font-bold text-lg text-slate-900 mb-4 flex items-center justify-between">
+        <h3 class="font-bold text-lg text-slate-900 mb-4 flex items-center gap-2">
           <span>📋 รายการรอตรวจสอบและอนุมัติยืนยันตัวตน (KYC Approvals)</span>
-          <button onclick="cleanupLineDuplicates()" class="text-xs bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-lg font-bold transition shadow-sm">
-            🧹 เคลียร์บัญชี LINE ซ้ำซ้อน
-          </button>
         </h3>
         <div id="admin-kyc-list" class="space-y-3">
           <p class="text-xs text-slate-400">กำลังโหลดข้อมูลผู้สมัคร...</p>
@@ -101,7 +98,7 @@
         <h3 class="font-bold text-lg text-slate-900 mb-2 flex items-center gap-2">
           <span>🛡️ จัดการสิทธิ์ผู้ใช้งานและผู้ดูแลระบบ (Admin Role Management)</span>
         </h3>
-        <p class="text-xs text-slate-500 mb-4">รายชื่อสมาชิกทั้งหมดในระบบสำหรับกำหนดสิทธิ์ผู้ดูแลระบบและการจัดการบัญชี</p>
+        <p class="text-xs text-slate-500 mb-4">รายชื่อสมาชิกทั้งหมดในระบบสำหรับกำหนดสิทธิ์ผู้ดูแลระบบ</p>
         
         <div id="admin-users-list" class="space-y-3">
           <p class="text-xs text-slate-400">กำลังโหลดรายชื่อสมาชิก...</p>
@@ -110,7 +107,7 @@
     </div>
   </main>
 
-  <!-- Modal: สมัครสมาชิก / เข้าสู่ระบบ (เชื่อมต่อ LINE Login ของจริง) -->
+  <!-- Modal: สมัครสมาชิก / เข้าสู่ระบบ -->
   <div id="auth-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4 overflow-y-auto">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden my-8">
       <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center">
@@ -119,19 +116,6 @@
       </div>
       
       <form id="auth-form" class="p-6 space-y-4">
-        <!-- ปุ่มเข้าสู่ระบบผ่าน LINE ของจริง -->
-        <div>
-          <button type="button" onclick="handleLineLogin()" class="w-full py-2.5 bg-[#06C755] hover:bg-[#05b34c] text-white rounded-lg text-sm font-bold shadow transition flex items-center justify-center gap-2">
-            <span>🟢 เข้าสู่ระบบ / สมัครสมาชิกด้วย LINE</span>
-          </button>
-        </div>
-
-        <div class="flex items-center my-3">
-          <div class="flex-grow border-t border-slate-200"></div>
-          <span class="px-3 text-slate-400 text-xs">หรือใช้อีเมล</span>
-          <div class="flex-grow border-t border-slate-200"></div>
-        </div>
-
         <div id="name-input-group" class="hidden">
           <label class="block text-xs font-bold text-slate-700 mb-1">ชื่อผู้ใช้ / ชื่อร้านค้า *</label>
           <input type="text" id="auth-name" placeholder="เช่น Yui หรือ Garadia Reptiles" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
@@ -139,12 +123,12 @@
 
         <div>
           <label class="block text-xs font-bold text-slate-700 mb-1">อีเมล (Email) *</label>
-          <input type="email" id="auth-email" placeholder="example@email.com" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+          <input type="email" id="auth-email" required placeholder="example@email.com" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
         </div>
 
         <div>
           <label class="block text-xs font-bold text-slate-700 mb-1">รหัสผ่าน (Password) *</label>
-          <input type="password" id="auth-password" placeholder="อย่างน้อย 6 ตัวอักษร" minlength="6" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+          <input type="password" id="auth-password" required placeholder="อย่างน้อย 6 ตัวอักษร" minlength="6" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
           <div class="text-right mt-1" id="forgot-password-container">
             <button type="button" onclick="handleForgotPassword()" class="text-[11px] text-blue-600 hover:underline">ลืมรหัสผ่าน?</button>
           </div>
@@ -152,7 +136,7 @@
 
         <div class="pt-2">
           <button type="submit" id="auth-submit-btn" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-bold shadow transition">
-            เข้าสู่ระบบด้วยอีเมล
+            เข้าสู่ระบบ
           </button>
         </div>
 
@@ -181,13 +165,7 @@
 
         <div>
           <label class="block text-xs font-bold text-slate-700 mb-1">ชื่อผู้ใช้ / ชื่อร้านค้า *</label>
-          <div class="flex space-x-2">
-            <input type="text" id="profile-name" disabled required class="w-full px-3 py-2 border border-slate-300 bg-slate-100 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-not-allowed">
-            <button type="button" id="toggle-edit-name-btn" onclick="toggleProfileNameEdit()" class="px-3.5 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-xs font-bold transition whitespace-nowrap">
-              ✏️ แก้ไขชื่อ
-            </button>
-          </div>
-          <p id="profile-name-hint" class="text-[10px] text-amber-600 mt-1 hidden">โหมดแก้ไขชื่อเปิดอยู่ ระบบจะตรวจสอบความซ้ำกับสมาชิกท่านอื่นเมื่อบันทึก</p>
+          <input type="text" id="profile-name" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
         </div>
 
         <div>
@@ -195,14 +173,6 @@
           <div id="profile-kyc-status-box" class="p-3 rounded-lg text-xs font-bold bg-slate-100 text-slate-600 flex items-center justify-between">
             <span>⏳ กำลังตรวจสอบสถานะ</span>
           </div>
-        </div>
-
-        <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3 space-y-2">
-          <p class="text-xs font-bold text-emerald-800 flex items-center gap-1">🟢 ยืนยันตัวตนผ่าน LINE OA:</p>
-          <p class="text-[11px] text-emerald-700">ส่งหลักฐานยืนยันตัวตนผ่าน LINE Official Account เพื่อให้แอดมินตรวจสอบอนุมัติสถานะความน่าเชื่อถือ</p>
-          <button type="button" onclick="handleLineKycRequest()" class="w-full py-2 bg-[#06C755] hover:bg-[#05b34c] text-white rounded-lg text-xs font-bold shadow transition">
-            💬 ส่งหลักฐานยืนยันผ่าน LINE
-          </button>
         </div>
 
         <div>
@@ -546,119 +516,6 @@
     const adminTabContainer = document.getElementById('admin-tab-container');
     const adminPanelContainer = document.getElementById('admin-panel-container');
 
-    // --- ฟังก์ชัน LINE Login ของจริง (เชื่อมต่อ Channel ID 2010881592) ---
-    window.handleLineLogin = function() {
-      const channelId = '2010881592';
-      const redirectUri = encodeURIComponent(window.location.origin + window.location.pathname);
-      const state = Math.random().toString(36).substring(2, 15);
-      localStorage.setItem('line_login_state', state);
-
-      const lineAuthUrl = `https://access.line.me/oauth2/v2.1/authorize?response_type=code&client_id=${channelId}&redirect_uri=${redirectUri}&state=${state}&scope=profile%20openid%20email`;
-      window.location.href = lineAuthUrl;
-    };
-
-    // --- 🌟 แก้ไขระบบ LINE Callback ไม่ให้สุ่ม ID ขยะซ้ำซ้อน แต่ผูกโยงกับโปรไฟล์เดิมใน Database ---
-    async function handleLineCallback() {
-      const urlParams = new URLSearchParams(window.location.search);
-      const code = urlParams.get('code');
-
-      if (code) {
-        window.history.replaceState({}, document.title, window.location.pathname);
-        localStorage.removeItem('line_login_state');
-
-        // ดึง persistent_line_id เดิมจากเครื่อง ถ้าไม่มีจริงๆ ถึงจะสร้างครั้งเดียวจบ (ไม่สุ่มพร่ำเพรื่อ)
-        let persistentLineId = localStorage.getItem('persistent_line_id');
-        let persistentLineEmail = localStorage.getItem('persistent_line_email');
-
-        if (!persistentLineId) {
-          persistentLineId = 'line_user_' + Math.random().toString(36).substring(2, 10);
-          persistentLineEmail = `${persistentLineId}@petmarket.line`;
-          localStorage.setItem('persistent_line_id', persistentLineId);
-          localStorage.setItem('persistent_line_email', persistentLineEmail);
-        }
-
-        const mockLineUser = {
-          id: persistentLineId,
-          email: persistentLineEmail,
-          user_metadata: { full_name: 'สมาชิก LINE (Verified)' }
-        };
-
-        // 🔍 ตรวจสอบในตาราง profiles ของ Supabase ก่อนว่ามีไอดีนี้อยู่แล้วหรือยัง
-        const { data: existingProfile } = await supabaseClient
-          .from('profiles')
-          .select('*')
-          .eq('id', persistentLineId)
-          .single();
-
-        if (!existingProfile) {
-          // ถ้ายังไม่เคยมีใน DB ค่อยบันทึกสร้างแถวใหม่ครั้งเดียว
-          await supabaseClient.from('profiles').upsert({
-            id: mockLineUser.id,
-            full_name: mockLineUser.user_metadata.full_name,
-            role: 'user',
-            kyc_status: 'unverified',
-            updated_at: new Date()
-          });
-        } else {
-          // ถ้ามีอยู่แล้ว ดึงชื่อโปรไฟล์เดิมจาก Database มาใช้ต่อทันที ห้ามสร้างทับซ้ำซ้อน
-          mockLineUser.user_metadata.full_name = existingProfile.full_name;
-        }
-
-        alert('🟢 เข้าสู่ระบบผ่าน LINE สำเร็จเรียบร้อยแล้วครับ!');
-        updateAuthUI(mockLineUser);
-      }
-    }
-
-    // --- 🌟 ตรวจสอบ Session ข้ามหน้าเว็บโดยดึงข้อมูลจริงจาก Supabase Profile ---
-    async function checkUserSession() {
-      const persistentLineId = localStorage.getItem('persistent_line_id');
-      const persistentLineEmail = localStorage.getItem('persistent_line_email');
-
-      if (persistentLineId) {
-        const mockLineUser = {
-          id: persistentLineId,
-          email: persistentLineEmail || `${persistentLineId}@petmarket.line`,
-          user_metadata: { full_name: 'สมาชิก LINE (Verified)' }
-        };
-
-        const { data: existingProfile } = await supabaseClient
-          .from('profiles')
-          .select('*')
-          .eq('id', persistentLineId)
-          .single();
-
-        if (existingProfile && existingProfile.full_name) {
-          mockLineUser.user_metadata.full_name = existingProfile.full_name;
-        }
-
-        updateAuthUI(mockLineUser);
-        return;
-      }
-
-      const { data: { session } } = await supabaseClient.auth.getSession();
-      if (session && session.user) {
-        updateAuthUI(session.user);
-        return;
-      }
-
-      updateAuthUI(null);
-    }
-
-    function hashCode(str) {
-      let hash = 0;
-      for (let i = 0; i < str.length; i++) {
-        hash = (hash << 5) - hash + str.charCodeAt(i);
-        hash |= 0;
-      }
-      return hash;
-    }
-
-    // --- ฟังก์ชันส่งหลักฐานยืนยันตัวตนผ่าน LINE OA ---
-    window.handleLineKycRequest = function() {
-      window.open('https://line.me/R/ti/p/@petmarket_support', '_blank');
-      alert('💬 ระบบเปิด LINE Official Account แล้ว กรุณาส่งภาพบัตรประชาชนหรือหลักฐานให้แอดมินตรวจสอบครับ');
-    };
-
     async function uploadKycDocument(file, userId) {
       try {
         const optimizedFile = await compressImage(file, 1200, 0.8);
@@ -693,7 +550,7 @@
 
       try {
         const { data, error } = await supabaseClient.auth.resetPasswordForEmail(emailInput, {
-          redirectTo: window.location.origin + window.location.pathname,
+          redirectTo: 'https://ritathetort.github.io/pet-marketplace/index.html',
         });
         if (error) throw error;
         alert('ระบบได้ส่งลิงก์สำหรับรีเซ็ตรหัสผ่านไปยังอีเมลของคุณแล้ว กรุณาตรวจสอบกล่องข้อความ');
@@ -757,7 +614,7 @@
       const dynamicActionArea = document.getElementById('dynamic-action-area');
 
       if (user) {
-        const displayName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'สมาชิก';
+        const displayName = user.user_metadata?.full_name || user.email.split('@')[0];
 
         const { data: profileData } = await supabaseClient
           .from('profiles')
@@ -828,15 +685,8 @@
     window.openProfileModal = async function() {
       if (!currentUser) return;
 
-      document.getElementById('profile-email').value = currentUser.email || 'เชื่อมต่อผ่าน LINE';
-      const nameInput = document.getElementById('profile-name');
-      nameInput.value = currentUser.user_metadata?.full_name || '';
-      nameInput.disabled = true;
-      nameInput.classList.add('bg-slate-100', 'cursor-not-allowed');
-      nameInput.classList.remove('bg-white');
-      document.getElementById('profile-name-hint').classList.add('hidden');
-      document.getElementById('toggle-edit-name-btn').innerText = '✏️ แก้ไขชื่อ';
-
+      document.getElementById('profile-email').value = currentUser.email || '';
+      document.getElementById('profile-name').value = currentUser.user_metadata?.full_name || '';
       document.getElementById('profile-kyc-file').value = '';
       
       const statusBox = document.getElementById('profile-kyc-status-box');
@@ -878,8 +728,8 @@
       if (profileData) {
         if (profileData.role) currentUserRole = profileData.role;
 
-        if (profileData.full_name) {
-          nameInput.value = profileData.full_name;
+        if (profileData.full_name && !document.getElementById('profile-name').value) {
+          document.getElementById('profile-name').value = profileData.full_name;
         }
         
         if (profileData.kyc_status === 'approved') {
@@ -898,29 +748,6 @@
       }
     };
 
-    window.toggleProfileNameEdit = function() {
-      const nameInput = document.getElementById('profile-name');
-      const hintEl = document.getElementById('profile-name-hint');
-      const btnEl = document.getElementById('toggle-edit-name-btn');
-
-      if (nameInput.disabled) {
-        nameInput.disabled = false;
-        nameInput.classList.remove('bg-slate-100', 'cursor-not-allowed');
-        nameInput.classList.add('bg-white');
-        nameInput.focus();
-        hintEl.classList.remove('hidden');
-        btnEl.innerText = '🔒 ล็อกชื่อ';
-        btnEl.className = 'px-3.5 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-xs font-bold transition whitespace-nowrap';
-      } else {
-        nameInput.disabled = true;
-        nameInput.classList.add('bg-slate-100', 'cursor-not-allowed');
-        nameInput.classList.remove('bg-white');
-        hintEl.classList.add('hidden');
-        btnEl.innerText = '✏️ แก้ไขชื่อ';
-        btnEl.className = 'px-3.5 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-xs font-bold transition whitespace-nowrap';
-      }
-    };
-
     const closeProfileModalFunc = () => {
       profileModal.classList.add('hidden');
       profileModal.classList.remove('flex');
@@ -932,41 +759,18 @@
       e.preventDefault();
       if (!currentUser) return;
 
-      const nameInput = document.getElementById('profile-name');
-      const newName = nameInput.value.trim();
-      if (!newName) {
-        alert('กรุณากรอกชื่อผู้ใช้ / ชื่อร้านค้า');
-        return;
-      }
-
+      const newName = document.getElementById('profile-name').value.trim();
       const kycFile = document.getElementById('profile-kyc-file').files[0];
       const saveBtn = document.getElementById('save-profile-btn');
 
       saveBtn.disabled = true;
-      saveBtn.innerText = 'กำลังตรวจสอบชื่อซ้ำ...';
+      saveBtn.innerText = 'กำลังบันทึก...';
 
       try {
-        const { data: existingProfiles, error: checkError } = await supabaseClient
-          .from('profiles')
-          .select('id, full_name')
-          .ilike('full_name', newName)
-          .neq('id', currentUser.id);
-
-        if (checkError) throw checkError;
-
-        if (existingProfiles && existingProfiles.length > 0) {
-          alert('⚠️ ชื่อผู้ใช้หรือชื่อร้านค้านี้ถูกใช้งานแล้วในระบบ กรุณาใช้ชื่ออื่นครับ');
-          saveBtn.disabled = false;
-          saveBtn.innerText = 'บันทึกข้อมูล';
-          return;
-        }
-
         let kycUrl = null;
         if (kycFile) {
           saveBtn.innerText = 'กำลังบีบอัดและอัปโหลดเอกสาร KYC...';
           kycUrl = await uploadKycDocument(kycFile, currentUser.id);
-        } else {
-          saveBtn.innerText = 'กำลังบันทึกข้อมูล...';
         }
 
         const updatePayload = {
@@ -986,10 +790,6 @@
 
         if (error) throw error;
 
-        if (currentUser.user_metadata) {
-          currentUser.user_metadata.full_name = newName;
-        }
-
         await supabaseClient.auth.updateUser({
           data: { full_name: newName }
         });
@@ -997,7 +797,6 @@
         alert('บันทึกข้อมูลโปรไฟล์สำเร็จเรียบร้อยแล้วครับ!');
         closeProfileModalFunc();
         updateAuthUI(currentUser);
-        fetchPets();
       } catch (err) {
         alert(`เกิดข้อผิดพลาด: ${err.message}`);
       } finally {
@@ -1183,18 +982,12 @@
               <p class="text-xs text-slate-500">ID: ${profile.id}</p>
               <div class="mt-1">${roleBadge}</div>
             </div>
-            <div class="flex items-center gap-2 flex-wrap">
+            <div class="flex items-center gap-2">
               ${currentUserRole === 'super_admin' && !isMe && role !== 'super_admin' ? `
                 ${role === 'admin' 
                   ? `<button onclick="changeUserRole('${profile.id}', 'user')" class="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold transition">ถอดถอนสิทธิ์ Admin</button>`
                   : `<button onclick="changeUserRole('${profile.id}', 'admin')" class="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-bold transition">แต่งตั้งเป็น Admin</button>`
                 }
-              ` : ''}
-
-              ${currentUserRole === 'super_admin' && !isMe ? `
-                <button onclick="deleteSystemUser('${profile.id}', '${profile.full_name || 'ผู้ใช้งานนี้'}')" class="px-3 py-1.5 bg-red-700 hover:bg-red-800 text-white rounded-lg text-xs font-bold transition shadow-sm">
-                  🗑️ ลบสมาชิก
-                </button>
               ` : '<span class="text-[11px] text-slate-400">สิทธิ์จำกัด</span>'}
             </div>
           </div>
@@ -1221,31 +1014,6 @@
       } else {
         alert('อัปเดตบทบาทผู้ใช้งานสำเร็จเรียบร้อยแล้วครับ!');
         fetchAdminUsersData();
-      }
-    };
-
-    window.deleteSystemUser = async function(userId, userName) {
-      if (currentUserRole !== 'super_admin') {
-        alert('เฉพาะ Super Admin เท่านั้นที่มีสิทธิ์ลบบัญชีสมาชิกครับ');
-        return;
-      }
-
-      if (!confirm(`⚠️ คำเตือน: คุณต้องการลบบัญชี "${userName}" ออกจากระบบใช่หรือไม่?\nการกระทำนี้จะลบประกาศ สินค้า แชท และข้อมูลทั้งหมดที่เกี่ยวข้องของผู้ใช้นี้อย่างถาวร!`)) return;
-
-      try {
-        await supabaseClient.from('pets').delete().eq('seller_id', userId);
-        await supabaseClient.from('messages').delete().or(`sender_id.eq.${userId},receiver_id.eq.${userId}`);
-        await supabaseClient.from('user_badges').delete().or(`giver_id.eq.${userId},receiver_id.eq.${userId}`);
-        
-        const { error } = await supabaseClient.from('profiles').delete().eq('id', userId);
-        if (error) throw error;
-
-        alert(`🗑️ ลบบัญชี "${userName}" และข้อมูลที่เกี่ยวข้องทั้งหมดเรียบร้อยแล้วครับ`);
-        fetchAdminUsersData();
-        fetchAdminKycData();
-        fetchPets();
-      } catch (err) {
-        alert(`เกิดข้อผิดพลาดในการลบสมาชิก: ${err.message}`);
       }
     };
 
@@ -1336,8 +1104,6 @@
 
     window.handleSignOut = async function() {
       await supabaseClient.auth.signOut();
-      localStorage.removeItem('persistent_line_id');
-      localStorage.removeItem('persistent_line_email');
       updateAuthUI(null);
     };
 
@@ -1591,6 +1357,7 @@
       }
     });
 
+    // --- แก้ไขจุดรั่วไหลของข้อมูลแชท: กรองเฉพาะคู่สนทนาและประกาศนั้นๆ เท่านั้น ---
     async function fetchChatMessages(petId, otherUserId) {
       chatMessagesContainer.innerHTML = '<div class="text-center text-xs text-slate-400 py-4">กำลังโหลดข้อความ...</div>';
 
@@ -1752,7 +1519,7 @@
         petGrid.innerHTML = `
           <div class="col-span-full bg-white p-8 rounded-xl border border-dashed border-slate-300 text-center">
             <p class="text-slate-800 font-bold mb-1">${currentMainView === 'MY' ? 'คุณยังไม่มีรายการประกาศขาย' : 'ไม่พบรายการสัตว์เลี้ยงที่ค้นหา'}</p>
-            <p class="text-xs text-slate-500">${currentMainView === 'MY' ? 'กดปุ่ม "+ ลงประกาศ" มุมขวาบนเพื่อสร้างประกาศแรกได้เลยครับ' : 'ลองเปลี่ยนคำค้นหา หรือเลือกดูหมวดหมู่นี้ ได้ครับ'}</p>
+            <p class="text-xs text-slate-500">${currentMainView === 'MY' ? 'กดปุ่ม "+ ลงประกาศ" มุมขวาบนเพื่อสร้างประกาศแรกได้เลยครับ' : 'ลองเปลี่ยนคำค้นหา หรือเลือกดูหมวดหมู่อื่นๆ ได้ครับ'}</p>
           </div>
         `;
         return;
@@ -1863,13 +1630,12 @@
 
     document.addEventListener('DOMContentLoaded', async () => {
       fetchPets();
-      await handleLineCallback();
 
       const { data: { session } } = await supabaseClient.auth.getSession();
       if (session) {
         updateAuthUI(session.user);
       } else {
-        await checkUserSession();
+        updateAuthUI(null);
       }
 
       supabaseClient.auth.onAuthStateChange(async (event, session) => {
