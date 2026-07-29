@@ -419,6 +419,7 @@
     let currentAuctionCategory = 'ALL';
 
     // ตัวแปรสำหรับระบบแชท
+    let currentActivePet = null; // ใช้ร่วมกับฟังก์ชันแชทกลาง
     let chatRealtimeChannel = null;
     let targetChatUserId = null;
 
@@ -1112,11 +1113,11 @@
     };
 
     // ==========================================
-    // 🌟 ระบบแชทอัจฉริยะในหน้าประมูล (เชื่อมโยงตาราง messages และ chat_closings)
+    // 🌟 ระบบแชทอัจฉริยะในหน้าประมูล (แก้ไขเชื่อมโยง pet_id ให้ตรงกับ auction.id)
     // ==========================================
     async function openChatModal(auc, otherUserId, otherUserName) {
       if (!auc || !currentUser) return;
-      currentActivePet = auc; // ใช้ตัวแปรเดียวกับหน้า index เพื่อให้ระบบแชทอ้างอิงรอด
+      currentActivePet = auc; 
       targetChatUserId = otherUserId;
 
       document.getElementById('chat-seller-name').innerText = otherUserName || 'คู่สนทนา';
@@ -1187,7 +1188,7 @@
         const fileName = `chat_auc_${currentActivePet.id}_${Date.now()}.${file.name.split('.').pop()}`;
         const { error: uploadError } = await supabaseClient.storage.from('chat-images').upload(fileName, optimizedFile);
         if (uploadError) throw uploadError;
-        const { data: publicUrlData } = supabaseClient.storage.from('chat-images').getPublicUrl(fileName);
+        const { data: publicUrlData } = await supabaseClient.storage.from('chat-images').getPublicUrl(fileName);
 
         await supabaseClient.from('messages').insert([{
           pet_id: currentActivePet.id,
@@ -1213,13 +1214,14 @@
         .or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${otherUserId}),and(sender_id.eq.${otherUserId},receiver_id.eq.${currentUser.id})`)
         .order('created_at', { ascending: true });
 
-      if (error) { container.innerHTML = `<div class="text-center text-xs text-red-500 py-4">โหลดแชตไม่สำเร็จ</div>`; return; }
+      if (error) { container.innerHTML = `<div class="text-center text-xs text-red-500 py-4">โหลดแชตไม่สำเร็จ: ${error.message}</div>`; return; }
 
       await supabaseClient.from('messages').update({ is_read: true }).eq('pet_id', petId).eq('receiver_id', currentUser.id).eq('sender_id', otherUserId).or('is_read.is.null,is_read.eq.false');
       renderChatMessages(messages || []);
     }
 
     function renderChatMessages(messages) {
+      const container = document.getElementById('chat-messages-container');
       let html = `<div class="bg-amber-50 border border-amber-200 rounded-xl p-2.5 text-[11px] text-amber-800 text-center mb-2">ℹ️ รูปภาพและประวัติการสนทนาในห้องแชทประมูลนี้จะถูกจัดเก็บและลบอัตโนมัติเมื่อมีการปิดการซื้อขายสำเร็จ</div>`;
       if (!messages.length) {
         html += `<div class="text-center text-xs text-slate-400 py-6">ยังไม่มีข้อความสนทนา ทักทายผู้ชนะหรือผู้ขายได้เลยครับ!</div>`;
@@ -1234,8 +1236,8 @@
           return `<div class="flex flex-col ${isMe ? 'items-end' : 'items-start'}"><span class="text-[10px] text-slate-400 mb-0.5 px-1">${isMe ? 'คุณ' : (msg.sender_name || 'คู่สนทนา')}</span><div class="max-w-[75%] px-3.5 py-2 rounded-2xl text-xs ${isMe ? 'bg-blue-600 text-white rounded-br-none' : 'bg-white text-slate-800 border border-slate-200 rounded-bl-none shadow-sm'}">${contentHtml}</div><span class="text-[9px] text-slate-400 mt-0.5 px-1">${timeStr}</span></div>`;
         }).join('');
       }
-      chatMessagesContainer.innerHTML = html;
-      chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
+      container.innerHTML = html;
+      container.scrollTop = container.scrollHeight;
     }
 
     function subscribeToRealtimeChat(petId, otherUserId) {
@@ -1251,9 +1253,9 @@
 
     document.getElementById('chat-form').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const content = chatInput.value.trim();
+      const content = document.getElementById('chat-input').value.trim();
       if (!content || !currentActivePet || !currentUser) return;
-      chatInput.value = '';
+      document.getElementById('chat-input').value = '';
       await supabaseClient.from('messages').insert([{
         pet_id: currentActivePet.id,
         sender_id: currentUser.id,
