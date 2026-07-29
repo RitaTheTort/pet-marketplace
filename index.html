@@ -155,10 +155,11 @@
     </div>
   </div>
 
+  <!-- Modal: จัดการบัญชีผู้ใช้และตั้งค่าร้านค้า -->
   <div id="profile-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4 overflow-y-auto">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden my-8">
       <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center">
-        <h3 class="font-bold text-lg">จัดการบัญชีและสถานะ KYC</h3>
+        <h3 class="font-bold text-lg">จัดการบัญชีและตั้งค่าร้านค้า</h3>
         <button id="close-profile-btn" class="text-slate-400 hover:text-white text-xl font-bold">&times;</button>
       </div>
       
@@ -171,6 +172,17 @@
         <div>
           <label class="block text-xs font-bold text-slate-700 mb-1">ชื่อผู้ใช้ / ชื่อร้านค้า *</label>
           <input type="text" id="profile-name" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+        </div>
+
+        <!-- เพิ่มช่องตั้งค่าเลขบัญชีและที่อยู่สำหรับปุ่มด่วน -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">💳 เลขบัญชีธนาคาร / พร้อมเพย์ (สำหรับปุ่มด่วนแชท)</label>
+          <input type="text" id="profile-bank" placeholder="เช่น 123-4-56789-0 ธ.กสิกรไทย" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">📍 ที่อยู่จัดส่ง / ข้อมูลนัดรับ (สำหรับปุ่มด่วนแชท)</label>
+          <textarea id="profile-shipping" rows="2" placeholder="เช่น นัดรับสวนจตุจักร หรือจัดส่ง Flash Express ทั่วไทย" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"></textarea>
         </div>
 
         <div>
@@ -366,11 +378,10 @@
     </div>
   </div>
 
-  <!-- 🌟 หน้าต่างแชทอัจฉริยะ (เพิ่มปุ่มด่วนผู้ขาย, ส่งรูปแชท, และระบบปิดการขาย 2 ทาง) -->
+  <!-- 🌟 หน้าต่างแชทอัจฉริยะ (ดึงข้อมูลบัญชี/ที่อยู่ส่วนตัวของผู้ขายแต่ละคนมาใช้ในปุ่มด่วนอัตโนมัติ) -->
   <div id="chat-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg h-[620px] flex flex-col overflow-hidden relative">
       
-      <!-- Header แชท -->
       <div class="bg-slate-900 text-white px-5 py-3 flex justify-between items-center border-b border-slate-800">
         <div class="flex items-center space-x-3 min-w-0 pr-2">
           <button id="back-to-inbox-btn" class="text-slate-400 hover:text-white font-bold text-lg hidden mr-1 shrink-0">&larr;</button>
@@ -390,13 +401,12 @@
         </div>
       </div>
 
-      <!-- แถบปุ่มด่วนสำหรับผู้ขาย (แสดงเฉพาะเมื่อผู้ใช้เป็นเจ้าของประกาศ) -->
       <div id="seller-quick-actions" class="hidden bg-slate-100 border-b border-slate-200 px-3 py-1.5 flex items-center gap-1.5 overflow-x-auto text-xs shrink-0">
         <span class="text-[10px] text-slate-500 font-bold shrink-0">⚡ ปุ่มด่วน:</span>
-        <button onclick="sendQuickMessage('เลขบัญชี: [ระบุเลขบัญชี/ธนาคารที่นี่]')" class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 px-2 py-1 rounded-md font-medium shrink-0 shadow-sm">
+        <button onclick="sendSellerQuickAction('bank')" class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 px-2 py-1 rounded-md font-medium shrink-0 shadow-sm">
           📋 ส่งเลขบัญชี
         </button>
-        <button onclick="sendQuickMessage('ที่อยู่จัดส่ง / นัดรับ: [ระบุรายละเอียดที่นี่]')" class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 px-2 py-1 rounded-md font-medium shrink-0 shadow-sm">
+        <button onclick="sendSellerQuickAction('shipping')" class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 px-2 py-1 rounded-md font-medium shrink-0 shadow-sm">
           📍 ส่งที่อยู่/นัดรับ
         </button>
         <button onclick="sendQuickMessage('สรุปยอดชำระเงินรวม: ฿')" class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 px-2 py-1 rounded-md font-medium shrink-0 shadow-sm">
@@ -404,14 +414,11 @@
         </button>
       </div>
 
-      <!-- พื้นที่แสดงข้อความสนทนา -->
       <div id="chat-messages-container" class="flex-1 p-4 overflow-y-auto space-y-3 bg-slate-50 text-sm">
         <div class="text-center text-xs text-slate-400 py-4">กำลังโหลดประวัติการสนทนา...</div>
       </div>
 
-      <!-- ฟอร์มพิมพ์ข้อความและส่งรูปภาพ -->
       <form id="chat-form" class="p-3 bg-white border-t border-slate-200 flex items-center space-x-2 shrink-0">
-        <!-- ปุ่มแนบรูปภาพ -->
         <label for="chat-image-file" class="cursor-pointer bg-slate-100 hover:bg-slate-200 text-slate-600 p-2.5 rounded-xl transition flex items-center justify-center shrink-0" title="แนบรูปภาพ/สลิปโอนเงิน">
           📷
         </label>
@@ -426,7 +433,6 @@
     </div>
   </div>
 
-  <!-- Modal: ยืนยันการปิดการซื้อขาย 2 ทาง -->
   <div id="close-chat-confirm-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm hidden items-center justify-center z-[70] p-4">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden p-6 text-center space-y-4">
       <div class="w-14 h-14 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto text-2xl font-bold">
@@ -447,7 +453,6 @@
     </div>
   </div>
 
-  <!-- Modal: กล่องข้อความทั้งหมด -->
   <div id="inbox-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg h-[550px] flex flex-col overflow-hidden">
       <div class="bg-slate-900 text-white px-5 py-3.5 flex justify-between items-center border-b border-slate-800">
@@ -739,6 +744,8 @@
 
       document.getElementById('profile-email').value = currentUser.email || '';
       document.getElementById('profile-name').value = currentUser.user_metadata?.full_name || '';
+      document.getElementById('profile-bank').value = '';
+      document.getElementById('profile-shipping').value = '';
       document.getElementById('profile-kyc-file').value = '';
       
       const statusBox = document.getElementById('profile-kyc-status-box');
@@ -780,8 +787,14 @@
       if (profileData) {
         if (profileData.role) currentUserRole = profileData.role;
 
-        if (profileData.full_name && !document.getElementById('profile-name').value) {
+        if (profileData.full_name) {
           document.getElementById('profile-name').value = profileData.full_name;
+        }
+        if (profileData.bank_info) {
+          document.getElementById('profile-bank').value = profileData.bank_info;
+        }
+        if (profileData.shipping_info) {
+          document.getElementById('profile-shipping').value = profileData.shipping_info;
         }
         
         if (profileData.kyc_status === 'approved') {
@@ -812,6 +825,8 @@
       if (!currentUser) return;
 
       const newName = document.getElementById('profile-name').value.trim();
+      const bankInfo = document.getElementById('profile-bank').value.trim();
+      const shippingInfo = document.getElementById('profile-shipping').value.trim();
       const kycFile = document.getElementById('profile-kyc-file').files[0];
       const saveBtn = document.getElementById('save-profile-btn');
 
@@ -828,6 +843,8 @@
         const updatePayload = {
           id: currentUser.id,
           full_name: newName,
+          bank_info: bankInfo,
+          shipping_info: shippingInfo,
           updated_at: new Date()
         };
 
@@ -846,7 +863,7 @@
           data: { full_name: newName }
         });
 
-        alert('บันทึกข้อมูลโปรไฟล์สำเร็จเรียบร้อยแล้วครับ!');
+        alert('บันทึกข้อมูลโปรไฟล์และตั้งค่าร้านค้าสำเร็จเรียบร้อยแล้วครับ!');
         closeProfileModalFunc();
         updateAuthUI(currentUser);
       } catch (err) {
@@ -1386,7 +1403,7 @@
       openInboxModal();
     });
 
-    // --- ระบบแชทอัจฉริยะ (รูปภาพ + ปุ่มด่วนผู้ขาย + ปิดการขาย 2 ทาง) ---
+    // --- ระบบแชทอัจฉริยะ (ดึงข้อมูลบัญชีและที่อยู่เฉพาะของผู้ขายแต่ละคน) ---
     async function openChatModal(pet, otherUserId, otherUserName) {
       if (!pet) return;
 
@@ -1397,7 +1414,6 @@
       document.getElementById('chat-seller-avatar').innerText = (otherUserName || 'C').charAt(0).toUpperCase();
       document.getElementById('chat-pet-title').innerText = `ประกาศ: ${pet.title || 'สัตว์เลี้ยง'}`;
 
-      // แสดงแถบปุ่มด่วนเฉพาะเมื่อผู้ใช้ปัจจุบันเป็นเจ้าของประกาศ (ผู้ขาย)
       const sellerQuickActions = document.getElementById('seller-quick-actions');
       if (currentUser && pet.seller_id && currentUser.id === pet.seller_id) {
         sellerQuickActions.classList.remove('hidden');
@@ -1437,6 +1453,41 @@
         }]);
 
       if (error) alert(`ส่งข้อความด่วนไม่สำเร็จ: ${error.message}`);
+    };
+
+    // 🌟 ฟังก์ชันดึงข้อมูลบัญชีหรือที่อยู่เฉพาะของผู้ขายปัจจุบันมาส่งในแชทอัตโนมัติ
+    window.sendSellerQuickAction = async function(type) {
+      if (!currentUser) return;
+
+      const { data: profile } = await supabaseClient
+        .from('profiles')
+        .select('bank_info, shipping_info')
+        .eq('id', currentUser.id)
+        .single();
+
+      if (!profile) {
+        alert('กรุณาบันทึกข้อมูลโปรไฟล์ก่อนใช้งานปุ่มด่วนครับ');
+        return;
+      }
+
+      let messageText = '';
+      if (type === 'bank') {
+        if (!profile.bank_info) {
+          alert('คุณยังไม่ได้ตั้งค่า "เลขบัญชีธนาคาร" ในหน้าจัดการบัญชี (⚙️ จัดการ)');
+          return;
+        }
+        messageText = `📋 เลขบัญชี/พร้อมเพย์ สำหรับชำระเงิน:\n${profile.bank_info}`;
+      } else if (type === 'shipping') {
+        if (!profile.shipping_info) {
+          alert('คุณยังไม่ได้ตั้งค่า "ข้อมูลการจัดส่ง/นัดรับ" ในหน้าจัดการบัญชี (⚙️ จัดการ)');
+          return;
+        }
+        messageText = `📍 ข้อมูลการจัดส่ง / จุดนัดรับ:\n${profile.shipping_info}`;
+      }
+
+      if (messageText) {
+        sendQuickMessage(messageText);
+      }
     };
 
     window.handleChatImageUpload = async function(input) {
@@ -1529,13 +1580,13 @@
           const timeStr = new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
           const readStatus = msg.is_read ? '<span class="text-[9px] text-blue-500 font-bold ml-1">✓ อ่านแล้ว</span>' : '';
 
-          let contentHtml = `<p>${msg.content || ''}</p>`;
+          let contentHtml = `<p class="whitespace-pre-wrap">${msg.content || ''}</p>`;
           if (msg.image_url) {
             contentHtml = `
               <div class="mb-1 rounded-lg overflow-hidden cursor-pointer" onclick="window.open('${msg.image_url}', '_blank')">
                 <img src="${msg.image_url}" class="max-w-[200px] max-h-[200px] object-cover rounded-lg shadow-sm">
               </div>
-              ${msg.content && msg.content !== '[ส่งรูปภาพ]' ? `<p>${msg.content}</p>` : ''}
+              ${msg.content && msg.content !== '[ส่งรูปภาพ]' ? `<p class="whitespace-pre-wrap">${msg.content}</p>` : ''}
             `;
           }
 
@@ -1605,14 +1656,12 @@
       }
     });
 
-    // --- ระบบปิดการซื้อขาย / สนทนาแบบยืนยัน 2 ทาง (Dual-Confirmation Close) ---
     window.promptCloseChat = async function() {
       if (!currentUser || !currentActivePet || !targetChatUserId) return;
 
       const u1 = currentUser.id < targetChatUserId ? currentUser.id : targetChatUserId;
       const u2 = currentUser.id < targetChatUserId ? targetChatUserId : currentUser.id;
 
-      // ตรวจสอบสถานะคำขอในตาราง chat_closings
       const { data: closingData } = await supabaseClient
         .from('chat_closings')
         .select('*')
@@ -1651,7 +1700,6 @@
         .single();
 
       if (!closingData) {
-        // สร้างคำขอใหม่
         const { error } = await supabaseClient
           .from('chat_closings')
           .insert([{
@@ -1670,9 +1718,7 @@
           document.getElementById('close-chat-confirm-modal').classList.remove('flex');
         }
       } else {
-        // อีกฝ่ายกดยืนยันครบ 2 ทางแล้ว ทำการลบข้อมูลทั้งหมดทิ้งแบบถาวร
         try {
-          // 1. ดึงรายการข้อความทั้งหมดเพื่อตามไปลบไฟล์รูปภาพใน Storage (ถ้ามี)
           const { data: msgs } = await supabaseClient
             .from('messages')
             .select('image_url')
@@ -1690,14 +1736,12 @@
             }
           }
 
-          // 2. ลบข้อความในตาราง messages
           await supabaseClient
             .from('messages')
             .delete()
             .eq('pet_id', currentActivePet.id)
             .or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${targetChatUserId}),and(sender_id.eq.${targetChatUserId},receiver_id.eq.${currentUser.id})`);
 
-          // 3. ลบสถานะใน chat_closings
           await supabaseClient
             .from('chat_closings')
             .delete()
