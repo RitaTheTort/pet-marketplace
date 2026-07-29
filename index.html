@@ -110,7 +110,6 @@
     </div>
   </main>
 
-  <!-- Modal: สมัครสมาชิก / เข้าสู่ระบบ (เชื่อมต่อ LINE Login ของจริง) -->
   <div id="auth-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4 overflow-y-auto">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden my-8">
       <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center">
@@ -119,7 +118,6 @@
       </div>
       
       <form id="auth-form" class="p-6 space-y-4">
-        <!-- ปุ่มเข้าสู่ระบบผ่าน LINE ของจริง -->
         <div>
           <button type="button" onclick="handleLineLogin()" class="w-full py-2.5 bg-[#06C755] hover:bg-[#05b34c] text-white rounded-lg text-sm font-bold shadow transition flex items-center justify-center gap-2">
             <span>🟢 เข้าสู่ระบบ / สมัครสมาชิกด้วย LINE</span>
@@ -165,7 +163,6 @@
     </div>
   </div>
 
-  <!-- Modal: จัดการบัญชีผู้ใช้และอัปเดต KYC -->
   <div id="profile-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4 overflow-y-auto">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden my-8">
       <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center">
@@ -226,7 +223,6 @@
     </div>
   </div>
 
-  <!-- Modal: ลงประกาศสัตว์เลี้ยง -->
   <div id="add-pet-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4 overflow-y-auto">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden my-8">
       <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center">
@@ -290,7 +286,6 @@
     </div>
   </div>
 
-  <!-- Modal: รายละเอียดสัตว์เลี้ยง -->
   <div id="detail-pet-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4 overflow-y-auto">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg my-8 relative overflow-hidden">
       
@@ -370,7 +365,6 @@
     </div>
   </div>
 
-  <!-- Modal: ดูภาพขนาดใหญ่ (Lightbox) -->
   <div id="lightbox-modal" class="fixed inset-0 bg-black/90 hidden items-center justify-center z-[100] p-4" onclick="closeImageLightbox()">
     <div class="relative max-w-4xl max-h-full flex items-center justify-center">
       <button type="button" class="absolute -top-10 right-0 text-white bg-slate-800 hover:bg-slate-700 px-3 py-1 rounded-lg text-xs font-bold transition">✕ ปิดภาพใหญ่</button>
@@ -378,7 +372,6 @@
     </div>
   </div>
 
-  <!-- Modal: มอบป้ายรางวัล -->
   <div id="give-badge-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden">
       <div class="bg-slate-900 text-white px-5 py-3.5 flex justify-between items-center">
@@ -395,7 +388,6 @@
     </div>
   </div>
 
-  <!-- Modal: แชทสนทนา -->
   <div id="chat-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg h-[550px] flex flex-col overflow-hidden">
       <div class="bg-slate-900 text-white px-5 py-3.5 flex justify-between items-center border-b border-slate-800">
@@ -425,7 +417,6 @@
     </div>
   </div>
 
-  <!-- Modal: กล่องข้อความทั้งหมด -->
   <div id="inbox-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg h-[550px] flex flex-col overflow-hidden">
       <div class="bg-slate-900 text-white px-5 py-3.5 flex justify-between items-center border-b border-slate-800">
@@ -557,16 +548,16 @@
       window.location.href = lineAuthUrl;
     };
 
-    // --- ตรวจสอบ Callback จาก LINE Login โดยใช้ Persistent ID ตัวเดียวกับหน้า Auction ---
+    // --- ตรวจสอบ Callback จาก LINE Login โดยใช้ Persistent ID ตัวเดียวกับหน้า Auction อย่างแม่นยำ ---
     async function handleLineCallback() {
       const urlParams = new URLSearchParams(window.location.search);
       const code = urlParams.get('code');
-      const savedState = localStorage.getItem('line_login_state');
 
       if (code) {
         window.history.replaceState({}, document.title, window.location.pathname);
         localStorage.removeItem('line_login_state');
 
+        // ตรวจสอบว่ามี persistent ID อยู่แล้วหรือไม่ ถ้ายังไม่มีค่อยสร้างใหม่ครั้งเดียวจบ
         let persistentLineId = localStorage.getItem('persistent_line_id');
         let persistentLineEmail = localStorage.getItem('persistent_line_email');
 
@@ -712,6 +703,7 @@
       globalNotificationChannel.subscribe();
     }
 
+    // 🌟 ฟังก์ชันตรวจสอบ Session รองรับทั้ง Email และ Persistent LINE ID แบบถาวร
     async function checkUserSession() {
       const { data: { session } } = await supabaseClient.auth.getSession();
       if (session && session.user) {
@@ -1242,6 +1234,23 @@
         fetchPets();
       } catch (err) {
         alert(`เกิดข้อผิดพลาดในการลบสมาชิก: ${err.message}`);
+      }
+    };
+
+    window.cleanupLineDuplicates = async function() {
+      if (!confirm('คุณต้องการเคลียร์บัญชีจำลอง LINE ที่ไม่ได้ใช้งานหรือซ้ำซ้อนออกทั้งหมดใช่หรือไม่?')) return;
+      try {
+        const { data, error } = await supabaseClient
+          .from('profiles')
+          .delete()
+          .like('id', 'line_real_%');
+
+        if (error) throw error;
+        alert('🧹 ล้างข้อมูลบัญชี LINE ซ้ำซ้อนเรียบร้อยแล้วครับ!');
+        if (typeof fetchAdminKycData === 'function') fetchAdminKycData();
+        if (typeof fetchAdminUsersData === 'function') fetchAdminUsersData();
+      } catch (err) {
+        alert('เกิดข้อผิดพลาดในการเคลียร์ข้อมูล: ' + err.message);
       }
     };
 
@@ -1861,7 +1870,7 @@
       fetchPets();
       handleLineCallback();
 
-      // 🌟 เรียกใช้งาน checkUserSession เพื่อตรวจสอบและดึง Persistent LINE Session ทันทีโดยไม่สร้างไอดีใหม่
+      // 🌟 ตรวจสอบและดึง Persistent LINE Session ทันทีโดยไม่สร้างไอดีใหม่
       checkUserSession();
 
       supabaseClient.auth.onAuthStateChange(async (event, session) => {
