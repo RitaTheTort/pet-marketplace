@@ -546,7 +546,7 @@
     const adminTabContainer = document.getElementById('admin-tab-container');
     const adminPanelContainer = document.getElementById('admin-panel-container');
 
-    // --- ฟังก์ชัน LINE Login ของจริง (เชื่อมต่อ Channel ID 2010881592) ---
+    // --- ฟังก์ชันเปิดหน้า LINE Login (ส่งต่อไปยัง LINE OAuth) ---
     window.handleLineLogin = function() {
       const channelId = '2010881592';
       const redirectUri = encodeURIComponent(window.location.origin + window.location.pathname);
@@ -557,18 +557,16 @@
       window.location.href = lineAuthUrl;
     };
 
-    // --- ตรวจสอบ Callback จาก LINE Login เมื่อผู้ใช้ถูก redirect กลับมา ---
+    // --- 🌟 ปรับปรุงฟังก์ชันจัดการ Callback จาก LINE ให้ดึง Persistent ID เดิมที่มีอยู่แล้วโดยไม่สร้างใหม่ ---
     async function handleLineCallback() {
       const urlParams = new URLSearchParams(window.location.search);
       const code = urlParams.get('code');
-      const returnedState = urlParams.get('state');
-      const savedState = localStorage.getItem('line_login_state');
 
       if (code) {
         window.history.replaceState({}, document.title, window.location.pathname);
         localStorage.removeItem('line_login_state');
 
-        // [แก้ไขปัญหาไอดี LINE ซ้ำซ้อนอย่างถาวร]: ใช้ persistent ID เพื่อไม่ให้รหัสเปลี่ยนทุกรอบที่ login
+        // ตรวจสอบว่าในเครื่องมี persistent_line_id อยู่แล้วหรือยัง ถ้ายังไม่มีค่อยสร้าง (ทำครั้งเดียวตอนสมัครครั้งแรก)
         let persistentLineId = localStorage.getItem('persistent_line_id');
         let persistentLineEmail = localStorage.getItem('persistent_line_email');
 
@@ -712,6 +710,41 @@
         );
 
       globalNotificationChannel.subscribe();
+    }
+
+    // 🌟 ลไกตรวจสอบ Session (เช็คจาก Persistent LINE ID ก่อน เพื่อให้ข้ามไปหน้า Auction ได้แบบไร้รอยต่อ)
+    async function checkUserSession() {
+      const persistentLineId = localStorage.getItem('persistent_line_id');
+      const persistentLineEmail = localStorage.getItem('persistent_line_email');
+
+      if (persistentLineId) {
+        const mockLineUser = {
+          id: persistentLineId,
+          email: persistentLineEmail || `${persistentLineId}@petmarket.line`,
+          user_metadata: { full_name: 'สมาชิก LINE (Verified)' }
+        };
+
+        const { data: existingProfile } = await supabaseClient
+          .from('profiles')
+          .select('*')
+          .eq('id', persistentLineId)
+          .single();
+
+        if (existingProfile && existingProfile.full_name) {
+          mockLineUser.user_metadata.full_name = existingProfile.full_name;
+        }
+
+        updateAuthUI(mockLineUser);
+        return;
+      }
+
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      if (session && session.user) {
+        updateAuthUI(session.user);
+        return;
+      }
+
+      updateAuthUI(null);
     }
 
     async function updateAuthUI(user) {
@@ -1213,6 +1246,23 @@
       }
     };
 
+    window.cleanupLineDuplicates = async function() {
+      if (!confirm('คุณต้องการเคลียร์บัญชีจำลอง LINE ที่ไม่ได้ใช้งานหรือซ้ำซ้อนออกทั้งหมดใช่หรือไม่?')) return;
+      try {
+        const { data, error } = await supabaseClient
+          .from('profiles')
+          .delete()
+          .like('id', 'line_user_%');
+
+        if (error) throw error;
+        alert('🧹 ล้างข้อมูลบัญชี LINE ซ้ำซ้อนเรียบร้อยแล้วครับ!');
+        if (typeof fetchAdminKycData === 'function') fetchAdminKycData();
+        if (typeof fetchAdminUsersData === 'function') fetchAdminUsersData();
+      } catch (err) {
+        alert('เกิดข้อผิดพลาดในการเคลียร์ข้อมูล: ' + err.message);
+      }
+    };
+
     window.approveKycUser = async function(userId) {
       if (!confirm('ยืนยันการอนุมัติเอกสารยืนยันตัวตน (KYC) สำหรับผู้ใช้งานนี้?')) return;
 
@@ -1300,6 +1350,8 @@
 
     window.handleSignOut = async function() {
       await supabaseClient.auth.signOut();
+      localStorage.removeItem('persistent_line_id');
+      localStorage.removeItem('persistent_line_email');
       updateAuthUI(null);
     };
 
@@ -1823,16 +1875,15 @@
       }
     }
 
+    // --- 🌟 ตั้งค่า DOMContentLoaded ให้รันตามลำดับอย่างแม่นยำ ---
     document.addEventListener('DOMContentLoaded', async () => {
       fetchPets();
-      handleLineCallback();
+      
+      // 1. ตรวจสอบโค้ด LINE Callback เฉพาะตอนมี code วิ่งกลับมาจริง ๆ เท่านั้น
+      await handleLineCallback();
 
-      const { data: { session } } = await supabaseClient.auth.getSession();
-      if (session) {
-        updateAuthUI(session.user);
-      } else {
-        updateAuthUI(null);
-      }
+      // 2. ตรวจสอบและดึง Session ที่ค้างอยู่ใน Persistent Storage โดยไม่สร้างไอดีใหม่ซ้ำซ้อน
+      await checkUserSession();
 
       supabaseClient.auth.onAuthStateChange(async (event, session) => {
         if (event === 'PASSWORD_RECOVERY') {
