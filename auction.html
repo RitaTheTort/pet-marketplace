@@ -18,15 +18,10 @@
         <span class="text-slate-600">|</span>
         <span class="text-xl font-extrabold text-red-400 tracking-wide">Live Auction Hub</span>
       </div>
-      
-      <!-- 🌟 เพิ่มปุ่มแชท (Inbox) ใน Header ของหน้าประมูล -->
-      <div class="flex items-center space-x-2">
-        <div id="dynamic-action-area" class="flex items-center space-x-2"></div>
-        <div class="flex items-center space-x-2" id="auth-buttons-container">
-          <button id="open-auth-modal-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-3.5 py-1.5 rounded-lg text-xs transition shadow-sm">
-            เข้าสู่ระบบ
-          </button>
-        </div>
+      <div class="flex items-center space-x-2" id="auth-buttons-container">
+        <button id="open-auth-modal-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-3.5 py-1.5 rounded-lg text-xs transition shadow-sm">
+          เข้าสู่ระบบ
+        </button>
       </div>
     </div>
   </header>
@@ -273,22 +268,6 @@
     </div>
   </div>
 
-  <!-- 🌟 Modal: กล่องข้อความรวม (Inbox Modal) สำหรับหน้าประมูล -->
-  <div id="inbox-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
-    <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg h-[550px] flex flex-col overflow-hidden">
-      <div class="bg-slate-900 text-white px-5 py-3.5 flex justify-between items-center border-b border-slate-800">
-        <div class="flex items-center space-x-2">
-          <span class="text-lg">💬</span>
-          <h4 class="font-bold text-base">กล่องข้อความสนทนาทั้งหมด</h4>
-        </div>
-        <button id="close-inbox-btn" class="text-slate-400 hover:text-white text-xl font-bold">&times;</button>
-      </div>
-      <div id="inbox-list-container" class="flex-1 overflow-y-auto p-4 divide-y divide-slate-100">
-        <div class="text-center text-xs text-slate-400 py-8">กำลังดึงรายการกล่องข้อความ...</div>
-      </div>
-    </div>
-  </div>
-
   <div id="create-auction-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4 overflow-y-auto">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden my-8">
       <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center">
@@ -440,43 +419,8 @@
     let currentAuctionCategory = 'ALL';
 
     // ตัวแปรสำหรับระบบแชท
-    let currentActivePet = null;
     let chatRealtimeChannel = null;
-    let globalNotificationChannel = null;
     let targetChatUserId = null;
-
-    async function checkUnreadMessages() {
-      if (!currentUser) return;
-      const { count, error } = await supabaseClient
-        .from('messages')
-        .select('*', { count: 'exact', head: true })
-        .eq('receiver_id', currentUser.id)
-        .or('is_read.is.null,is_read.eq.false');
-
-      const badge = document.getElementById('unread-badge');
-      if (badge) {
-        if (!error && count && count > 0) {
-          badge.innerText = count > 99 ? '99+' : count;
-          badge.classList.remove('hidden');
-        } else {
-          badge.classList.add('hidden');
-        }
-      }
-    }
-
-    async function subscribeGlobalNotification() {
-      if (!currentUser) return;
-      if (globalNotificationChannel) {
-        await supabaseClient.removeChannel(globalNotificationChannel);
-        globalNotificationChannel = null;
-      }
-      globalNotificationChannel = supabaseClient
-        .channel(`global-notif-${currentUser.id}`)
-        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `receiver_id=eq.${currentUser.id}` }, () => {
-          checkUnreadMessages();
-        })
-        .subscribe();
-    }
 
     async function updateAuthUI(user) {
       currentUser = user;
@@ -484,7 +428,6 @@
       currentKycStatus = 'unverified';
       userFavorites = [];
       const container = document.getElementById('auth-buttons-container');
-      const dynamicActionArea = document.getElementById('dynamic-action-area');
       const createAucBtn = document.getElementById('open-create-auc-btn');
 
       if (user) {
@@ -506,7 +449,9 @@
           .select('seller_id')
           .eq('user_id', user.id);
 
-        if (favData) userFavorites = favData.map(f => f.seller_id);
+        if (favData) {
+          userFavorites = favData.map(f => f.seller_id);
+        }
 
         container.innerHTML = `
           <div class="flex items-center space-x-2 bg-slate-800 px-3 py-1.5 rounded-lg text-xs text-white">
@@ -514,24 +459,11 @@
             <button onclick="handleSignOut()" class="text-red-400 font-bold ml-1">ออก</button>
           </div>
         `;
-
-        if (dynamicActionArea) {
-          dynamicActionArea.innerHTML = `
-            <button id="open-inbox-btn" onclick="openInboxModal()" class="relative bg-slate-800 hover:bg-slate-700 text-blue-400 border border-slate-700 font-medium px-3 py-1.5 rounded-lg text-xs transition flex items-center gap-1 shrink-0" title="กล่องข้อความ">
-              💬 แชท
-              <span id="unread-badge" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-[9px] font-bold px-1.5 py-0.2 rounded-full animate-pulse">0</span>
-            </button>
-          `;
-        }
-
         if (createAucBtn) createAucBtn.classList.remove('hidden');
-        checkUnreadMessages();
-        subscribeGlobalNotification();
       } else {
         container.innerHTML = `
           <button onclick="document.getElementById('auth-modal').classList.remove('hidden'); document.getElementById('auth-modal').classList.add('flex');" class="bg-blue-600 text-white px-3.5 py-1.5 rounded-lg text-xs font-bold shadow">เข้าสู่ระบบ</button>
         `;
-        if (dynamicActionArea) dynamicActionArea.innerHTML = '';
         if (createAucBtn) createAucBtn.classList.add('hidden');
       }
       if (activeAuction) updateBidButtonState();
@@ -974,82 +906,6 @@
       openChatModal(activeAuction, activeAuction.last_bidder_id, activeAuction.last_bidder_name || 'ผู้ชนะประมูล');
     };
 
-    // ==========================================
-    // 🌟 ระบบ Inbox (กล่องข้อความรวม) ในหน้าประมูล
-    // ==========================================
-    window.openInboxModal = async function() {
-      if (!currentUser) return;
-      lockBodyScroll();
-      const modal = document.getElementById('inbox-modal');
-      const listContainer = document.getElementById('inbox-list-container');
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
-      listContainer.innerHTML = '<div class="text-center text-xs text-slate-400 py-8">กำลังโหลดรายการข้อความ...</div>';
-
-      const { data: messages, error } = await supabaseClient
-        .from('messages')
-        .select('*')
-        .or(`sender_id.eq.${currentUser.id},receiver_id.eq.${currentUser.id}`)
-        .order('created_at', { ascending: false });
-
-      if (error || !messages || messages.length === 0) {
-        listContainer.innerHTML = `<div class="text-center text-xs text-slate-400 py-8">ยังไม่มีกล่องข้อความการสนทนา</div>`;
-        return;
-      }
-
-      const chatGroups = {};
-      messages.forEach(msg => {
-        const otherUserId = (msg.sender_id === currentUser.id) ? msg.receiver_id : msg.sender_id;
-        const key = `${msg.pet_id}_${otherUserId}`;
-        if (!chatGroups[key]) {
-          const isUnread = (msg.receiver_id === currentUser.id) && (msg.is_read === false || msg.is_read === null);
-          chatGroups[key] = {
-            pet_id: msg.pet_id,
-            otherUserId: otherUserId,
-            otherUserName: (msg.sender_id === currentUser.id) ? 'ผู้ขาย/คู่สนทนา' : (msg.sender_name || 'ผู้ซื้อ'),
-            lastMessage: msg.content || '[ส่งรูปภาพ]',
-            lastTime: msg.created_at,
-            hasUnread: isUnread
-          };
-        }
-      });
-
-      const groupList = Object.values(chatGroups);
-      listContainer.innerHTML = groupList.map(item => {
-        const aucObj = globalAuctions.find(a => a.id === item.pet_id) || { id: item.pet_id, title: 'สินค้าประมูล' };
-        const timeStr = new Date(item.lastTime).toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-
-        return `
-          <div onclick="selectChatFromInbox('${item.pet_id}', '${item.otherUserId}', '${item.otherUserName}', '${aucObj.title}')" class="p-3.5 hover:bg-slate-100 cursor-pointer rounded-xl transition flex justify-between items-center ${item.hasUnread ? 'bg-blue-50 border-l-4 border-blue-600' : ''}">
-            <div class="flex items-center space-x-3">
-              <div class="relative w-10 h-10 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-sm">
-                ${item.otherUserName.charAt(0).toUpperCase()}
-              </div>
-              <div>
-                <p class="font-bold text-slate-800 text-sm">${item.otherUserName}</p>
-                <p class="text-xs text-blue-600 font-semibold truncate max-w-[180px]">${aucObj.title}</p>
-                <p class="text-xs ${item.hasUnread ? 'text-slate-900 font-extrabold' : 'text-slate-500'} truncate max-w-[200px]">${item.lastMessage}</p>
-              </div>
-            </div>
-            <span class="text-[10px] text-slate-400">${timeStr}</span>
-          </div>
-        `;
-      }).join('');
-    };
-
-    document.getElementById('close-inbox-btn').addEventListener('click', () => {
-      unlockBodyScroll();
-      document.getElementById('inbox-modal').classList.add('hidden');
-      document.getElementById('inbox-modal').classList.remove('flex');
-    });
-
-    window.selectChatFromInbox = function(aucId, otherUserId, otherUserName, aucTitle) {
-      document.getElementById('inbox-modal').classList.add('hidden');
-      document.getElementById('inbox-modal').classList.remove('flex');
-      const aucObj = globalAuctions.find(a => a.id === aucId) || { id: aucId, title: aucTitle, seller_id: otherUserId };
-      openChatModal(aucObj, otherUserId, otherUserName);
-    };
-
     function setupRealtimeSubscription(aucId) {
       if (activeSubscription) supabaseClient.removeChannel(activeSubscription);
 
@@ -1256,11 +1112,11 @@
     };
 
     // ==========================================
-    // 🌟 ระบบแชทอัจฉริยะในหน้าประมูล
+    // 🌟 ระบบแชทอัจฉริยะในหน้าประมูล (เชื่อมโยงตาราง messages และ chat_closings)
     // ==========================================
     async function openChatModal(auc, otherUserId, otherUserName) {
       if (!auc || !currentUser) return;
-      currentActivePet = auc; 
+      currentActivePet = auc; // ใช้ตัวแปรเดียวกับหน้า index เพื่อให้ระบบแชทอ้างอิงรอด
       targetChatUserId = otherUserId;
 
       document.getElementById('chat-seller-name').innerText = otherUserName || 'คู่สนทนา';
@@ -1281,6 +1137,13 @@
       await fetchChatMessages(auc.id, otherUserId);
       subscribeToRealtimeChat(auc.id, otherUserId);
     }
+
+    document.getElementById('close-chat-btn').addEventListener('click', () => {
+      unlockBodyScroll();
+      document.getElementById('chat-modal').classList.add('hidden');
+      document.getElementById('chat-modal').classList.remove('flex');
+      if (chatRealtimeChannel) supabaseClient.removeChannel(chatRealtimeChannel);
+    });
 
     window.sendQuickMessage = async function(text) {
       if (!currentActivePet || !currentUser || !targetChatUserId) return;
@@ -1324,7 +1187,7 @@
         const fileName = `chat_auc_${currentActivePet.id}_${Date.now()}.${file.name.split('.').pop()}`;
         const { error: uploadError } = await supabaseClient.storage.from('chat-images').upload(fileName, optimizedFile);
         if (uploadError) throw uploadError;
-        const { data: publicUrlData } = await supabaseClient.storage.from('chat-images').getPublicUrl(fileName);
+        const { data: publicUrlData } = supabaseClient.storage.from('chat-images').getPublicUrl(fileName);
 
         await supabaseClient.from('messages').insert([{
           pet_id: currentActivePet.id,
@@ -1350,15 +1213,13 @@
         .or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${otherUserId}),and(sender_id.eq.${otherUserId},receiver_id.eq.${currentUser.id})`)
         .order('created_at', { ascending: true });
 
-      if (error) { container.innerHTML = `<div class="text-center text-xs text-red-500 py-4">โหลดแชตไม่สำเร็จ: ${error.message}</div>`; return; }
+      if (error) { container.innerHTML = `<div class="text-center text-xs text-red-500 py-4">โหลดแชตไม่สำเร็จ</div>`; return; }
 
       await supabaseClient.from('messages').update({ is_read: true }).eq('pet_id', petId).eq('receiver_id', currentUser.id).eq('sender_id', otherUserId).or('is_read.is.null,is_read.eq.false');
-      checkUnreadMessages();
       renderChatMessages(messages || []);
     }
 
     function renderChatMessages(messages) {
-      const container = document.getElementById('chat-messages-container');
       let html = `<div class="bg-amber-50 border border-amber-200 rounded-xl p-2.5 text-[11px] text-amber-800 text-center mb-2">ℹ️ รูปภาพและประวัติการสนทนาในห้องแชทประมูลนี้จะถูกจัดเก็บและลบอัตโนมัติเมื่อมีการปิดการซื้อขายสำเร็จ</div>`;
       if (!messages.length) {
         html += `<div class="text-center text-xs text-slate-400 py-6">ยังไม่มีข้อความสนทนา ทักทายผู้ชนะหรือผู้ขายได้เลยครับ!</div>`;
@@ -1366,17 +1227,15 @@
         html += messages.map(msg => {
           const isMe = currentUser && (msg.sender_id === currentUser.id);
           const timeStr = new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-          const readStatus = msg.is_read ? '<span class="text-[9px] text-blue-500 font-bold ml-1">✓ อ่านแล้ว</span>' : '';
-
           let contentHtml = `<p class="whitespace-pre-wrap">${msg.content || ''}</p>`;
           if (msg.image_url) {
             contentHtml = `<div class="mb-1 rounded-lg overflow-hidden cursor-pointer" onclick="window.open('${msg.image_url}', '_blank')"><img src="${msg.image_url}" class="max-w-[200px] max-h-[200px] object-cover rounded-lg shadow-sm"></div>${msg.content && msg.content !== '[ส่งรูปภาพ]' ? `<p class="whitespace-pre-wrap">${msg.content}</p>` : ''}`;
           }
-          return `<div class="flex flex-col ${isMe ? 'items-end' : 'items-start'}"><span class="text-[10px] text-slate-400 mb-0.5 px-1">${isMe ? 'คุณ' : (msg.sender_name || 'คู่สนทนา')}</span><div class="max-w-[75%] px-3.5 py-2 rounded-2xl text-xs ${isMe ? 'bg-blue-600 text-white rounded-br-none' : 'bg-white text-slate-800 border border-slate-200 rounded-bl-none shadow-sm'}">${contentHtml}</div><div class="flex items-center mt-0.5 px-1"><span class="text-[9px] text-slate-400">${timeStr}</span>${isMe ? readStatus : ''}</div></div>`;
+          return `<div class="flex flex-col ${isMe ? 'items-end' : 'items-start'}"><span class="text-[10px] text-slate-400 mb-0.5 px-1">${isMe ? 'คุณ' : (msg.sender_name || 'คู่สนทนา')}</span><div class="max-w-[75%] px-3.5 py-2 rounded-2xl text-xs ${isMe ? 'bg-blue-600 text-white rounded-br-none' : 'bg-white text-slate-800 border border-slate-200 rounded-bl-none shadow-sm'}">${contentHtml}</div><span class="text-[9px] text-slate-400 mt-0.5 px-1">${timeStr}</span></div>`;
         }).join('');
       }
-      container.innerHTML = html;
-      container.scrollTop = container.scrollHeight;
+      chatMessagesContainer.innerHTML = html;
+      chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
     }
 
     function subscribeToRealtimeChat(petId, otherUserId) {
@@ -1392,9 +1251,9 @@
 
     document.getElementById('chat-form').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const content = document.getElementById('chat-input').value.trim();
+      const content = chatInput.value.trim();
       if (!content || !currentActivePet || !currentUser) return;
-      document.getElementById('chat-input').value = '';
+      chatInput.value = '';
       await supabaseClient.from('messages').insert([{
         pet_id: currentActivePet.id,
         sender_id: currentUser.id,
