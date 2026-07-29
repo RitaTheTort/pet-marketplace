@@ -82,7 +82,7 @@
     </div>
   </main>
 
-  <!-- 🌟 Modal: ห้องประมูลของฉัน (My Auctions Dashboard) -->
+  <!-- 🌟 Modal: ห้องประมูลของฉัน (เพิ่มสถิติ + ฟิลเตอร์) -->
   <div id="my-auctions-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden items-center justify-center z-50 p-3 md:p-6 overflow-y-auto">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl overflow-hidden my-auto relative flex flex-col max-h-[90vh]">
       <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center shrink-0 sticky top-0 z-20 shadow">
@@ -93,10 +93,25 @@
         <button onclick="closeMyAuctionsModal()" class="text-slate-400 hover:text-white text-2xl font-bold px-2 py-0.5 rounded-lg transition">&times;</button>
       </div>
 
-      <div class="p-4 md:p-6 bg-slate-50 overflow-y-auto flex-1 space-y-4">
-        <div class="bg-blue-50 border border-blue-200 p-3.5 rounded-xl text-xs text-blue-800">
-          ℹ️ จัดการสถานะคำสั่งซื้อสินค้าที่คุณเปิดประมูล เช่น อัปเดตสถานะการชำระเงิน หรือสถานะการจัดส่ง (การปิดประมูลจะเกิดขึ้นเมื่อมีผู้กดซื้อทันทีหรือหมดเวลาเท่านั้น)
+      <div class="p-4 md:p-6 bg-slate-50 overflow-y-auto flex-1 space-y-6">
+        <!-- 📊 แผงสถิติภาพรวมร้านของฉัน -->
+        <div class="bg-white p-4 md:p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+          <h4 class="font-extrabold text-slate-900 text-sm flex items-center gap-2">
+            <span>📈 ภาพรวมสถิติสินค้าและคำสั่งซื้อของคุณ</span>
+          </h4>
+          <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 text-center" id="my-stats-container">
+            <!-- เรนเดอร์สถิติผ่าน JS -->
+          </div>
         </div>
+
+        <!-- แถบฟิลเตอร์สถานะคำสั่งซื้อในห้องของฉัน -->
+        <div class="flex flex-wrap items-center gap-2 pb-2 border-b border-slate-200" id="my-filter-tabs">
+          <button onclick="filterMyAuctions('ALL')" class="my-hall-tab bg-slate-900 text-white px-3.5 py-1.5 rounded-full text-xs font-bold transition shadow-sm">ทั้งหมด</button>
+          <button onclick="filterMyAuctions('รอการชำระเงิน')" class="my-hall-tab bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 px-3.5 py-1.5 rounded-full text-xs font-bold transition">⏳ รอการชำระเงิน</button>
+          <button onclick="filterMyAuctions('ชำระเงินแล้ว')" class="my-hall-tab bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 px-3.5 py-1.5 rounded-full text-xs font-bold transition">💳 ชำระเงินแล้ว</button>
+          <button onclick="filterMyAuctions('จัดส่งสำเร็จแล้ว')" class="my-hall-tab bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 px-3.5 py-1.5 rounded-full text-xs font-bold transition">🚚 จัดส่งสำเร็จแล้ว</button>
+        </div>
+
         <div id="my-auctions-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4 pb-4">
           <div class="col-span-full text-center py-8 text-slate-400 text-xs">กำลังโหลดรายการของคุณ...</div>
         </div>
@@ -104,7 +119,7 @@
     </div>
   </div>
 
-  <!-- 🌟 Modal: ฮอลประมูล (Admin Auction Hall & Overview) -->
+  <!-- 🌟 Modal: ฮอลประมูล (Admin Hall) -->
   <div id="admin-hall-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden items-center justify-center z-50 p-3 md:p-6 overflow-y-auto">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-5xl overflow-hidden my-auto relative flex flex-col max-h-[90vh]">
       <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center shrink-0 sticky top-0 z-20 shadow">
@@ -116,17 +131,13 @@
       </div>
 
       <div class="p-4 md:p-6 bg-slate-50 overflow-y-auto flex-1 space-y-6">
-        <!-- 📊 แผงสถิติภาพรวมตลาดประมูล -->
         <div class="bg-white p-4 md:p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
           <h4 class="font-extrabold text-slate-900 text-sm flex items-center gap-2">
             <span>📈 ภาพรวมสถิติตลาดประมูลและคำสั่งซื้อ</span>
           </h4>
-          <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 text-center" id="admin-stats-container">
-            <!-- เรนเดอร์สถิติผ่าน JS -->
-          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 text-center" id="admin-stats-container"></div>
         </div>
 
-        <!-- แถบฟิลเตอร์สถานะคำสั่งซื้อสำหรับแอดมิน -->
         <div class="flex flex-wrap items-center gap-2 pb-2 border-b border-slate-200" id="admin-filter-tabs">
           <button onclick="filterAdminHall('ALL')" class="admin-hall-tab bg-slate-900 text-white px-3.5 py-1.5 rounded-full text-xs font-bold transition shadow-sm">ทั้งหมด</button>
           <button onclick="filterAdminHall('รอการชำระเงิน')" class="admin-hall-tab bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 px-3.5 py-1.5 rounded-full text-xs font-bold transition">⏳ รอการชำระเงิน</button>
@@ -135,7 +146,7 @@
         </div>
 
         <div id="admin-hall-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4 pb-4">
-          <div class="col-span-full text-center py-8 text-slate-400 text-xs">กำลังโหลดรายการฮอลประมูล...</div>
+          <div class="col-span-full text-center py-8 text-slate-400 text-xs">กำลังโหลดฮอลประมูล...</div>
         </div>
       </div>
     </div>
@@ -184,7 +195,6 @@
               </div>
             </div>
 
-            <!-- ปุ่มพิเศษสำหรับผู้เปิดประมูล -->
             <div id="seller-back-dashboard-container" class="my-2"></div>
 
             <h2 id="sa-title" class="text-lg md:text-xl font-extrabold text-slate-900">ชื่อสินค้า</h2>
@@ -493,6 +503,7 @@
     let cachedInboxGroups = [];
     let activeChatMetaData = null;
     let currentAdminHallFilter = 'ALL';
+    let currentMyAuctionsFilter = 'ALL'; // 🌟 ตัวแปรฟิลเตอร์สำหรับห้องประมูลของฉัน
 
     async function updateAuthUI(user) {
       currentUser = user;
@@ -543,7 +554,6 @@
           `;
         }
 
-        // 🌟 แสดงปุ่ม "ฮอลประมูล" เฉพาะผู้ที่มีสิทธิ์ Admin / Super Admin
         if (adminHallNavContainer) {
           if (currentUserRole === 'admin' || currentUserRole === 'super_admin') {
             adminHallNavContainer.innerHTML = `
@@ -596,14 +606,30 @@
       `;
     }
 
-    // 🌟 ฟังก์ชันเปิด-ปิด และเรนเดอร์ข้อมูลใน Modal "ห้องประมูลของฉัน"
+    // 🌟 ฟังก์ชันฟิลเตอร์สำหรับห้องประมูลของฉัน
+    window.filterMyAuctions = async function(status) {
+      currentMyAuctionsFilter = status;
+      const tabs = document.querySelectorAll('.my-hall-tab');
+      tabs.forEach(tab => {
+        tab.className = 'my-hall-tab bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 px-3.5 py-1.5 rounded-full text-xs font-bold transition';
+      });
+      event.target.className = 'my-hall-tab bg-slate-900 text-white px-3.5 py-1.5 rounded-full text-xs font-bold transition shadow-sm';
+      await renderMyAuctionsData();
+    };
+
+    // 🌟 ฟังก์ชันเปิด-ปิด และเรนเดอร์ข้อมูลใน Modal "ห้องประมูลของฉัน" (เพิ่มสถิติ + เปอร์เซ็นต์)
     window.openMyAuctionsModal = async function() {
       if (!currentUser) return;
       lockBodyScroll();
       const modal = document.getElementById('my-auctions-modal');
-      const grid = document.getElementById('my-auctions-grid');
       modal.classList.remove('hidden');
       modal.classList.add('flex');
+      await renderMyAuctionsData();
+    };
+
+    async function renderMyAuctionsData() {
+      const grid = document.getElementById('my-auctions-grid');
+      const statsContainer = document.getElementById('my-stats-container');
       grid.innerHTML = '<div class="col-span-full text-center py-8 text-slate-400 text-xs">กำลังโหลดรายการห้องประมูลของคุณ...</div>';
 
       const { data, error } = await supabaseClient
@@ -612,12 +638,53 @@
         .eq('seller_id', currentUser.id)
         .order('created_at', { ascending: false });
 
-      if (error || !data || data.length === 0) {
-        grid.innerHTML = `<div class="col-span-full text-center py-12 text-slate-400 text-xs bg-white rounded-xl border border-slate-200">คุณยังไม่มีรายการเปิดประมูลสินค้าในขณะนี้</div>`;
+      if (error || !data) {
+        grid.innerHTML = `<div class="col-span-full text-center py-12 text-red-500 text-xs bg-white rounded-xl border border-slate-200">โหลดข้อมูลไม่สำเร็จ</div>`;
         return;
       }
 
-      grid.innerHTML = data.map(auc => {
+      // 📊 คำนวณสถิติภาพรวมร้านของฉัน
+      const totalCount = data.length;
+      const waitingCount = data.filter(d => (d.order_status || 'รอการชำระเงิน') === 'รอการชำระเงิน').length;
+      const paidCount = data.filter(d => d.order_status === 'ชำระเงินแล้ว').length;
+      const shippedCount = data.filter(d => d.order_status === 'จัดส่งสำเร็จแล้ว').length;
+
+      const waitingPct = totalCount > 0 ? ((waitingCount / totalCount) * 100).toFixed(1) : 0;
+      const paidPct = totalCount > 0 ? ((paidCount / totalCount) * 100).toFixed(1) : 0;
+      const shippedPct = totalCount > 0 ? ((shippedCount / totalCount) * 100).toFixed(1) : 0;
+
+      statsContainer.innerHTML = `
+        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+          <p class="text-[10px] text-slate-500 font-bold uppercase">สินค้าของคุณ</p>
+          <p class="text-xl font-black text-slate-900 mt-1">${totalCount} ชิ้น</p>
+        </div>
+        <div class="bg-amber-50 p-3 rounded-xl border border-amber-200">
+          <p class="text-[10px] text-amber-700 font-bold uppercase">รอการชำระเงิน</p>
+          <p class="text-xl font-black text-amber-800 mt-1">${waitingCount} ชิ้น <span class="text-xs font-normal">(${waitingPct}%)</span></p>
+        </div>
+        <div class="bg-blue-50 p-3 rounded-xl border border-blue-200">
+          <p class="text-[10px] text-blue-700 font-bold uppercase">ชำระเงินแล้ว</p>
+          <p class="text-xl font-black text-blue-800 mt-1">${paidCount} ชิ้น <span class="text-xs font-normal">(${paidPct}%)</span></p>
+        </div>
+        <div class="bg-emerald-50 p-3 rounded-xl border border-emerald-200">
+          <p class="text-[10px] text-emerald-700 font-bold uppercase">จัดส่งสำเร็จแล้ว</p>
+          <p class="text-xl font-black text-emerald-800 mt-1">${shippedCount} ชิ้น <span class="text-xs font-normal">(${shippedPct}%)</span></p>
+        </div>
+      `;
+
+      // กรองข้อมูลตามสถานะที่เลือก
+      const filtered = data.filter(d => {
+        const st = d.order_status || 'รอการชำระเงิน';
+        if (currentMyAuctionsFilter === 'ALL') return true;
+        return st === currentMyAuctionsFilter;
+      });
+
+      if (!filtered.length) {
+        grid.innerHTML = `<div class="col-span-full text-center py-12 text-slate-400 text-xs bg-white rounded-xl border border-slate-200">ไม่พบรายการสินค้าในหมวดหมู่นี้</div>`;
+        return;
+      }
+
+      grid.innerHTML = filtered.map(auc => {
         const currentStatus = auc.order_status || 'รอการชำระเงิน';
         let statusBadgeColor = 'bg-amber-100 text-amber-800 border-amber-300';
         if (currentStatus === 'ชำระเงินแล้ว') statusBadgeColor = 'bg-blue-100 text-blue-800 border-blue-300';
@@ -661,7 +728,6 @@
       document.getElementById('my-auctions-modal').classList.remove('flex');
     };
 
-    // 🌟 ฟังก์ชันเปิด-ปิด และเรนเดอร์ข้อมูลใน Modal "ฮอลประมูล (Admin Hall)"
     window.openAdminHallModal = async function() {
       if (!currentUser || (currentUserRole !== 'admin' && currentUserRole !== 'super_admin')) return;
       lockBodyScroll();
@@ -702,7 +768,6 @@
         return;
       }
 
-      // 📊 คำนวณสถิติภาพรวม
       const totalCount = data.length;
       const waitingCount = data.filter(d => (d.order_status || 'รอการชำระเงิน') === 'รอการชำระเงิน').length;
       const paidCount = data.filter(d => d.order_status === 'ชำระเงินแล้ว').length;
@@ -731,7 +796,6 @@
         </div>
       `;
 
-      // กรองข้อมูลตามที่เลือก
       const filtered = data.filter(d => {
         const st = d.order_status || 'รอการชำระเงิน';
         if (currentAdminHallFilter === 'ALL') return true;
@@ -829,7 +893,7 @@
 
         if (error) throw error;
         alert(`อัปเดตสถานะเป็น "${newStatus}" เรียบร้อยแล้ว!`);
-        openMyAuctionsModal();
+        await renderMyAuctionsData(); // 🌟 อัปเดตข้อมูลใน modal ห้องของฉันทันที
         fetchAuctions();
       } catch (err) {
         alert('อัปเดตสถานะไม่สำเร็จ: ' + err.message);
@@ -1271,7 +1335,7 @@
     window.openAuctionSellerChat = function() {
       if (!currentUser) {
         alert('กรุณาเข้าสู่ระบบก่อนติดต่อครับ');
-        document.getElementById('auth-modal').classList.remove('hidden');
+        document.getElementById('auth-modal').classList.add('hidden');
         document.getElementById('auth-modal').classList.add('flex');
         return;
       }
