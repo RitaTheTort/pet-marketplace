@@ -7,7 +7,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen">
+<body id="page-body" class="bg-slate-50 text-slate-800 min-h-screen">
 
   <header class="bg-slate-900 text-white shadow-md sticky top-0 z-40">
     <div class="max-w-6xl mx-auto px-4 py-3.5 flex justify-between items-center">
@@ -377,7 +377,7 @@
     </div>
   </div>
 
-  <!-- 🌟 หน้าต่างแชทอัจฉริยะ -->
+  <!-- 🌟 หน้าต่างแชทอัจฉริยะ (พร้อมระบบล็อกหน้าจอพื้นหลัง) -->
   <div id="chat-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg h-[620px] flex flex-col overflow-hidden relative">
       
@@ -432,7 +432,7 @@
     </div>
   </div>
 
-  <!-- Modal: ยืนยันการปิดการซื้อขาย 2 ทาง (ปรับปรุงซ่อนปุ่มแดงสำหรับผู้ส่งคำขอก่อน) -->
+  <!-- Modal: ยืนยันการปิดการซื้อขาย 2 ทาง (ปลอดภัย ห้ามกดซ้ำลบแชทเอง) -->
   <div id="close-chat-confirm-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm hidden items-center justify-center z-[70] p-4">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden p-6 text-center space-y-4">
       <div class="w-14 h-14 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto text-2xl font-bold">
@@ -442,7 +442,6 @@
       <p id="close-chat-msg" class="text-xs text-slate-600 leading-relaxed">
         คำเตือน: หากกดยืนยันแล้ว ข้อมูลแชทและรูปภาพทั้งหมดจะถูกลบถาวรและไม่สามารถกู้คืนได้
       </p>
-      <!-- เปลี่ยนโครงสร้างปุ่มให้ซ่อน/แสดงตามสถานะคำขอ -->
       <div id="close-chat-buttons-grid" class="grid grid-cols-2 gap-3 pt-2">
         <button type="button" onclick="document.getElementById('close-chat-confirm-modal').classList.add('hidden'); document.getElementById('close-chat-confirm-modal').classList.remove('flex');" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 py-3 rounded-xl font-bold text-sm transition">
           ยกเลิก
@@ -454,6 +453,7 @@
     </div>
   </div>
 
+  <!-- Modal: กล่องข้อความ (พร้อมระบบล็อกหน้าจอพื้นหลัง) -->
   <div id="inbox-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg h-[550px] flex flex-col overflow-hidden">
       <div class="bg-slate-900 text-white px-5 py-3.5 flex justify-between items-center border-b border-slate-800">
@@ -471,6 +471,15 @@
   </div>
 
   <script>
+    // 🛠️ ฟังก์ชันล็อกและปลดล็อกการเลื่อนหน้าจอพื้นหลัง (Body Scroll Lock)
+    function lockBodyScroll() {
+      document.body.style.overflow = 'hidden';
+    }
+
+    function unlockBodyScroll() {
+      document.body.style.overflow = '';
+    }
+
     async function compressImage(file, maxWidth = 1200, quality = 0.8) {
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -878,6 +887,7 @@
     window.openInboxModal = async function() {
       if (!currentUser) return;
 
+      lockBodyScroll(); // 🔒 ล็อกหน้าจอพื้นหลังเมื่อเปิดอินบ็อกซ์
       inboxModal.classList.remove('hidden');
       inboxModal.classList.add('flex');
       inboxListContainer.innerHTML = '<div class="text-center text-xs text-slate-400 py-8">กำลังโหลดรายการข้อความ...</div>';
@@ -943,6 +953,12 @@
         `;
       }).join('');
     };
+
+    closeInboxBtn.addEventListener('click', () => {
+      unlockBodyScroll(); // 🔓 ปลดล็อกหน้าจอพื้นหลัง
+      inboxModal.classList.add('hidden'); 
+      inboxModal.classList.remove('flex');
+    });
 
     window.switchMainView = function(view) {
       currentMainView = view;
@@ -1392,6 +1408,7 @@
     });
 
     window.selectChatFromInbox = function(petId, otherUserId, otherUserName, petTitle) {
+      unlockBodyScroll(); // 🔓 ปลดล็อกตอนคลิกเลือกแชทจากอินบ็อกซ์เพื่อไปเปิดห้องแชทต่อ
       inboxModal.classList.add('hidden'); inboxModal.classList.remove('flex');
       backToInboxBtn.classList.remove('hidden');
 
@@ -1400,11 +1417,12 @@
     };
 
     backToInboxBtn.addEventListener('click', () => {
+      unlockBodyScroll(); // 🔓 ปลดล็อกตอนกดกลับไปอินบ็อกซ์
       chatModal.classList.add('hidden'); chatModal.classList.remove('flex');
       openInboxModal();
     });
 
-    // --- ระบบแชทอัจฉริยะ ---
+    // --- ระบบแชทอัจฉริยะ (พร้อมล็อกหน้าจอพื้นหลัง) ---
     async function openChatModal(pet, otherUserId, otherUserName) {
       if (!pet) return;
 
@@ -1422,6 +1440,7 @@
         sellerQuickActions.classList.add('hidden');
       }
 
+      lockBodyScroll(); // 🔒 ล็อกหน้าจอพื้นหลังเมื่อเปิดห้องแชท
       chatModal.classList.remove('hidden');
       chatModal.classList.add('flex');
 
@@ -1430,6 +1449,7 @@
     }
 
     closeChatBtn.addEventListener('click', () => {
+      unlockBodyScroll(); // 🔓 ปลดล็อกหน้าจอพื้นหลังเมื่อปิดห้องแชท
       chatModal.classList.add('hidden');
       chatModal.classList.remove('flex');
       backToInboxBtn.classList.add('hidden');
@@ -1684,7 +1704,7 @@
       }
     });
 
-    // --- ระบบปิดการซื้อขายแบบปลอดภัย (ซ่อนปุ่มยืนยันสีแดงสำหรับผู้ส่งคำขอ) ---
+    // --- ระบบปิดการซื้อขายแบบปลอดภัย 100% (ซ่อนปุ่มแดงสำหรับผู้ส่งคำขอก่อน) ---
     window.promptCloseChat = async function() {
       if (!currentUser || !currentActivePet || !targetChatUserId) return;
 
@@ -1710,12 +1730,12 @@
         confirmBtn.classList.remove('hidden');
         buttonsGrid.className = "grid grid-cols-2 gap-3 pt-2";
       } else if (closingData.requested_by === currentUser.id) {
-        // ตัวเองเป็นคนขอไปแล้ว แต่อีกฝ่ายยังไม่กด -> ซ่อนปุ่มยืนยันสีแดง ป้องกันการกดซ้ำลบแชทเอง
+        // ตัวเองเป็นคนขอไปแล้ว แต่อีกฝ่ายยังไม่กด -> ซ่อนปุ่มยืนยันสีแดงทันที ป้องกันการกดซ้ำลบแชทเอง
         msgEl.innerText = '⏳ คุณได้ส่งคำขอปิดการซื้อขายไปแล้ว กำลังรอให้อีกฝ่ายกดยืนยันผ่านปุ่ม "ปิดการซื้อขาย" มุมขวาบนครับ';
         confirmBtn.classList.add('hidden');
         buttonsGrid.className = "grid grid-cols-1 gap-3 pt-2";
       } else {
-        // อีกฝ่ายเป็นคนขอมาแล้ว ตัวเองมากด -> แสดงปุ่มยืนยันสีแดงเพื่อปิดแชทถาวรจริง
+        // อีกฝ่ายเป็นคนขอมาแล้ว ตัวเองมากด -> แสดงปุ่มยืนยันสีแดงเพื่อให้กดปิดแชทถาวรจริง
         msgEl.innerText = '🚨 คู่สนทนาได้ส่งคำขอปิดการซื้อขายมาแล้ว! (คำเตือน: หากกดยืนยันแล้ว ข้อมูลแชทและรูปภาพทั้งหมดจะถูกลบถาวรและไม่สามารถกู้คืนได้)';
         confirmBtn.classList.remove('hidden');
         buttonsGrid.className = "grid grid-cols-2 gap-3 pt-2";
@@ -1810,6 +1830,7 @@
           alert('🔒 ปิดการซื้อขายและลบประวัติการสนทนารวมถึงรูปภาพทั้งหมดเรียบร้อยแล้วครับ!');
           document.getElementById('close-chat-confirm-modal').classList.add('hidden');
           document.getElementById('close-chat-confirm-modal').classList.remove('flex');
+          unlockBodyScroll(); // 🔓 ปลดล็อกหน้าจอพื้นหลังเมื่อแชทถูกลบและปิดลง
           closeChatBtn.click();
         } catch (err) {
           alert('เกิดข้อผิดพลาดในการปิดแชท: ' + err.message);
@@ -2053,7 +2074,7 @@
             alert('อัปโหลดและบีบอัดรูปภาพสำเร็จ!');
         }
       } catch (error) {
-        alert('อัปโหลดรูปภาพไม่สำเร็จ: ' + error.message);
+        alert('อัปโหลดภาพไม่สำเร็จ: ' + error.message);
         petImageFileInput.value = '';
       } finally {
         submitBtn.disabled = false;
