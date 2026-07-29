@@ -557,18 +557,16 @@
       window.location.href = lineAuthUrl;
     };
 
-    // --- ตรวจสอบ Callback จาก LINE Login เมื่อผู้ใช้ถูก redirect กลับมา ---
+    // --- ตรวจสอบ Callback จาก LINE Login โดยใช้ Persistent ID ตัวเดียวกับหน้า Auction ---
     async function handleLineCallback() {
       const urlParams = new URLSearchParams(window.location.search);
       const code = urlParams.get('code');
-      const returnedState = urlParams.get('state');
       const savedState = localStorage.getItem('line_login_state');
 
       if (code) {
         window.history.replaceState({}, document.title, window.location.pathname);
         localStorage.removeItem('line_login_state');
 
-        // [แก้ไขปัญหาไอดี LINE ซ้ำซ้อนอย่างถาวร]: ใช้ persistent ID เพื่อไม่ให้รหัสเปลี่ยนทุกรอบที่ login
         let persistentLineId = localStorage.getItem('persistent_line_id');
         let persistentLineEmail = localStorage.getItem('persistent_line_email');
 
@@ -714,7 +712,6 @@
       globalNotificationChannel.subscribe();
     }
 
-    // 🌟 เพิ่มฟังก์ชันตรวจสอบ Session ฝั่ง Index ให้เหมือนกับหน้าประมูล
     async function checkUserSession() {
       const { data: { session } } = await supabaseClient.auth.getSession();
       if (session && session.user) {
@@ -1334,7 +1331,6 @@
     });
 
     window.handleSignOut = async function() {
-      // ล้างทั้ง Supabase Auth และ Persistent LINE Session
       await supabaseClient.auth.signOut();
       localStorage.removeItem('persistent_line_id');
       localStorage.removeItem('persistent_line_email');
@@ -1865,7 +1861,7 @@
       fetchPets();
       handleLineCallback();
 
-      // 🌟 ใช้ checkUserSession แทนการเช็ก getSession อย่างเดียว เพื่อให้รองรับ LINE Persistent Session ด้วย
+      // 🌟 เรียกใช้งาน checkUserSession เพื่อตรวจสอบและดึง Persistent LINE Session ทันทีโดยไม่สร้างไอดีใหม่
       checkUserSession();
 
       supabaseClient.auth.onAuthStateChange(async (event, session) => {
