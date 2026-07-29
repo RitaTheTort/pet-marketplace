@@ -190,7 +190,7 @@
     </div>
   </div>
 
-  <!-- 🌟 หน้าต่างแชทเฉพาะกิจพร้อม Quick Actions และส่งสลิป -->
+  <!-- หน้าต่างแชทเฉพาะกิจพร้อม Quick Actions และส่งสลิป -->
   <div id="auction-chat-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-[80] p-4">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg h-[680px] flex flex-col overflow-hidden relative">
       <div class="bg-slate-900 text-white px-5 py-3 flex justify-between items-center border-b border-slate-800">
@@ -204,17 +204,10 @@
         <button onclick="closeAuctionChatModal()" class="text-slate-400 hover:text-white text-xl font-bold px-1">&times;</button>
       </div>
 
-      <!-- ปุ่ม Quick Actions สำหรับผู้ขาย -->
       <div id="seller-quick-actions" class="bg-slate-100 px-3 py-2 border-b border-slate-200 flex gap-2 overflow-x-auto shrink-0 hidden">
-        <button type="button" onclick="sendQuickAction('bank')" class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 text-[11px] font-bold px-3 py-1.5 rounded-lg whitespace-nowrap shadow-sm transition">
-          💳 ส่งเลขบัญชี
-        </button>
-        <button type="button" onclick="sendQuickAction('shipping')" class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 text-[11px] font-bold px-3 py-1.5 rounded-lg whitespace-nowrap shadow-sm transition">
-          📦 ข้อมูลจัดส่ง/จุดนัดรับ
-        </button>
-        <button type="button" onclick="sendQuickAction('summary')" class="bg-purple-600 hover:bg-purple-700 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg whitespace-nowrap shadow-sm transition">
-          💰 สรุปยอดชำระ
-        </button>
+        <button type="button" onclick="sendQuickAction('bank')" class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 text-[11px] font-bold px-3 py-1.5 rounded-lg whitespace-nowrap shadow-sm transition">💳 ส่งเลขบัญชี</button>
+        <button type="button" onclick="sendQuickAction('shipping')" class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 text-[11px] font-bold px-3 py-1.5 rounded-lg whitespace-nowrap shadow-sm transition">📦 ข้อมูลจัดส่ง/จุดนัดรับ</button>
+        <button type="button" onclick="sendQuickAction('summary')" class="bg-purple-600 hover:bg-purple-700 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg whitespace-nowrap shadow-sm transition">💰 สรุปยอดชำระ</button>
       </div>
 
       <div id="auc-chat-messages" class="flex-1 p-4 overflow-y-auto space-y-3 bg-slate-50 text-sm">
@@ -227,9 +220,7 @@
           <input type="file" id="auc-chat-file" accept="image/*" class="hidden" onchange="sendChatImage(this)">
         </label>
         <input type="text" id="auc-chat-input" placeholder="พิมพ์ข้อความสอบถามการประมูล..." class="flex-1 px-4 py-2 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500">
-        <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl text-sm font-bold transition whitespace-nowrap shrink-0">
-          ส่ง
-        </button>
+        <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl text-sm font-bold transition whitespace-nowrap shrink-0">ส่ง</button>
       </form>
     </div>
   </div>
@@ -417,6 +408,7 @@
       if (user) {
         const displayName = user.user_metadata?.full_name || user.email.split('@')[0];
 
+        // 🌟 ดึงข้อมูลโปรไฟล์โดยตรวจเช็กฟิลด์สถานะ KYC ให้ยืดหยุ่นรองรับทุกรูปแบบ
         const { data: profileData } = await supabaseClient
           .from('profiles')
           .select('role, kyc_status, bank_name, bank_account, account_name')
@@ -425,7 +417,15 @@
 
         if (profileData) {
           if (profileData.role) currentUserRole = profileData.role;
-          if (profileData.kyc_status) currentKycStatus = profileData.kyc_status;
+          
+          // ตรวจสอบสถานะ KYC แบบยืดหยุ่น (รองรับ approved, Approved, APPROVED, หรือ true)
+          const kycVal = profileData.kyc_status;
+          if (kycVal === true || kycVal === 1 || (typeof kycVal === 'string' && kycVal.toLowerCase() === 'approved')) {
+            currentKycStatus = 'approved';
+          } else {
+            currentKycStatus = kycVal || 'unverified';
+          }
+
           sellerBankInfo = profileData;
         }
 
@@ -446,7 +446,6 @@
         `;
 
         updateUnreadBadgeCount();
-
         if (createAucBtn) createAucBtn.classList.remove('hidden');
       } else {
         container.innerHTML = `
@@ -497,8 +496,8 @@
       event.stopPropagation();
       if (!currentUser) {
         alert('กรุณาเข้าสู่ระบบก่อนกดติดตามหน้าร้านครับ');
-        document.getElementById('auth-modal').classList.remove('hidden');
         document.getElementById('auth-modal').classList.add('flex');
+        document.getElementById('auth-modal').classList.remove('hidden');
         return;
       }
 
@@ -513,12 +512,16 @@
       renderCurrentAuctionView();
     };
 
+    // 🌟 ปรับปรุงการตรวจสอบ KYC ให้ยืดหยุ่นและรองรับ Admin หรือ Super Admin ด้วย
     window.openCreateAuctionModal = function() {
       if (!currentUser) { alert('กรุณาเข้าสู่ระบบก่อนเปิดประมูล'); return; }
-      if (currentKycStatus !== 'approved') {
-        alert('⚠️ คุณจำเป็นต้องผ่านการยืนยันตัวตน (KYC) ก่อน จึงจะสามารถเปิดห้องประมูลได้ครับ');
+      
+      const isAdmin = (currentUserRole === 'admin' || currentUserRole === 'super_admin');
+      if (currentKycStatus !== 'approved' && !isAdmin) {
+        alert('⚠️ คุณจำเป็นต้องผ่านการยืนยันตัวตน (KYC) ก่อน จึงจะสามารถเปิดห้องประมูลได้ครับ (สถานะปัจจุบัน: ' + currentKycStatus + ')');
         return;
       }
+
       lockBodyScroll();
       document.getElementById('create-auction-modal').classList.remove('hidden');
       document.getElementById('create-auction-modal').classList.add('flex');
@@ -1080,7 +1083,6 @@
       }
     }
 
-    // 🌟 อัปเกรดเปิด Inbox พร้อมนับและแสดงจุดไฟกระพริบแดง + ตัวเลขแยกตามห้อง
     window.openAuctionInboxModal = async function() {
       if (!currentUser) return;
       lockBodyScroll();
@@ -1115,7 +1117,6 @@
             unreadCount: 0
           };
         }
-        // นับเฉพาะข้อความที่ส่งมาหาเรา และยังไม่ได้อ่าน
         if (msg.receiver_id === currentUser.id && !msg.is_read) {
           chatGroups[key].unreadCount += 1;
         }
@@ -1462,19 +1463,19 @@
     window.confirmBidPrompt = function() {
       if (!currentUser) {
         alert('กรุณาเข้าสู่ระบบก่อนเสนอราคาครับ');
-        document.getElementById('auth-modal').classList.remove('hidden');
         document.getElementById('auth-modal').classList.add('flex');
+        document.getElementById('auth-modal').classList.remove('hidden');
         return;
       }
 
-      if (currentKycStatus !== 'approved') {
+      const isAdmin = (currentUserRole === 'admin' || currentUserRole === 'super_admin');
+      if (currentKycStatus !== 'approved' && !isAdmin) {
         alert('⚠️ คุณจำเป็นต้องผ่านการยืนยันตัวตน (KYC) ก่อน จึงจะสามารถเสนอราคาได้ครับ');
         return;
       }
 
       if (!activeAuction) return;
 
-      const isAdmin = (currentUserRole === 'admin' || currentUserRole === 'super_admin');
       if (activeAuction.seller_id === currentUser.id && !isAdmin) {
         alert('คุณไม่สามารถเสนอราคาสินค้าของตนเองได้ครับ');
         return;
