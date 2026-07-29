@@ -714,6 +714,41 @@
       globalNotificationChannel.subscribe();
     }
 
+    // 🌟 เพิ่มฟังก์ชันตรวจสอบ Session ฝั่ง Index ให้เหมือนกับหน้าประมูล
+    async function checkUserSession() {
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      if (session && session.user) {
+        updateAuthUI(session.user);
+        return;
+      }
+
+      const persistentLineId = localStorage.getItem('persistent_line_id');
+      const persistentLineEmail = localStorage.getItem('persistent_line_email');
+
+      if (persistentLineId) {
+        const mockLineUser = {
+          id: persistentLineId,
+          email: persistentLineEmail || `${persistentLineId}@petmarket.line`,
+          user_metadata: { full_name: 'สมาชิก LINE (Verified)' }
+        };
+
+        const { data: existingProfile } = await supabaseClient
+          .from('profiles')
+          .select('*')
+          .eq('id', persistentLineId)
+          .single();
+
+        if (existingProfile && existingProfile.full_name) {
+          mockLineUser.user_metadata.full_name = existingProfile.full_name;
+        }
+
+        updateAuthUI(mockLineUser);
+        return;
+      }
+
+      updateAuthUI(null);
+    }
+
     async function updateAuthUI(user) {
       currentUser = user;
       currentUserRole = 'user';
@@ -1299,7 +1334,10 @@
     });
 
     window.handleSignOut = async function() {
+      // ล้างทั้ง Supabase Auth และ Persistent LINE Session
       await supabaseClient.auth.signOut();
+      localStorage.removeItem('persistent_line_id');
+      localStorage.removeItem('persistent_line_email');
       updateAuthUI(null);
     };
 
@@ -1827,12 +1865,8 @@
       fetchPets();
       handleLineCallback();
 
-      const { data: { session } } = await supabaseClient.auth.getSession();
-      if (session) {
-        updateAuthUI(session.user);
-      } else {
-        updateAuthUI(null);
-      }
+      // 🌟 ใช้ checkUserSession แทนการเช็ก getSession อย่างเดียว เพื่อให้รองรับ LINE Persistent Session ด้วย
+      checkUserSession();
 
       supabaseClient.auth.onAuthStateChange(async (event, session) => {
         if (event === 'PASSWORD_RECOVERY') {
