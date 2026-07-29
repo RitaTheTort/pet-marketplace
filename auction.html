@@ -961,7 +961,7 @@
         .eq('auction_id', auctionId)
         .eq('sender_id', otherUserId)
         .eq('receiver_id', currentUser.id)
-        .eq('is_read:false', false); // ป้องกัน syntax ผิดพลาด
+        .eq('is_read', false);
     }
 
     function closeAuctionChatModal() {
@@ -1008,7 +1008,6 @@
       }
     }
 
-    // 🌟 สเต็ปที่ 2: อัปเกรดฟังก์ชันเปิด Inbox Modal ให้แสดงจุดแดงกระพริบและป้าย "ใหม่" ในห้องแชทที่ยังไม่ได้อ่าน
     window.openAuctionInboxModal = async function() {
       if (!currentUser) return;
       lockBodyScroll();
@@ -1043,7 +1042,6 @@
             hasUnread: false
           };
         }
-        // ตรวจสอบว่ามีข้อความที่ส่งมาหาเราและยังไม่ได้อ่านหรือไม่ในกลุ่มนี้
         if (msg.receiver_id === currentUser.id && !msg.is_read) {
           chatGroups[key].hasUnread = true;
         }
@@ -1096,6 +1094,7 @@
       openAuctionChat(aucObj, otherUserId, otherUserName);
     };
 
+    // 🌟 สเต็ปที่ 3: เพิ่มฟังก์ชันแสดงสัญลักษณ์เช็กถูกคู่ (✓✓ อ่านแล้ว) ภายในห้องแชท
     async function fetchAuctionChatMessages(auctionId, otherUserId) {
       const container = document.getElementById('auc-chat-messages');
       container.innerHTML = '<div class="text-center text-xs text-slate-400 py-4">กำลังโหลดข้อความประมูล...</div>';
@@ -1133,13 +1132,21 @@
           ? `bg-amber-100 text-amber-900 border-2 border-amber-400 font-extrabold text-sm md:text-base p-3 rounded-2xl shadow-md my-1 text-center` 
           : `max-w-[75%] px-3.5 py-2 rounded-2xl text-xs ${isMe ? 'bg-red-600 text-white rounded-br-none' : 'bg-white text-slate-800 border border-slate-200 rounded-bl-none shadow-sm'}`;
 
+        // สถานะ Read Receipt (เช็กถูกคู่เมื่ออ่านแล้ว)
+        const readStatusText = msg.is_read 
+          ? '<span class="text-[9px] text-emerald-600 font-bold ml-1">✓✓ อ่านแล้ว</span>' 
+          : '<span class="text-[9px] text-slate-400 ml-1">✓ ส่งแล้ว</span>';
+
         return `
           <div class="flex flex-col ${isMe && !isWinnerWelcome ? 'items-end' : 'items-start'} ${isWinnerWelcome ? 'items-center w-full my-2' : ''}">
             <span class="text-[10px] text-slate-400 mb-0.5 px-1">${isMe ? 'คุณ' : (msg.sender_name || 'คู่สนทนา')}</span>
             <div class="${contentBubbleStyle}">
               ${bubbleContent}
             </div>
-            <span class="text-[9px] text-slate-400 mt-0.5 px-1">${timeStr}</span>
+            <div class="flex items-center gap-1 mt-0.5 px-1">
+              <span class="text-[9px] text-slate-400">${timeStr}</span>
+              ${isMe && !isWinnerWelcome ? readStatusText : ''}
+            </div>
           </div>
         `;
       }).join('');
