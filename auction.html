@@ -97,9 +97,7 @@
         <h3 class="font-extrabold text-base flex items-center gap-2 text-slate-800"><span>🫧</span> เลือกหมวดหมู่สัตว์เลี้ยง</h3>
         <button onclick="closeSpeciesModal()" class="text-slate-500 hover:text-slate-900 text-xl font-bold w-8 h-8 rounded-full bg-white/50 flex items-center justify-center transition shadow-sm">&times;</button>
       </div>
-      <div class="p-4 overflow-y-auto space-y-2.5 flex-1" id="species-list-container">
-        <!-- รายการหมวดหมู่จะถูกเรนเดอร์ด้วย JS ในสไตล์ฟองสบู่โปร่งใส -->
-      </div>
+      <div class="p-4 overflow-y-auto space-y-2.5 flex-1" id="species-list-container"></div>
     </div>
   </div>
 
@@ -174,7 +172,8 @@
       <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center shrink-0 sticky top-0 z-20 shadow">
         <div class="flex items-center gap-2 min-w-0 pr-2">
           <span class="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping shrink-0"></span>
-          <h3 id="modal-seller-title" class="font-bold text-sm md:text-lg truncate">🔨 ห้องประมูลของหน้าร้าน</h3>
+          <!-- 🌟 ปรับชื่อห้องประมูลเป็น "ห้องประมูล" ตามที่ต้องการ -->
+          <h3 id="modal-seller-title" class="font-bold text-sm md:text-lg truncate">🔨 ห้องประมูล</h3>
         </div>
         <button onclick="closeSellerRoomsModal()" class="text-slate-400 hover:text-white text-2xl font-bold px-2 py-0.5 rounded-lg transition">&times;</button>
       </div>
@@ -196,9 +195,13 @@
 
       <div class="p-4 md:p-6 grid grid-cols-1 lg:grid-cols-3 gap-6 overflow-y-auto relative flex-1">
         <div class="lg:col-span-2 space-y-4">
-          <div class="relative h-64 bg-slate-100 rounded-xl overflow-hidden">
-            <img id="sa-image" src="" class="w-full h-full object-cover">
-            <span class="absolute top-3 left-3 bg-red-600 text-white font-bold text-xs px-2.5 py-1 rounded shadow">LIVE AUCTION</span>
+          <!-- 🌟 ปรับรูปภาพในห้องประมูลสดให้อยู่ในกรอบสวยงาม ไม่เพี้ยน และคลิกเพื่อดูรูปใหญ่ได้ -->
+          <div class="relative h-64 bg-slate-900 rounded-xl overflow-hidden flex items-center justify-center cursor-pointer group" onclick="openLightbox(document.getElementById('sa-image').src)">
+            <img id="sa-image" src="" class="max-w-full max-h-full object-contain transition group-hover:scale-105">
+            <span class="absolute top-3 left-3 bg-red-600 text-white font-bold text-xs px-2.5 py-1 rounded shadow pointer-events-none">LIVE AUCTION</span>
+            <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition flex items-center justify-center pointer-events-none">
+              <span class="bg-black/60 text-white text-xs px-3 py-1.5 rounded-lg font-bold">🔍 คลิกเพื่อดูรูปใหญ่</span>
+            </div>
           </div>
 
           <div>
@@ -344,8 +347,8 @@
     </div>
   </div>
 
-  <!-- 🌟 Lightbox Modal สำหรับดูรูปภาพขนาดใหญ่เต็มจอ (พร้อมปุ่มกากบาทปิด) -->
-  <div id="image-lightbox-modal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md hidden items-center justify-center z-[100] p-4">
+  <!-- 🌟 Lightbox Modal สำหรับดูรูปภาพขนาดใหญ่เต็มจอ (พร้อมปุ่มกากบาทปิดที่มุมบนขวา) -->
+  <div id="image-lightbox-modal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md hidden items-center justify-center z-[120] p-4">
     <button onclick="closeLightboxModal()" class="absolute top-4 right-4 bg-slate-800/80 hover:bg-slate-700 text-white text-3xl font-bold w-12 h-12 rounded-full flex items-center justify-center transition shadow-lg z-10" title="ปิด">&times;</button>
     <div class="relative max-w-4xl max-h-[90vh] w-full flex items-center justify-center overflow-hidden">
       <img id="lightbox-img" src="" class="max-w-full max-h-[85vh] object-contain rounded-xl shadow-2xl">
@@ -550,7 +553,7 @@
     let mainTimerInterval = null;
     let userFavorites = [];
     let currentAuctionCategory = 'ALL';
-    let currentSelectedSpecies = 'ALL'; // 🌟 ตัวแปรเก็บค่าหมวดหมู่สัตว์ที่เลือกกรอง
+    let currentSelectedSpecies = 'ALL';
 
     let aucChatChannel = null;
     let targetAuctionChatUserId = null;
@@ -1169,7 +1172,6 @@
       const mainTitle = document.getElementById('main-section-title');
       let filtered = globalAuctions;
 
-      // 1. กรองตามหมวดหมู่สถานะหลัก (ALL, HOT, BIDDING, NO_BID, WON)
       const now = new Date().getTime();
       if (currentAuctionCategory !== 'ALL') {
         filtered = filtered.filter(auc => {
@@ -1187,11 +1189,9 @@
           return false;
         });
       } else {
-        // ถ้าเป็น ALL ให้เอาเฉพาะที่ยังไม่หมดอายุมาจัดกลุ่มหน้าร้าน
         filtered = filtered.filter(auc => new Date(auc.expires_at).getTime() > now);
       }
 
-      // 2. กรองตามชนิดพันธุ์สัตว์ (Species Filter) ถ้ามีการเลือก
       if (currentSelectedSpecies !== 'ALL') {
         filtered = filtered.filter(auc => auc.species === currentSelectedSpecies);
       }
@@ -1247,13 +1247,13 @@
 
         let imagePreviewHTML = '';
         if (images.length === 1) {
-          imagePreviewHTML = `<div class="h-48 bg-slate-100 relative overflow-hidden"><img src="${images[0]}" class="w-full h-full object-cover"></div>`;
+          imagePreviewHTML = `<div class="h-48 bg-slate-900 relative overflow-hidden flex items-center justify-center"><img src="${images[0]}" class="max-w-full max-h-full object-contain"></div>`;
         } else if (images.length === 2) {
-          imagePreviewHTML = `<div class="h-48 grid grid-cols-2 gap-0.5 bg-slate-200 overflow-hidden"><img src="${images[0]}" class="w-full h-full object-cover"><img src="${images[1]}" class="w-full h-full object-cover"></div>`;
+          imagePreviewHTML = `<div class="h-48 grid grid-cols-2 gap-0.5 bg-slate-900 overflow-hidden"><div class="flex items-center justify-center h-full"><img src="${images[0]}" class="max-w-full max-h-full object-contain"></div><div class="flex items-center justify-center h-full"><img src="${images[1]}" class="max-w-full max-h-full object-contain"></div></div>`;
         } else if (images.length === 3) {
-          imagePreviewHTML = `<div class="h-48 grid grid-cols-3 gap-0.5 bg-slate-200 overflow-hidden"><img src="${images[0]}" class="w-full h-full object-cover"><img src="${images[1]}" class="w-full h-full object-cover"><img src="${images[2]}" class="w-full h-full object-cover"></div>`;
+          imagePreviewHTML = `<div class="h-48 grid grid-cols-3 gap-0.5 bg-slate-900 overflow-hidden"><div class="flex items-center justify-center h-full"><img src="${images[0]}" class="max-w-full max-h-full object-contain"></div><div class="flex items-center justify-center h-full"><img src="${images[1]}" class="max-w-full max-h-full object-contain"></div><div class="flex items-center justify-center h-full"><img src="${images[2]}" class="max-w-full max-h-full object-contain"></div></div>`;
         } else {
-          imagePreviewHTML = `<div class="h-48 grid grid-cols-2 grid-rows-2 gap-0.5 bg-slate-200 overflow-hidden"><img src="${images[0]}" class="w-full h-full object-cover"><img src="${images[1]}" class="w-full h-full object-cover"><img src="${images[2]}" class="w-full h-full object-cover"><div class="relative w-full h-full bg-slate-900"><img src="${images[3]}" class="w-full h-full object-cover opacity-60">${images.length > 4 ? `<span class="absolute inset-0 flex items-center justify-center text-white font-black text-xs bg-slate-900/50">+${images.length - 4}</span>` : ''}</div></div>`;
+          imagePreviewHTML = `<div class="h-48 grid grid-cols-2 grid-rows-2 gap-0.5 bg-slate-900 overflow-hidden"><div class="flex items-center justify-center"><img src="${images[0]}" class="max-w-full max-h-full object-contain"></div><div class="flex items-center justify-center"><img src="${images[1]}" class="max-w-full max-h-full object-contain"></div><div class="flex items-center justify-center"><img src="${images[2]}" class="max-w-full max-h-full object-contain"></div><div class="relative w-full h-full bg-slate-900 flex items-center justify-center"><img src="${images[3]}" class="max-w-full max-h-full object-contain opacity-60">${images.length > 4 ? `<span class="absolute inset-0 flex items-center justify-center text-white font-black text-xs bg-slate-900/50">+${images.length - 4}</span>` : ''}</div></div>`;
         }
 
         return `
@@ -1301,8 +1301,8 @@
         return `
           <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col justify-between hover:shadow-md transition relative">
             <div>
-              <div class="h-48 bg-slate-100 relative">
-                <img src="${auc.images?.[0] || ''}" class="w-full h-full object-cover">
+              <div class="h-48 bg-slate-900 relative flex items-center justify-center">
+                <img src="${auc.images?.[0] || ''}" class="max-w-full max-h-full object-contain">
                 <span class="absolute top-3 left-3 ${isEnded ? 'bg-slate-800' : 'bg-red-600'} text-white font-bold text-xs px-2.5 py-1 rounded shadow">${isEnded ? 'ปิดประมูลแล้ว' : 'LIVE'}</span>
               </div>
               <div class="p-4 space-y-3">
@@ -1331,7 +1331,8 @@
         return new Date(a.expires_at).getTime() - new Date(b.expires_at).getTime();
       });
 
-      document.getElementById('modal-seller-title').innerText = `🔨 ห้องประมูลสินค้า - ร้านคุณ ${sellerAuctions[0].seller_name || 'ผู้ขายทั่วไป'}`;
+      // 🌟 อัปเดตหัวข้อการ์ดห้องประมูลให้เหลือแค่ "ห้องประมูล" ตามคำขอ
+      document.getElementById('modal-seller-title').innerText = `🔨 ห้องประมูล - ร้านคุณ ${sellerAuctions[0].seller_name || 'ผู้ขายทั่วไป'}`;
       const grid = document.getElementById('seller-rooms-grid');
       
       grid.innerHTML = sellerAuctions.map(auc => {
@@ -1339,8 +1340,9 @@
         return `
           <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col justify-between hover:shadow-md transition relative">
             <div>
-              <div class="h-48 bg-slate-100 relative">
-                <img src="${auc.images?.[0] || ''}" class="w-full h-full object-cover">
+              <!-- 🌟 ปรับรูปภาพในการ์ดห้องประมูลให้อยู่ในกรอบพอดี ไม่เพี้ยน -->
+              <div class="h-48 bg-slate-900 relative flex items-center justify-center">
+                <img src="${auc.images?.[0] || ''}" class="max-w-full max-h-full object-contain">
                 <span class="absolute top-3 left-3 bg-red-600 text-white font-bold text-xs px-2.5 py-1 rounded shadow">LIVE</span>
                 ${isAdmin ? `<button onclick="deleteAuction('${auc.id}', '${auc.images?.[0] || ''}')" class="absolute top-3 right-3 bg-slate-900/90 hover:bg-red-600 text-white p-2 rounded-lg text-xs font-bold shadow transition z-10">🗑️</button>` : ''}
               </div>
