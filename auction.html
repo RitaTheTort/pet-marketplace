@@ -188,9 +188,10 @@
     </div>
   </div>
 
+  <!-- 🌟 หน้าต่างแชทรวมห้องประมูล (เพิ่มปุ่มย้อนกลับ ⟵ ห่างจากกากบาทอย่างปลอดภัย) -->
   <div id="auction-chat-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-[80] p-4">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg h-[650px] flex flex-col overflow-hidden relative">
-      <div class="bg-slate-900 text-white px-5 py-3 flex justify-between items-center border-b border-slate-800">
+      <div class="bg-slate-900 text-white px-5 py-3 flex justify-between items-center border-b border-slate-800 shrink-0">
         <div class="flex items-center space-x-3 min-w-0 pr-2">
           <div class="w-9 h-9 rounded-full bg-red-600 flex items-center justify-center font-bold text-sm text-white shrink-0" id="auc-chat-avatar">A</div>
           <div class="min-w-0">
@@ -198,7 +199,14 @@
             <p id="auc-chat-title" class="text-[11px] text-red-300 truncate max-w-[180px]">ห้องแชทประมูล</p>
           </div>
         </div>
-        <button onclick="closeAuctionChatModal()" class="text-slate-400 hover:text-white text-xl font-bold px-1">&times;</button>
+        
+        <!-- ส่วนปุ่มย้อนกลับ (⟵) และปุ่มกากบาท (×) เว้นระยะห่างกดง่าย ไม่ชนกัน -->
+        <div class="flex items-center space-x-3 shrink-0">
+          <button onclick="backToAuctionInbox()" class="text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 text-xs font-bold px-2.5 py-1.5 rounded-lg transition flex items-center gap-1 shadow-sm" title="กลับไปหน้ากล่องข้อความ">
+            &larr; กลับ
+          </button>
+          <button onclick="closeAuctionChatModal()" class="text-slate-400 hover:text-white text-2xl font-bold px-1.5 py-0.5 rounded-lg transition" title="ปิดหน้าต่าง">&times;</button>
+        </div>
       </div>
 
       <div class="bg-amber-50 border-b border-amber-200 px-3 py-1.5 text-center shrink-0">
@@ -220,7 +228,6 @@
     </div>
   </div>
 
-  <!-- 🌟 กล่องข้อความ Inbox (พร้อมช่องค้นหาอัจฉริยะด้านบนสุด) -->
   <div id="auction-inbox-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg h-[580px] flex flex-col overflow-hidden">
       <div class="bg-slate-900 text-white px-5 py-3.5 flex justify-between items-center border-b border-slate-800 shrink-0">
@@ -235,7 +242,7 @@
       <div class="p-3 bg-slate-100 border-b border-slate-200 shrink-0">
         <div class="relative">
           <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">🔍</span>
-          <input type="text" id="auction-inbox-search" oninput="filterInboxChatList()" placeholder="ค้นหาชื่อ, ชื่อสินค้า หรือข้อความในแชท..." class="w-full pl-9 pr-4 py-2 bg-white border border-slate-300 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-red-500">
+          <input type="text" id="auction-inbox-search" oninput="filterInboxChatList()" placeholder="ค้นหาชื่อ หรือชื่อสินค้า..." class="w-full pl-9 pr-4 py-2 bg-white border border-slate-300 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-red-500">
         </div>
       </div>
 
@@ -391,7 +398,7 @@
 
     let aucChatChannel = null;
     let targetAuctionChatUserId = null;
-    let cachedInboxGroups = []; // เก็บข้อมูลรายการแชทสำหรับระบบค้นหา
+    let cachedInboxGroups = [];
 
     async function updateAuthUI(user) {
       currentUser = user;
@@ -984,6 +991,12 @@
       updateUnreadBadgeCount();
     }
 
+    // 🌟 ฟังก์ชันปุ่มย้อนกลับจากหน้าห้องแชทเดี่ยว กลับสู่หน้ากล่องข้อความ Inbox รวม
+    window.backToAuctionInbox = function() {
+      closeAuctionChatModal();
+      openAuctionInboxModal();
+    };
+
     async function sendChatImage(inputEl) {
       const file = inputEl.files[0];
       if (!file || !currentUser || !activeAuction || !targetAuctionChatUserId) return;
@@ -1017,14 +1030,13 @@
       }
     }
 
-    // 🌟 ระบบ Inbox Modal พร้อมช่องค้นหาอัจฉริยะ (Search Filter)
     window.openAuctionInboxModal = async function() {
       if (!currentUser) return;
       lockBodyScroll();
       const modal = document.getElementById('auction-inbox-modal');
       const listContainer = document.getElementById('auction-inbox-list');
       const searchInput = document.getElementById('auction-inbox-search');
-      if (searchInput) searchInput.value = ''; // รีเซ็ตช่องค้นหาทุกครั้งที่เปิด
+      if (searchInput) searchInput.value = '';
       
       modal.classList.remove('hidden');
       modal.classList.add('flex');
@@ -1130,7 +1142,6 @@
       }).join('');
     }
 
-    // ฟังก์ชันกรองแชทตามคำค้นหาแบบ Real-time
     window.filterInboxChatList = function() {
       const keyword = document.getElementById('auction-inbox-search').value.toLowerCase().trim();
       if (!keyword) {
