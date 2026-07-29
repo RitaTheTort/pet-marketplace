@@ -42,7 +42,6 @@
       <span class="text-xs text-slate-500" id="auction-count">กำลังโหลดข้อมูล...</span>
     </div>
 
-    <!-- แถบหมวดหมู่สถานะการประมูล 4 แบบ + ทั้งหมด -->
     <div class="mb-6 overflow-x-auto pb-2 border-b border-slate-200">
       <div class="flex space-x-2 min-w-max" id="auction-category-tabs">
         <button onclick="filterAuctionCategory('ALL')" class="auc-cat-tab bg-red-600 text-white px-4 py-2 rounded-full text-xs font-bold transition shadow-sm">
@@ -335,16 +334,13 @@
       document.body.style.overflow = '';
     }
 
-    // 🌟 อัปเดตระบบตรวจจับ Session ทั้งจาก Supabase ปกติ และ Persistent LINE ID
     async function checkUserSession() {
-      // 1. ตรวจสอบ Supabase Session ปกติ (สำหรับผู้ใช้ระบบ Email)
       const { data: { session } } = await supabaseClient.auth.getSession();
       if (session && session.user) {
         updateAuthUI(session.user);
         return;
       }
 
-      // 2. หากไม่มี ให้ตรวจสอบ Persistent LINE ID ใน localStorage
       const persistentLineId = localStorage.getItem('persistent_line_id');
       const persistentLineEmail = localStorage.getItem('persistent_line_email');
 
@@ -355,7 +351,6 @@
           user_metadata: { full_name: 'สมาชิก LINE (Verified)' }
         };
 
-        // ดึงชื่อล่าสุดจากตาราง profiles หากเคยมีการเปลี่ยนชื่อ
         const { data: existingProfile } = await supabaseClient
           .from('profiles')
           .select('*')
@@ -423,7 +418,6 @@
     }
 
     window.handleSignOut = async function() {
-      // ล้างทั้ง Supabase Auth และ Persistent LINE Session
       await supabaseClient.auth.signOut();
       localStorage.removeItem('persistent_line_id');
       localStorage.removeItem('persistent_line_email');
@@ -888,20 +882,25 @@
       const isAuthorized = (currentUserRole === 'admin' || currentUserRole === 'super_admin' || (targetAuc && targetAuc.seller_id === currentUser.id));
 
       if (!isAuthorized) { alert('คุณไม่มีสิทธิ์ในการลบโพสต์นี้'); return; }
-      if (!confirm('⚠️ คำเตือน: คุณต้องการลบโพสต์ประมูลนี้อย่างถาวรใช่หรือไม่?')) return;
+      if (!confirm('⚠️ คำเตือน: คุณต้องการลบโพสต์ประมูลนี้และรูปภาพที่เกี่ยวข้องอย่างถาวรใช่หรือไม่?')) return;
 
       try {
         await supabaseClient.from('auction_bids').delete().eq('auction_id', aucId);
+        
         if (imageUrl) {
           const urlParts = imageUrl.split('/pet-images/');
           if (urlParts.length > 1) {
-            await supabaseClient.storage.from('pet-images').remove([urlParts[1]]);
+            const filePath = urlParts[1];
+            await supabaseClient.storage.from('pet-images').remove([filePath]);
           }
         }
+
         const { error } = await supabaseClient.from('auctions').delete().eq('id', aucId);
         if (error) throw error;
+
         closeSellerRoomsModal();
         fetchAuctions();
+        alert('ลบโพสต์และรูปภาพในระบบเรียบร้อยแล้วครับ!');
       } catch (err) {
         alert('เกิดข้อผิดพลาดในการลบโพสต์: ' + err.message);
       }
@@ -1256,7 +1255,6 @@
     });
 
     document.addEventListener('DOMContentLoaded', async () => {
-      // เรียกใช้ฟังก์ชันตรวจสอบ Session แบบไร้รอยต่อ
       checkUserSession();
     });
   </script>
