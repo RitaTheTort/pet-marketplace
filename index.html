@@ -101,7 +101,7 @@
         <h3 class="font-bold text-lg text-slate-900 mb-2 flex items-center gap-2">
           <span>🛡️ จัดการสิทธิ์ผู้ใช้งานและผู้ดูแลระบบ (Admin Role Management)</span>
         </h3>
-        <p class="text-xs text-slate-500 mb-4">รายชื่อสมาชิกทั้งหมดในระบบสำหรับกำหนดสิทธิ์ผู้ดูแลระบบและการจัดการบัญชี</p>
+        <p class="text-xs text-slate-500 mb-4">รายชื่อสมาชิกทั้งหมดในระบบสำหรับกำหนดสิทธิ์ผู้ดูแลระบบ</p>
         
         <div id="admin-users-list" class="space-y-3">
           <p class="text-xs text-slate-400">กำลังโหลดรายชื่อสมาชิก...</p>
@@ -568,6 +568,7 @@
         window.history.replaceState({}, document.title, window.location.pathname);
         localStorage.removeItem('line_login_state');
 
+        // [แก้ไขปัญหาไอดี LINE ซ้ำซ้อน]: ใช้การสร้าง session คงที่ผ่าน localStorage แทนการสุ่มรหัสใหม่ทุกครั้งจาก code
         let persistentLineId = localStorage.getItem('persistent_line_id');
         let persistentLineEmail = localStorage.getItem('persistent_line_email');
 
@@ -584,6 +585,7 @@
           user_metadata: { full_name: 'สมาชิก LINE (Verified)' }
         };
 
+        // ตรวจสอบว่ามีโปรไฟล์นี้อยู่แล้วหรือไม่ เพื่อไม่ให้ทับชื่อเดิมที่ผู้ใช้อาจเคยเปลี่ยนไว้
         const { data: existingProfile } = await supabaseClient
           .from('profiles')
           .select('*')
@@ -599,6 +601,7 @@
             updated_at: new Date()
           });
         } else {
+          // หากมีอยู่แล้ว ให้นำชื่อเดิมมาใช้ใน metadata เพื่อความต่อเนื่อง
           mockLineUser.user_metadata.full_name = existingProfile.full_name;
         }
 
@@ -607,6 +610,7 @@
       }
     }
 
+    // ฟังก์ชันช่วยเคลียร์ข้อมูล LINE แฝด/ซ้ำซ้อนในฐานข้อมูลสำหรับแอดมิน
     window.cleanupLineDuplicates = async function() {
       if (!confirm('คุณต้องการเคลียร์บัญชีจำลอง LINE ที่ไม่ได้ใช้งานหรือซ้ำซ้อนออกทั้งหมดใช่หรือไม่?')) return;
       try {
@@ -633,6 +637,7 @@
       return hash;
     }
 
+    // --- ฟังก์ชันส่งหลักฐานยืนยันตัวตนผ่าน LINE OA ---
     window.handleLineKycRequest = function() {
       window.open('https://line.me/R/ti/p/@petmarket_support', '_blank');
       alert('💬 ระบบเปิด LINE Official Account แล้ว กรุณาส่งภาพบัตรประชาชนหรือหลักฐานให้แอดมินตรวจสอบครับ');
@@ -1057,7 +1062,7 @@
     window.switchMainView = function(view) {
       currentMainView = view;
       
-      if (tabAllpets) tabAllPets.className = "py-2 px-3.5 font-bold text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-700 transition";
+      if (tabAllPets) tabAllPets.className = "py-2 px-3.5 font-bold text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-700 transition";
       if (tabMyPets) tabMyPets.className = "py-2 px-3.5 font-bold text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-700 transition";
       
       const tabAdmin = document.getElementById('tab-admin');
@@ -1162,18 +1167,12 @@
               <p class="text-xs text-slate-500">ID: ${profile.id}</p>
               <div class="mt-1">${roleBadge}</div>
             </div>
-            <div class="flex items-center gap-2 flex-wrap">
+            <div class="flex items-center gap-2">
               ${currentUserRole === 'super_admin' && !isMe && role !== 'super_admin' ? `
                 ${role === 'admin' 
                   ? `<button onclick="changeUserRole('${profile.id}', 'user')" class="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold transition">ถอดถอนสิทธิ์ Admin</button>`
                   : `<button onclick="changeUserRole('${profile.id}', 'admin')" class="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-bold transition">แต่งตั้งเป็น Admin</button>`
                 }
-              ` : ''}
-              
-              ${currentUserRole === 'super_admin' && !isMe ? `
-                <button onclick="deleteSystemUser('${profile.id}', '${profile.full_name || 'ผู้ใช้งานนี้'}')" class="px-3 py-1.5 bg-red-800 hover:bg-red-900 text-white rounded-lg text-xs font-bold transition shadow-sm">
-                  🗑️ ลบสมาชิก
-                </button>
               ` : '<span class="text-[11px] text-slate-400">สิทธิ์จำกัด</span>'}
             </div>
           </div>
@@ -1200,38 +1199,6 @@
       } else {
         alert('อัปเดตบทบาทผู้ใช้งานสำเร็จเรียบร้อยแล้วครับ!');
         fetchAdminUsersData();
-      }
-    };
-
-    window.deleteSystemUser = async function(userId, userName) {
-      if (currentUserRole !== 'super_admin') {
-        alert('เฉพาะ Super Admin เท่านั้นที่มีสิทธิ์ลบสมาชิกครับ');
-        return;
-      }
-
-      if (!confirm(`⚠️ คำเตือน: คุณต้องการลบบัญชี "${userName}" ออกจากระบบใช่หรือไม่?\nการกระทำนี้จะลบประกาศ สินค้า แชท และข้อมูลทั้งหมดที่เกี่ยวข้องของผู้ใช้นี้อย่างถาวร!`)) return;
-
-      try {
-        // 1. ลบประกาศสินค้า/สัตว์เลี้ยงของผู้ใช้นี้
-        await supabaseClient.from('pets').delete().eq('seller_id', userId);
-
-        // 2. ลบข้อความแชทที่เกี่ยวข้อง
-        await supabaseClient.from('messages').delete().or(`sender_id.eq.${userId},receiver_id.eq.${userId}`);
-
-        // 3. ลบป้ายรางวัล
-        await supabaseClient.from('user_badges').delete().or(`giver_id.eq.${userId},receiver_id.eq.${userId}`);
-
-        // 4. ลบโปรไฟล์ในตาราง profiles
-        const { error } = await supabaseClient.from('profiles').delete().eq('id', userId);
-
-        if (error) throw error;
-
-        alert(`🗑️ ลบบัญชี "${userName}" และข้อมูลที่เกี่ยวข้องทั้งหมดเรียบร้อยแล้วครับ`);
-        fetchAdminUsersData();
-        fetchAdminKycData();
-        fetchPets();
-      } catch (err) {
-        alert(`เกิดข้อผิดพลาดในการลบสมาชิก: ${err.message}`);
       }
     };
 
