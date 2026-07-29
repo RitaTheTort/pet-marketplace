@@ -21,12 +21,28 @@
         </button>
       </div>
     </div>
-   <!-- เพิ่มปุ่มนี้ไว้ข้าง ๆ เมนูหลักใน Header หรือแถบเมนู -->
-<a href="auction.html" class="py-2 px-3.5 font-bold text-sm bg-red-600 hover:bg-red-700 text-white rounded-lg transition flex items-center gap-1 shadow-sm">
-  🔨 ตลาดประมูลสด <span class="bg-white text-red-600 px-1.5 py-0.2 rounded text-[10px] font-extrabold animate-pulse">LIVE</span>
-</a>
-
   </header>
+
+  <div class="sticky top-[57px] z-30 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm py-2.5 px-4 transition-all">
+    <div class="max-w-6xl mx-auto flex flex-wrap justify-between items-center gap-2">
+      
+      <div class="flex items-center space-x-2">
+        <a href="auction.html" class="py-1.5 px-3 font-bold text-xs bg-red-600 hover:bg-red-700 text-white rounded-lg transition flex items-center gap-1 shadow-sm">
+          🔨 ตลาดประมูลสด <span class="bg-white text-red-600 px-1.5 py-0.2 rounded text-[9px] font-extrabold animate-pulse">LIVE</span>
+        </a>
+      </div>
+
+      <div class="flex items-center space-x-2" id="quick-action-bar-container">
+        <div id="dynamic-action-area" class="flex items-center space-x-2"></div>
+        <div id="admin-tab-container" class="hidden">
+          <button onclick="switchMainView('ADMIN')" id="tab-admin" class="py-1.5 px-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-bold transition shadow">
+            🛡️ หลังบ้าน Admin
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
 
   <section class="bg-gradient-to-r from-slate-900 to-slate-800 text-white py-12 px-4">
     <div class="max-w-4xl mx-auto text-center">
@@ -50,15 +66,6 @@
         <button id="tab-my-pets" onclick="switchMainView('MY')" class="hidden py-2 px-3.5 font-bold text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-700 transition">
           ประกาศของฉัน <span id="my-count-badge" class="ml-1 bg-slate-200 text-slate-700 px-2 py-0.5 rounded-full text-xs">0</span>
         </button>
-      </div>
-
-      <div class="flex items-center space-x-2 w-full sm:w-auto justify-between sm:justify-end" id="action-buttons-lower-container">
-        <div id="dynamic-action-area" class="flex items-center space-x-2"></div>
-        <div id="admin-tab-container" class="hidden">
-          <button onclick="switchMainView('ADMIN')" id="tab-admin" class="py-1.5 px-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-bold transition shadow">
-            🛡️ หลังบ้าน Admin
-          </button>
-        </div>
       </div>
     </div>
 
@@ -107,7 +114,6 @@
     </div>
   </main>
 
-  <!-- Modal: สมัครสมาชิก / เข้าสู่ระบบ -->
   <div id="auth-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4 overflow-y-auto">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden my-8">
       <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center">
@@ -149,7 +155,6 @@
     </div>
   </div>
 
-  <!-- Modal: จัดการบัญชีผู้ใช้และอัปเดต KYC -->
   <div id="profile-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4 overflow-y-auto">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden my-8">
       <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center">
@@ -196,7 +201,6 @@
     </div>
   </div>
 
-  <!-- Modal: ลงประกาศสัตว์เลี้ยง -->
   <div id="add-pet-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4 overflow-y-auto">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden my-8">
       <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center">
@@ -260,7 +264,6 @@
     </div>
   </div>
 
-  <!-- Modal: รายละเอียดสัตว์เลี้ยง -->
   <div id="detail-pet-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4 overflow-y-auto">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg my-8 relative overflow-hidden">
       
@@ -340,7 +343,6 @@
     </div>
   </div>
 
-  <!-- Modal: ดูภาพขนาดใหญ่ (Lightbox) -->
   <div id="lightbox-modal" class="fixed inset-0 bg-black/90 hidden items-center justify-center z-[100] p-4" onclick="closeImageLightbox()">
     <div class="relative max-w-4xl max-h-full flex items-center justify-center">
       <button type="button" class="absolute -top-10 right-0 text-white bg-slate-800 hover:bg-slate-700 px-3 py-1 rounded-lg text-xs font-bold transition">✕ ปิดภาพใหญ่</button>
@@ -348,7 +350,6 @@
     </div>
   </div>
 
-  <!-- Modal: มอบป้ายรางวัล -->
   <div id="give-badge-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden">
       <div class="bg-slate-900 text-white px-5 py-3.5 flex justify-between items-center">
@@ -365,7 +366,6 @@
     </div>
   </div>
 
-  <!-- Modal: แชทสนทนา -->
   <div id="chat-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg h-[550px] flex flex-col overflow-hidden">
       <div class="bg-slate-900 text-white px-5 py-3.5 flex justify-between items-center border-b border-slate-800">
@@ -395,7 +395,6 @@
     </div>
   </div>
 
-  <!-- Modal: กล่องข้อความทั้งหมด -->
   <div id="inbox-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg h-[550px] flex flex-col overflow-hidden">
       <div class="bg-slate-900 text-white px-5 py-3.5 flex justify-between items-center border-b border-slate-800">
@@ -1357,7 +1356,6 @@
       }
     });
 
-    // --- แก้ไขจุดรั่วไหลของข้อมูลแชท: กรองเฉพาะคู่สนทนาและประกาศนั้นๆ เท่านั้น ---
     async function fetchChatMessages(petId, otherUserId) {
       chatMessagesContainer.innerHTML = '<div class="text-center text-xs text-slate-400 py-4">กำลังโหลดข้อความ...</div>';
 
@@ -1519,7 +1517,7 @@
         petGrid.innerHTML = `
           <div class="col-span-full bg-white p-8 rounded-xl border border-dashed border-slate-300 text-center">
             <p class="text-slate-800 font-bold mb-1">${currentMainView === 'MY' ? 'คุณยังไม่มีรายการประกาศขาย' : 'ไม่พบรายการสัตว์เลี้ยงที่ค้นหา'}</p>
-            <p class="text-xs text-slate-500">${currentMainView === 'MY' ? 'กดปุ่ม "+ ลงประกาศ" มุมขวาบนเพื่อสร้างประกาศแรกได้เลยครับ' : 'ลองเปลี่ยนคำค้นหา หรือเลือกดูหมวดหมู่อื่นๆ ได้ครับ'}</p>
+            <p class="text-xs text-slate-500">${currentMainView === 'MY' ? 'กดปุ่ม "+ ลงประกาศ" ด้านบนเพื่อสร้างประกาศแรกได้เลยครับ' : 'ลองเปลี่ยนคำค้นหา หรือเลือกดูหมวดหมู่อื่นๆ ได้ครับ'}</p>
           </div>
         `;
         return;
