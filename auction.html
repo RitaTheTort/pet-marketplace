@@ -57,11 +57,11 @@
       <span class="text-xs text-slate-500" id="auction-count">กำลังโหลดข้อมูล...</span>
     </div>
 
-    <!-- แถบหมวดหมู่สถานะการประมูล + ปุ่มเปิด Pop-up เลือกหมวดหมู่สัตว์ -->
+    <!-- แถบหมวดหมู่สถานะการประมูล + ปุ่มเปิด Pop-up เลือกหมวดหมู่สัตว์ (สลับปุ่มให้ "ทั้งหมดที่ประมูลอยู่" มาอยู่หน้าสุด) -->
     <div class="mb-6 flex justify-between items-center pb-2 border-b border-slate-200 gap-2 overflow-x-auto">
       <div class="flex space-x-2 min-w-max" id="auction-category-tabs">
         <button onclick="filterAuctionCategory('ALL')" class="auc-cat-tab bg-red-600 text-white px-4 py-2 rounded-full text-xs font-bold transition shadow-sm">
-          🔨 ทั้งหมด / หน้าร้าน
+          🔨 ทั้งหมดที่ประมูลอยู่
         </button>
         <button onclick="filterAuctionCategory('HOT')" class="auc-cat-tab bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 px-4 py-2 rounded-full text-xs font-bold transition">
           🔥 ที่กำลังเดือด ๆ
@@ -90,15 +90,15 @@
     </div>
   </main>
 
-  <!-- 🌟 Modal: Pop-up เลือกหมวดหมู่สัตว์เลี้ยง 10 แบบ -->
-  <div id="species-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col max-h-[85vh]">
-      <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center shrink-0">
-        <h3 class="font-bold text-base">🏷️ เลือกหมวดหมู่สัตว์เลี้ยง</h3>
-        <button onclick="closeSpeciesModal()" class="text-slate-400 hover:text-white text-2xl font-bold px-2 py-0.5 rounded-lg transition">&times;</button>
+  <!-- 🌟 Modal: Pop-up เลือกหมวดหมู่สัตว์เลี้ยงสไตล์ฟองสบู่ / ม่านกระจก (Bubble & Frosted Glass UI) -->
+  <div id="species-modal" class="fixed inset-0 bg-slate-950/40 backdrop-blur-md hidden items-center justify-center z-50 p-4 transition-all">
+    <div class="bg-white/70 backdrop-blur-xl border border-white/60 rounded-3xl shadow-[0_8px_32px_0_rgba(31,38,135,0.15)] w-full max-w-md overflow-hidden flex flex-col max-h-[85vh]">
+      <div class="bg-white/40 backdrop-blur-md border-b border-white/40 text-slate-900 px-6 py-4 flex justify-between items-center shrink-0">
+        <h3 class="font-extrabold text-base flex items-center gap-2"><span>🫧</span> เลือกหมวดหมู่สัตว์เลี้ยง</h3>
+        <button onclick="closeSpeciesModal()" class="text-slate-500 hover:text-slate-900 text-xl font-bold w-8 h-8 rounded-full bg-white/50 flex items-center justify-center transition shadow-sm">&times;</button>
       </div>
-      <div class="p-4 overflow-y-auto space-y-2 flex-1" id="species-list-container">
-        <!-- รายการหมวดหมู่จะถูกเรนเดอร์ด้วย JS -->
+      <div class="p-4 overflow-y-auto space-y-2.5 flex-1" id="species-list-container">
+        <!-- รายการหมวดหมู่จะถูกเรนเดอร์ด้วย JS ในสไตล์ฟองสบู่โปร่งใส -->
       </div>
     </div>
   </div>
@@ -335,7 +335,7 @@
       <div class="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto text-3xl shadow-inner">🔒</div>
       <h3 class="text-lg font-extrabold text-slate-900">ขอปิดการซื้อขาย / สนทนา</h3>
       <p id="trade-modal-desc" class="text-xs text-slate-600 leading-relaxed">
-        ⚠️ คุณกำลังขอปิดการซื้อขาย/สนทนานี้ เมื่อกดกดยืนยัน ระบบจะส่งคำขอและแจ้งเตือนไปยังคู่สนทนา คุณต้องการส่งคำขอหรือไม่?
+        ⚠️ คุณกำลังขอปิดการซื้อขาย/สนทนานี้ เมื่อกดยืนยัน ระบบจะส่งคำขอและแจ้งเตือนไปยังคู่สนทนา คุณต้องการส่งคำขอหรือไม่?
       </p>
       <div class="grid grid-cols-2 gap-3 pt-2" id="trade-modal-buttons">
         <button onclick="closeTradeConfirmModal()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 py-3 rounded-xl font-bold text-sm transition">ยกเลิก</button>
@@ -579,9 +579,9 @@
         const rawName = sp.replace(/^[^\s]+\s/, '');
         const isSelected = (currentSelectedSpecies === 'ALL' && sp.includes('ทั้งหมด')) || currentSelectedSpecies === rawName;
         return `
-          <button onclick="selectSpeciesFilter('${sp}')" class="w-full text-left px-4 py-3 rounded-xl text-xs font-bold transition flex items-center justify-between ${isSelected ? 'bg-red-600 text-white shadow-md' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'}">
+          <button onclick="selectSpeciesFilter('${sp}')" class="w-full text-left px-4 py-3 rounded-2xl text-xs font-bold transition flex items-center justify-between backdrop-blur-md ${isSelected ? 'bg-red-600/90 text-white shadow-[0_4px_20px_rgba(220,38,38,0.4)] border border-red-500/50' : 'bg-white/40 hover:bg-white/70 text-slate-700 border border-white/60 shadow-[0_2px_10px_rgba(0,0,0,0.02)]'}">
             <span>${sp}</span>
-            ${isSelected ? '<span>✓</span>' : ''}
+            ${isSelected ? '<span class="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center text-xs">✓</span>' : ''}
           </button>
         `;
       }).join('');
