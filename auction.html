@@ -7,29 +7,32 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body id="page-body" class="bg-slate-50 text-slate-800 min-h-screen">
+<body id="page-body" class="bg-slate-50 text-slate-800 min-h-screen pb-24">
 
+  <!-- Header ด้านบนแบบโล่งสะอาดตา -->
   <header class="bg-slate-900 text-white shadow-md sticky top-0 z-40">
     <div class="max-w-6xl mx-auto px-4 py-3.5 flex justify-between items-center">
       <div class="flex items-center space-x-3">
-        <a href="index.html" class="text-blue-400 hover:text-blue-300 font-bold text-sm flex items-center gap-1">
-          &larr; กลับสู่หน้าหลักตลาดซื้อขาย
-        </a>
-        <span class="text-slate-600">|</span>
         <span class="text-xl font-extrabold text-red-400 tracking-wide">Live Auction Hub</span>
       </div>
       
-      <!-- 🌟 ตำแหน่ง A: ปุ่มแชท (Inbox) และปุ่ม Auth -->
-      <div class="flex items-center space-x-2">
-        <div id="dynamic-action-area" class="flex items-center space-x-2"></div>
-        <div class="flex items-center space-x-2" id="auth-buttons-container">
-          <button id="open-auth-modal-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-3.5 py-1.5 rounded-lg text-xs transition shadow-sm">
-            เข้าสู่ระบบ
-          </button>
-        </div>
+      <div class="flex items-center space-x-2" id="auth-buttons-container">
+        <button id="open-auth-modal-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-3.5 py-1.5 rounded-lg text-xs transition shadow-sm">
+          เข้าสู่ระบบ
+        </button>
       </div>
     </div>
   </header>
+
+  <!-- 🌟 แถบเมนูลอยด้านล่าง (Quick Action Bar ตรึงติดหน้าจอไม่ว่าจะเลื่อนไปไหน) -->
+  <div class="fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-md border-t border-slate-800 text-white py-3 px-4 z-40 shadow-2xl flex justify-between items-center max-w-xl mx-auto md:rounded-t-2xl">
+    <a href="index.html" class="flex items-center gap-1.5 text-slate-300 hover:text-white font-bold text-xs md:text-sm transition bg-slate-800 hover:bg-slate-700 px-4 py-2.5 rounded-xl border border-slate-700 shadow-sm">
+      &larr; กลับหน้าหลักตลาด
+    </a>
+    <div id="quick-action-chat-container">
+      <!-- ปุ่มแชทเด่นจะแสดงเฉพาะตอนเข้าสู่ระบบแล้ว -->
+    </div>
+  </div>
 
   <section class="bg-gradient-to-r from-red-900 to-slate-900 text-white py-10 px-4">
     <div class="max-w-4xl mx-auto text-center flex flex-col items-center">
@@ -113,7 +116,6 @@
               <span id="sa-species" class="text-xs font-bold uppercase bg-red-50 text-red-600 px-2.5 py-0.5 rounded">SPECIES</span>
               <div class="flex items-center gap-2">
                 <span class="text-xs text-slate-500">ผู้เปิดประมูล: <strong id="sa-seller" class="text-slate-700">-</strong></span>
-                <!-- 🌟 ปุ่มติดต่อผู้ขาย -->
                 <button type="button" onclick="openAuctionSellerChat()" class="bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-bold px-2.5 py-1 rounded-lg transition shadow-sm">
                   💬 ติดต่อผู้ขาย / เปิดแชท
                 </button>
@@ -152,7 +154,6 @@
             🔨 ยืนยันการเสนอราคา (เสนอ <span id="sa-next-price">0</span> บาท)
           </button>
 
-          <!-- 🌟 ปุ่มติดต่อผู้ชนะการประมูล -->
           <div id="winner-contact-container" class="hidden pt-2">
             <button type="button" onclick="openWinnerChat()" class="w-full bg-purple-600 hover:bg-purple-700 text-white py-3.5 rounded-xl font-bold text-sm shadow-lg transition flex items-center justify-center gap-2 animate-bounce">
               🏆 ติดต่อผู้ชนะการประมูล (<span id="winner-name-display">-</span>) เพื่อสรุปยอดชำระเงิน
@@ -198,7 +199,6 @@
     </div>
   </div>
 
-  <!-- 🌟 หน้าต่างแชทเฉพาะกิจสำหรับหน้าประมูล (ใช้ตาราง auction_messages) -->
   <div id="auction-chat-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-[80] p-4">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg h-[620px] flex flex-col overflow-hidden relative">
       <div class="bg-slate-900 text-white px-5 py-3 flex justify-between items-center border-b border-slate-800">
@@ -227,7 +227,6 @@
     </div>
   </div>
 
-  <!-- 🌟 Modal: กล่องข้อความรวม Inbox สำหรับหน้าประมูล -->
   <div id="auction-inbox-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg h-[550px] flex flex-col overflow-hidden">
       <div class="bg-slate-900 text-white px-5 py-3.5 flex justify-between items-center border-b border-slate-800">
@@ -404,7 +403,7 @@
       currentKycStatus = 'unverified';
       userFavorites = [];
       const container = document.getElementById('auth-buttons-container');
-      const dynamicActionArea = document.getElementById('dynamic-action-area');
+      const quickChatContainer = document.getElementById('quick-action-chat-container');
       const createAucBtn = document.getElementById('open-create-auc-btn');
 
       if (user) {
@@ -437,10 +436,11 @@
           </div>
         `;
 
-        if (dynamicActionArea) {
-          dynamicActionArea.innerHTML = `
-            <button onclick="openAuctionInboxModal()" class="bg-slate-800 hover:bg-slate-700 text-blue-400 border border-slate-700 font-medium px-3 py-1.5 rounded-lg text-xs transition flex items-center gap-1 shrink-0" title="กล่องข้อความประมูล">
-              💬 แชท
+        // 🌟 แสดงปุ่มแชทรวมประมูลที่แถบเมนูลอยด้านล่าง ให้โดดเด่นสะดุดตา
+        if (quickChatContainer) {
+          quickChatContainer.innerHTML = `
+            <button onclick="openAuctionInboxModal()" class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-extrabold px-6 py-2.5 rounded-xl text-xs md:text-sm transition shadow-lg shadow-blue-500/30 flex items-center gap-2 animate-pulse">
+              💬 แชทรวมประมูล
             </button>
           `;
         }
@@ -450,7 +450,7 @@
         container.innerHTML = `
           <button onclick="document.getElementById('auth-modal').classList.add('flex'); document.getElementById('auth-modal').classList.remove('hidden');" class="bg-blue-600 text-white px-3.5 py-1.5 rounded-lg text-xs font-bold shadow">เข้าสู่ระบบ</button>
         `;
-        if (dynamicActionArea) dynamicActionArea.innerHTML = '';
+        if (quickChatContainer) quickChatContainer.innerHTML = '';
         if (createAucBtn) createAucBtn.classList.add('hidden');
       }
       if (activeAuction) updateBidButtonState();
@@ -891,7 +891,7 @@
       openAuctionChat(activeAuction, activeAuction.seller_id, activeAuction.seller_name || 'ผู้ขาย');
     };
 
-    // 🌟 แก้ไขจุดนี้: เช็กเฉพาะว่า "เคยมีข้อความคำว่า ยินดีด้วย!! ส่งไปหรือยัง" หากยังไม่เคย ให้ส่งอัตโนมัติทันที
+    // 🌟 ฟังก์ชันเปิดแชทติดต่อผู้ชนะการประมูล
     window.openWinnerChat = async function() {
       if (!currentUser || !activeAuction) return;
 
@@ -905,20 +905,16 @@
       const winnerName = activeAuction.last_bidder_name || 'ผู้ชนะประมูล';
       const finalPrice = Number(activeAuction.current_price).toLocaleString();
 
-      // เปิดหน้าต่างแชทกับผู้ชนะทันที
       await openAuctionChat(activeAuction, winnerId, winnerName);
 
-      // ดึงประวัติข้อความทั้งหมดในห้องนี้มาตรวจเช็ก
       const { data: existingMsgs } = await supabaseClient
         .from('auction_messages')
         .select('*')
         .eq('auction_id', activeAuction.id)
         .or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${winnerId}),and(sender_id.eq.${winnerId},receiver_id.eq.${currentUser.id})`);
 
-      // เช็กว่ามีข้อความใดมีคำว่า "ยินดีด้วย!!" อยู่แล้วหรือยัง
       const hasWelcomed = existingMsgs && existingMsgs.some(m => m.content && m.content.includes("ยินดีด้วย!!"));
 
-      // ถ้ายังไม่เคยส่งข้อความต้อนรับนี้มาก่อน แม้จะเคยคุยกันเรื่องอื่น ก็ให้ส่งข้อความนี้แทรกไปได้เลย
       if (!hasWelcomed) {
         const welcomeText = `🎉 ยินดีด้วย!! คุณคือผู้ชนะประมูลที่ราคา ฿${finalPrice}`;
         const myName = currentUser.user_metadata?.full_name || currentUser.email.split('@')[0];
@@ -961,7 +957,7 @@
       }
     }
 
-    // 🌟 Modal: กล่องข้อความรวม Inbox สำหรับหน้าประมูล
+    // Modal: กล่องข้อความรวม Inbox สำหรับหน้าประมูล
     window.openAuctionInboxModal = async function() {
       if (!currentUser) return;
       lockBodyScroll();
@@ -1058,7 +1054,6 @@
         const isMe = msg.sender_id === currentUser.id;
         const timeStr = new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         
-        // 🌟 ตรวจสอบข้อความต้อนรับผู้ชนะ ให้แสดงผลด้วยฟอนต์ตัวหนาใหญ่เด่นชัด
         const isWinnerWelcome = msg.content && msg.content.includes("ยินดีด้วย!!");
         const contentBubbleStyle = isWinnerWelcome 
           ? `bg-amber-100 text-amber-900 border-2 border-amber-400 font-extrabold text-sm md:text-base p-3 rounded-2xl shadow-md my-1 text-center` 
@@ -1089,7 +1084,6 @@
         .subscribe();
     }
 
-    // 🌟 ส่งข้อความแล้วรีเฟรชหน้าจอแชททันทีแบบสมูท
     document.getElementById('auc-chat-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       const inputEl = document.getElementById('auc-chat-input');
