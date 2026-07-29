@@ -172,7 +172,6 @@
       <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center shrink-0 sticky top-0 z-20 shadow">
         <div class="flex items-center gap-2 min-w-0 pr-2">
           <span class="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping shrink-0"></span>
-          <!-- 🌟 ปรับชื่อหัวข้อเป็น "ห้องประมูล" ตามที่ต้องการ -->
           <h3 id="modal-seller-title" class="font-bold text-sm md:text-lg truncate">🔨 ห้องประมูล</h3>
         </div>
         <button onclick="closeSellerRoomsModal()" class="text-slate-400 hover:text-white text-2xl font-bold px-2 py-0.5 rounded-lg transition">&times;</button>
@@ -190,13 +189,11 @@
           <span class="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping"></span>
           <h3 class="font-bold text-base md:text-lg">🔨 ห้องประมูลสด (Live Auction Room)</h3>
         </div>
-        <!-- 🌟 ปุ่มกากบาทปิดห้องประมูลสด กดแล้วย้อนกลับไปเปิดหน้าห้องประมูลอัตโนมัติ -->
         <button onclick="closeSingleAuctionModal()" class="text-slate-400 hover:text-white text-2xl font-bold px-2 py-0.5 rounded-lg transition">&times;</button>
       </div>
 
       <div class="p-4 md:p-6 grid grid-cols-1 lg:grid-cols-3 gap-6 overflow-y-auto relative flex-1">
         <div class="lg:col-span-2 space-y-4">
-          <!-- 🌟 รูปภาพในห้องประมูลสด: ปรับไม่ให้ล้นกรอบ และคลิกเพื่อดูรูปใหญ่ได้ -->
           <div class="relative h-64 bg-slate-900 rounded-xl overflow-hidden flex items-center justify-center cursor-pointer group" onclick="openLightbox(document.getElementById('sa-image').src)">
             <img id="sa-image" src="" class="max-w-full max-h-full object-contain transition group-hover:scale-105">
             <span class="absolute top-3 left-3 bg-red-600 text-white font-bold text-xs px-2.5 py-1 rounded shadow pointer-events-none">LIVE AUCTION</span>
@@ -237,9 +234,11 @@
               <p class="text-[10px] text-emerald-700 font-semibold uppercase tracking-wider">ราคาประมูลปัจจุบัน</p>
               <div class="flex items-baseline justify-between mt-1">
                 <p id="sa-current-price" class="text-2xl font-black text-emerald-800">฿0</p>
+                <!-- 🌟 ปุ่มซื้อทันที (Buyout Button) อัปเดตใหม่ให้กดได้จริง พร้อมซ่อน/แสดงตามเงื่อนไขเวลาและราคา -->
                 <div id="sa-buyout-box" class="text-right hidden">
-                  <p class="text-[9px] text-blue-600 font-bold">ซื้อทันที (Buyout)</p>
-                  <p id="sa-buyout-price" class="text-xs font-extrabold text-blue-700">฿0</p>
+                  <button type="button" onclick="confirmBuyoutPrompt()" id="sa-buyout-btn" class="hidden bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-extrabold px-3 py-1.5 rounded-xl text-xs shadow-md transition items-center gap-1">
+                    ⚡ ซื้อทันที <span id="sa-buyout-price">฿0</span>
+                  </button>
                 </div>
               </div>
             </div>
@@ -274,6 +273,7 @@
         </div>
       </div>
 
+      <!-- Modal ยืนยันการเสนอราคา -->
       <div id="bid-confirm-modal" class="absolute inset-0 bg-slate-900/80 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden p-6 text-center space-y-4">
           <div class="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-2xl font-bold">🔨</div>
@@ -286,6 +286,23 @@
           <div class="grid grid-cols-2 gap-3 pt-2">
             <button onclick="closeConfirmModal()" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 py-3 rounded-xl font-bold text-sm transition">ยกเลิก</button>
             <button onclick="submitBid()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-xl font-bold text-sm shadow-lg transition">ใช่ (ยืนยัน)</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 🌟 Modal ยืนยันการ "ซื้อทันที (Buyout)" -->
+      <div id="buyout-confirm-modal" class="absolute inset-0 bg-slate-900/80 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden p-6 text-center space-y-4">
+          <div class="w-14 h-14 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto text-2xl font-bold">⚡</div>
+          <h3 class="text-lg font-extrabold text-slate-900">ยืนยันการซื้อทันที (Buyout)</h3>
+          <p class="text-xs text-slate-600">คุณต้องการซื้อสินค้านี้ในราคาทันที:</p>
+          <div class="bg-blue-50 border border-blue-200 py-3 rounded-xl">
+            <span id="confirm-buyout-amount" class="text-3xl font-black text-blue-800">฿0</span>
+          </div>
+          <p class="text-[11px] text-amber-600 font-medium">⚠️ การกดซื้อทันทีจะยุติการประมูลและทำให้คุณเป็นผู้ชนะทันที</p>
+          <div class="grid grid-cols-2 gap-3 pt-2">
+            <button onclick="closeBuyoutConfirmModal()" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 py-3 rounded-xl font-bold text-sm transition">ยกเลิก</button>
+            <button onclick="executeBuyout()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold text-sm shadow-lg transition">ยืนยันซื้อทันที</button>
           </div>
         </div>
       </div>
@@ -687,7 +704,10 @@
         if (quickChatContainer) quickChatContainer.innerHTML = '';
         if (createAucBtn) createAucBtn.classList.add('hidden');
       }
-      if (activeAuction) updateBidButtonState();
+      if (activeAuction) {
+        updateBidButtonState();
+        updateBuyoutButtonVisibility();
+      }
       fetchAuctions();
     }
 
@@ -1131,7 +1151,8 @@
         seller_name: currentUser.user_metadata?.full_name || currentUser.email.split('@')[0],
         expires_at: new Date(Date.now() + totalMilliseconds).toISOString(),
         status: 'active', last_bidder_id: null, last_bidder_name: null,
-        order_status: 'รอการชำระเงิน'
+        order_status: 'รอการชำระเงิน',
+        created_at: new Date().toISOString() // 🌟 บันทึกเวลาเริ่มต้นเพื่อใช้คำนวณช่วงเวลา Buyout (30%-80%)
       };
 
       try {
@@ -1276,7 +1297,6 @@
               </div>
             </div>
             <div class="p-5 pt-0">
-              <!-- 🌟 แก้ไขปุ่มให้เรียก openSellerRoomsModal('${seller.seller_id}') ให้ถูกต้อง -->
               <button onclick="openSellerRoomsModal('${seller.seller_id}')" class="w-full bg-slate-900 hover:bg-slate-800 text-white py-2.5 rounded-xl text-xs font-bold shadow transition flex items-center justify-center gap-1">
                 🚪 เข้าสู่ห้องประมูล (${itemCount} รายการ)
               </button>
@@ -1415,10 +1435,16 @@
       renderSellerDashboardReturnButton();
 
       const buyoutBox = document.getElementById('sa-buyout-box');
+      const buyoutBtn = document.getElementById('sa-buyout-btn');
       if (activeAuction.buyout_price) {
         document.getElementById('sa-buyout-price').innerText = `฿${Number(activeAuction.buyout_price).toLocaleString()}`;
+        document.getElementById('confirm-buyout-amount').innerText = `฿${Number(activeAuction.buyout_price).toLocaleString()}`;
         buyoutBox.classList.remove('hidden');
-      } else { buyoutBox.classList.add('hidden'); }
+        updateBuyoutButtonVisibility();
+      } else { 
+        buyoutBox.classList.add('hidden'); 
+        buyoutBtn.classList.add('hidden');
+      }
 
       await loadBidHistory(activeAuction.id);
       updateBidButtonState();
@@ -1429,6 +1455,7 @@
       singleRoomInterval = setInterval(() => {
         updateSingleRoomTimer();
         checkWinnerContactVisibility();
+        updateBuyoutButtonVisibility(); // 🌟 อัปเดตการแสดงผลปุ่ม Buyout แบบเรียลไทม์ตามเวลาและราคา
       }, 1000);
 
       setupRealtimeSubscription(activeAuction.id);
@@ -1436,6 +1463,118 @@
       lockBodyScroll();
       document.getElementById('single-auction-modal').classList.remove('hidden');
       document.getElementById('single-auction-modal').classList.add('flex');
+    };
+
+    // 🌟 ฟังก์ชันตรวจสอบและควบคุมการแสดงผลปุ่ม "ซื้อทันที (Buyout)" ตามเงื่อนไขเวลา (30%-80%) และราคา (ไม่เกิน 60%)
+    function updateBuyoutButtonVisibility() {
+      if (!activeAuction || !activeAuction.buyout_price) return;
+      const buyoutBtn = document.getElementById('sa-buyout-btn');
+      if (!buyoutBtn) return;
+
+      const now = new Date().getTime();
+      const createdAt = new Date(activeAuction.created_at || activeAuction.expires_at).getTime();
+      const expiresAt = new Date(activeAuction.expires_at).getTime();
+      const totalDuration = expiresAt - createdAt;
+      const elapsed = now - createdAt;
+
+      // คำนวณเปอร์เซ็นต์เวลาที่ผ่านไป (ถ้าสร้างใหม่และไม่มี created_at ย้อนหลัง ให้ประเมินจากระยะเวลาที่เหลือเทียบกับเวลาเริ่มต้น)
+      let timeProgress = totalDuration > 0 ? (elapsed / totalDuration) * 100 : 50;
+      if (timeProgress < 0) timeProgress = 0;
+      if (timeProgress > 100) timeProgress = 100;
+
+      const currentPrice = Number(activeAuction.current_price || 0);
+      const buyoutPrice = Number(activeAuction.buyout_price);
+      const priceRatio = (currentPrice / buyoutPrice) * 100;
+
+      const isEnded = expiresAt <= now || activeAuction.status === 'ended';
+      const isAdmin = currentUser && (currentUserRole === 'admin' || currentUserRole === 'super_admin');
+      const isMyOwnItem = currentUser && activeAuction.seller_id === currentUser.id && !isAdmin;
+
+      // เงื่อนไข: อยู่ในช่วงเวลา 30% - 80% และราคาปัจจุบันยังไม่ถึง 60% ของราคา Buyout และการประมูลยังไม่จบ และไม่ใช่เจ้าของสินค้ากดซื้อเอง
+      const isInTimeWindow = timeProgress >= 30 && timeProgress <= 80;
+      const isUnderPriceThreshold = priceRatio < 60;
+
+      if (!isEnded && !isMyOwnItem && isInTimeWindow && isUnderPriceThreshold) {
+        buyoutBtn.classList.remove('hidden');
+        buyoutBtn.classList.add('inline-flex');
+      } else {
+        buyoutBtn.classList.add('hidden');
+        buyoutBtn.classList.remove('inline-flex');
+      }
+    }
+
+    window.confirmBuyoutPrompt = function() {
+      if (!currentUser) {
+        alert('กรุณาเข้าสู่ระบบก่อนทำการซื้อทันทีครับ');
+        document.getElementById('auth-modal').classList.remove('hidden');
+        document.getElementById('auth-modal').classList.add('flex');
+        return;
+      }
+      if (currentKycStatus !== 'approved') {
+        alert('⚠️ คุณจำเป็นต้องผ่านการยืนยันตัวตน (KYC) ก่อน จึงจะสามารถซื้อสินค้าได้ครับ');
+        return;
+      }
+      if (!activeAuction) return;
+
+      const isAdmin = (currentUserRole === 'admin' || currentUserRole === 'super_admin');
+      if (activeAuction.seller_id === currentUser.id && !isAdmin) {
+        alert('คุณไม่สามารถซื้อสินค้าของตนเองได้ครับ');
+        return;
+      }
+
+      const modal = document.getElementById('buyout-confirm-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    };
+
+    window.closeBuyoutConfirmModal = function() {
+      const modal = document.getElementById('buyout-confirm-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    };
+
+    // 🌟 ฟังก์ชันดำเนินการ "ซื้อทันที (Buyout)" สำเร็จ: ปิดประมูลทันที ดันราคาเป็นราคา Buyout และบันทึกผู้ชนะ
+    window.executeBuyout = async function() {
+      closeBuyoutConfirmModal();
+      if (!currentUser || !activeAuction) return;
+
+      const buyoutPrice = Number(activeAuction.buyout_price);
+      const buyerName = currentUser.user_metadata?.full_name || currentUser.email.split('@')[0];
+
+      try {
+        const { error: updateError } = await supabaseClient
+          .from('auctions')
+          .update({ 
+            current_price: buyoutPrice,
+            status: 'ended',
+            last_bidder_id: currentUser.id,
+            last_bidder_name: buyerName,
+            order_status: 'รอการชำระเงิน'
+          })
+          .eq('id', activeAuction.id);
+
+        if (updateError) throw updateError;
+
+        await supabaseClient.from('auction_bids').insert([{
+          auction_id: activeAuction.id,
+          bidder_id: currentUser.id,
+          bidder_name: buyerName,
+          bid_amount: buyoutPrice
+        }]);
+
+        showToast('🎉 ซื้อทันที (Buyout) สำเร็จ คุณคือผู้ชนะการประมูล!');
+        await refreshActiveAuctionData(activeAuction.id);
+        
+        document.getElementById('sa-current-price').innerText = `฿${buyoutPrice.toLocaleString()}`;
+        document.getElementById('sa-buyout-btn').classList.add('hidden');
+        
+        await loadBidHistory(activeAuction.id);
+        updateBidButtonState();
+        checkWinnerContactVisibility();
+        fetchAuctions();
+      } catch (err) {
+        alert(`ซื้อทันทีไม่สำเร็จ: ${err.message}`);
+      }
     };
 
     function renderSellerDashboardReturnButton() {
@@ -2061,6 +2200,7 @@
             await loadBidHistory(aucId);
             updateBidButtonState();
             checkWinnerContactVisibility();
+            updateBuyoutButtonVisibility();
           }
         })
         .on('postgres_changes', { event: '*', schema: 'public', table: 'auction_bids' }, async (payload) => {
@@ -2071,6 +2211,7 @@
             await loadBidHistory(aucId);
             updateBidButtonState();
             checkWinnerContactVisibility();
+            updateBuyoutButtonVisibility();
           }
         })
         .subscribe();
@@ -2119,7 +2260,6 @@
       activeAuction = null;
       fetchAuctions();
 
-      // 🌟 เมื่อปิดห้องประมูลสด ให้ย้อนกลับมาเปิดหน้าห้องประมูลของร้านเดิมทันที
       if (currentSellerIdToReturn) {
         setTimeout(() => {
           openSellerRoomsModal(currentSellerIdToReturn);
@@ -2144,6 +2284,8 @@
           bidBtn.innerText = "🔴 ปิดการประมูลเรียบร้อยแล้ว";
           bidBtn.className = "w-full bg-slate-300 text-slate-500 py-3.5 rounded-xl font-bold text-sm cursor-not-allowed";
         }
+        const buyoutBtn = document.getElementById('sa-buyout-btn');
+        if (buyoutBtn) buyoutBtn.classList.add('hidden');
       } else {
         const days = Math.floor(distance / (1000 * 60 * 60 * 24));
         const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
@@ -2230,6 +2372,14 @@
       if (!bidBtn || !activeAuction) return;
 
       const nextPrice = Number(activeAuction.current_price) + selectedIncrement;
+      const isEnded = new Date(activeAuction.expires_at).getTime() <= new Date().getTime() || activeAuction.status === 'ended';
+
+      if (isEnded) {
+        bidBtn.disabled = true;
+        bidBtn.className = "w-full bg-slate-300 text-slate-500 py-3.5 rounded-xl font-bold text-sm cursor-not-allowed flex items-center justify-center gap-2";
+        bidBtn.innerHTML = `🔴 ปิดการประมูลเรียบร้อยแล้ว`;
+        return;
+      }
 
       if (!currentUser) {
         bidBtn.disabled = false;
@@ -2329,6 +2479,7 @@
         await loadBidHistory(activeAuction.id);
 
         updateBidButtonState();
+        updateBuyoutButtonVisibility();
         fetchAuctions();
       } catch (err) {
         alert(`เสนอราคาไม่สำเร็จ: ${err.message}`);
