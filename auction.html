@@ -408,17 +408,15 @@
       if (user) {
         const displayName = user.user_metadata?.full_name || user.email.split('@')[0];
 
-        // 🌟 ดึงข้อมูลโปรไฟล์โดยตรวจเช็กฟิลด์สถานะ KYC ให้ยืดหยุ่นรองรับทุกรูปแบบ
         const { data: profileData } = await supabaseClient
           .from('profiles')
-          .select('role, kyc_status, bank_name, bank_account, account_name')
+          .select('role, kyc_status, bank_name, bank_account, account_name, bank_info, shipping_info, full_name')
           .eq('id', user.id)
           .single();
 
         if (profileData) {
           if (profileData.role) currentUserRole = profileData.role;
           
-          // ตรวจสอบสถานะ KYC แบบยืดหยุ่น (รองรับ approved, Approved, APPROVED, หรือ true)
           const kycVal = profileData.kyc_status;
           if (kycVal === true || kycVal === 1 || (typeof kycVal === 'string' && kycVal.toLowerCase() === 'approved')) {
             currentKycStatus = 'approved';
@@ -512,13 +510,12 @@
       renderCurrentAuctionView();
     };
 
-    // 🌟 ปรับปรุงการตรวจสอบ KYC ให้ยืดหยุ่นและรองรับ Admin หรือ Super Admin ด้วย
     window.openCreateAuctionModal = function() {
       if (!currentUser) { alert('กรุณาเข้าสู่ระบบก่อนเปิดประมูล'); return; }
       
       const isAdmin = (currentUserRole === 'admin' || currentUserRole === 'super_admin');
       if (currentKycStatus !== 'approved' && !isAdmin) {
-        alert('⚠️ คุณจำเป็นต้องผ่านการยืนยันตัวตน (KYC) ก่อน จึงจะสามารถเปิดห้องประมูลได้ครับ (สถานะปัจจุบัน: ' + currentKycStatus + ')');
+        alert('⚠️ คุณจำเป็นต้องผ่านการยืนยันตัวตน (KYC) ก่อน จึงจะสามารถเปิดห้องประมูลได้ครับ');
         return;
       }
 
@@ -1019,13 +1016,14 @@
       let content = '';
 
       if (type === 'bank') {
-        if (!sellerBankInfo || !sellerBankInfo.bank_account) {
+        if (!sellerBankInfo || !sellerBankInfo.bank_account && !sellerBankInfo.bank_info) {
           alert('⚠️ กรุณาตั้งค่าข้อมูลบัญชีธนาคารของคุณในหน้าจัดการบัญชีก่อนครับ');
           return;
         }
-        content = `💳 ข้อมูลโอนเงินชำระสินค้า:\nธนาคาร: ${sellerBankInfo.bank_name || '-'}\nเลขบัญชี: ${sellerBankInfo.bank_account}\nชื่อบัญชี: ${sellerBankInfo.account_name || myName}`;
+        const bAcc = sellerBankInfo.bank_account || sellerBankInfo.bank_info || '-';
+        content = `💳 ข้อมูลโอนเงินชำระสินค้า:\nธนาคาร: ${sellerBankInfo.bank_name || '-'}\nเลขบัญชี: ${bAcc}\nชื่อบัญชี: ${sellerBankInfo.account_name || myName}`;
       } else if (type === 'shipping') {
-        content = `📦 ข้อมูลการจัดส่ง / จุดนัดรับ:\n- จัดส่งพัสดุแพ็คควบคุมอุณหภูมิอย่างดี\n- หรือนัดรับสินค้าตามตกลง`;
+        content = `📦 ข้อมูลการจัดส่ง / จุดนัดรับ:\n${sellerBankInfo.shipping_info || 'จัดส่งพัสดุแพ็คควบคุมอุณหภูมิอย่างดี หรือนัดรับสินค้าตามตกลง'}`;
       } else if (type === 'summary') {
         const finalPrice = Number(activeAuction.current_price || 0);
         const shippingFee = Number(activeAuction.shipping_fee || 0);
