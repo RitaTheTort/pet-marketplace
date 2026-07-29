@@ -557,16 +557,18 @@
       window.location.href = lineAuthUrl;
     };
 
-    // --- แก้ไขจุดสำคัญ: ตรวจสอบ Code และเรียกใช้ Persistent ID ที่เสถียร ไม่สร้างไอดีใหม่ซ้ำซ้อน ---
+    // --- ตรวจสอบ Callback จาก LINE Login เมื่อผู้ใช้ถูก redirect กลับมา ---
     async function handleLineCallback() {
       const urlParams = new URLSearchParams(window.location.search);
       const code = urlParams.get('code');
+      const returnedState = urlParams.get('state');
+      const savedState = localStorage.getItem('line_login_state');
 
       if (code) {
         window.history.replaceState({}, document.title, window.location.pathname);
         localStorage.removeItem('line_login_state');
 
-        // หากมี persistent_line_id อยู่แล้ว ให้ใช้ตัวเดิมตลอดไป (ไม่สุ่มสร้างใหม่)
+        // [แก้ไขปัญหาไอดี LINE ซ้ำซ้อนอย่างถาวร]: ใช้ persistent ID เพื่อไม่ให้รหัสเปลี่ยนทุกรอบที่ login
         let persistentLineId = localStorage.getItem('persistent_line_id');
         let persistentLineEmail = localStorage.getItem('persistent_line_email');
 
@@ -710,41 +712,6 @@
         );
 
       globalNotificationChannel.subscribe();
-    }
-
-    // --- ตรวจสอบ Session โดยบังคับเช็คจาก localStorage เป็นลำดับแรกเพื่อป้องกันการสร้างไอดีซ้ำซ้อน ---
-    async function checkUserSession() {
-      const persistentLineId = localStorage.getItem('persistent_line_id');
-      const persistentLineEmail = localStorage.getItem('persistent_line_email');
-
-      if (persistentLineId) {
-        const mockLineUser = {
-          id: persistentLineId,
-          email: persistentLineEmail || `${persistentLineId}@petmarket.line`,
-          user_metadata: { full_name: 'สมาชิก LINE (Verified)' }
-        };
-
-        const { data: existingProfile } = await supabaseClient
-          .from('profiles')
-          .select('*')
-          .eq('id', persistentLineId)
-          .single();
-
-        if (existingProfile && existingProfile.full_name) {
-          mockLineUser.user_metadata.full_name = existingProfile.full_name;
-        }
-
-        updateAuthUI(mockLineUser);
-        return;
-      }
-
-      const { data: { session } } = await supabaseClient.auth.getSession();
-      if (session && session.user) {
-        updateAuthUI(session.user);
-        return;
-      }
-
-      updateAuthUI(null);
     }
 
     async function updateAuthUI(user) {
@@ -1246,23 +1213,6 @@
       }
     };
 
-    window.cleanupLineDuplicates = async function() {
-      if (!confirm('คุณต้องการเคลียร์บัญชีจำลอง LINE ที่ไม่ได้ใช้งานหรือซ้ำซ้อนออกทั้งหมดใช่หรือไม่?')) return;
-      try {
-        const { data, error } = await supabaseClient
-          .from('profiles')
-          .delete()
-          .like('id', 'line_real_%');
-
-        if (error) throw error;
-        alert('🧹 ล้างข้อมูลบัญชี LINE ซ้ำซ้อนเรียบร้อยแล้วครับ!');
-        if (typeof fetchAdminKycData === 'function') fetchAdminKycData();
-        if (typeof fetchAdminUsersData === 'function') fetchAdminUsersData();
-      } catch (err) {
-        alert('เกิดข้อผิดพลาดในการเคลียร์ข้อมูล: ' + err.message);
-      }
-    };
-
     window.approveKycUser = async function(userId) {
       if (!confirm('ยืนยันการอนุมัติเอกสารยืนยันตัวตน (KYC) สำหรับผู้ใช้งานนี้?')) return;
 
@@ -1350,8 +1300,6 @@
 
     window.handleSignOut = async function() {
       await supabaseClient.auth.signOut();
-      localStorage.removeItem('persistent_line_id');
-      localStorage.removeItem('persistent_line_email');
       updateAuthUI(null);
     };
 
@@ -1877,12 +1825,14 @@
 
     document.addEventListener('DOMContentLoaded', async () => {
       fetchPets();
-      
-      // 🌟 เรียกใช้งาน handleLineCallback เพื่อรับโค้ดและสร้าง/ดึง Persistent ID เฉพาะตอนที่ผู้ใช้กดล็อกอินกลับมาจาก LINE จริงๆ เท่านั้น
-      await handleLineCallback();
+      handleLineCallback();
 
-      // 🌟 จากนั้นตรวจสอบ Session ปัจจุบันโดยใช้ ID เดิมตลอดไป ห้ามสุ่มใหม่เด็ดขาด
-      checkUserSession();
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      if (session) {
+        updateAuthUI(session.user);
+      } else {
+        updateAuthUI(null);
+      }
 
       supabaseClient.auth.onAuthStateChange(async (event, session) => {
         if (event === 'PASSWORD_RECOVERY') {
