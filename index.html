@@ -174,7 +174,6 @@
           <input type="text" id="profile-name" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
         </div>
 
-        <!-- เพิ่มช่องตั้งค่าเลขบัญชีและที่อยู่สำหรับปุ่มด่วน -->
         <div>
           <label class="block text-xs font-bold text-slate-700 mb-1">💳 เลขบัญชีธนาคาร / พร้อมเพย์ (สำหรับปุ่มด่วนแชท)</label>
           <input type="text" id="profile-bank" placeholder="เช่น 123-4-56789-0 ธ.กสิกรไทย" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
@@ -270,7 +269,7 @@
 
         <div class="pt-3 flex justify-end space-x-3 border-t border-slate-100">
           <button type="button" id="cancel-btn" class="px-4 py-2 border border-slate-300 rounded-lg text-slate-600 text-sm font-medium hover:bg-slate-50 transition">ยกเลิก</button>
-          <button type="submit" id="submit-btn" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-bold shadow transition">บันทึกประกาศ</button>
+          <button type="submit" id="submit-btn" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold shadow transition">บันทึกประกาศ</button>
         </div>
       </form>
     </div>
@@ -378,7 +377,7 @@
     </div>
   </div>
 
-  <!-- 🌟 หน้าต่างแชทอัจฉริยะ (ดึงข้อมูลบัญชี/ที่อยู่ส่วนตัวของผู้ขายแต่ละคนมาใช้ในปุ่มด่วนอัตโนมัติ) -->
+  <!-- 🌟 หน้าต่างแชทอัจฉริยะ (เพิ่มระบบดึงยอดเงินอัตโนมัติจากประกาศหรือการประมูลที่ปิดแล้ว) -->
   <div id="chat-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg h-[620px] flex flex-col overflow-hidden relative">
       
@@ -409,7 +408,8 @@
         <button onclick="sendSellerQuickAction('shipping')" class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 px-2 py-1 rounded-md font-medium shrink-0 shadow-sm">
           📍 ส่งที่อยู่/นัดรับ
         </button>
-        <button onclick="sendQuickMessage('สรุปยอดชำระเงินรวม: ฿')" class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 px-2 py-1 rounded-md font-medium shrink-0 shadow-sm">
+        <!-- 🌟 ปุ่มสรุปยอดอัตโนมัติ -->
+        <button onclick="sendSellerQuickAction('summary')" class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 px-2 py-1 rounded-md font-medium shrink-0 shadow-sm">
           💰 สรุปยอด
         </button>
       </div>
@@ -1403,7 +1403,7 @@
       openInboxModal();
     });
 
-    // --- ระบบแชทอัจฉริยะ (ดึงข้อมูลบัญชีและที่อยู่เฉพาะของผู้ขายแต่ละคน) ---
+    // --- ระบบแชทอัจฉริยะ ---
     async function openChatModal(pet, otherUserId, otherUserName) {
       if (!pet) return;
 
@@ -1455,9 +1455,9 @@
       if (error) alert(`ส่งข้อความด่วนไม่สำเร็จ: ${error.message}`);
     };
 
-    // 🌟 ฟังก์ชันดึงข้อมูลบัญชีหรือที่อยู่เฉพาะของผู้ขายปัจจุบันมาส่งในแชทอัตโนมัติ
+    // 🌟 ฟังก์ชันปุ่มด่วนอัจฉริยะ (ดึงเลขบัญชี, ที่อยู่ หรือสรุปยอดอัตโนมัติทั้งตลาดปกติและห้องประมูล)
     window.sendSellerQuickAction = async function(type) {
-      if (!currentUser) return;
+      if (!currentUser || !currentActivePet) return;
 
       const { data: profile } = await supabaseClient
         .from('profiles')
@@ -1483,6 +1483,37 @@
           return;
         }
         messageText = `📍 ข้อมูลการจัดส่ง / จุดนัดรับ:\n${profile.shipping_info}`;
+      } else if (type === 'summary') {
+        // ตรวจสอบว่าเป็นสินค้าจากตาราง pets ปกติ หรือมาจากตาราง auctions
+        let price = currentActivePet.price;
+
+        // ถ้าใน currentActivePet ไม่มี price หรือเป็นห้องประมูล ลองเช็คจากตาราง auctions ดูก่อน
+        if (price === undefined || price === null) {
+          const { data: aucData } = await supabaseClient
+            .from('auctions')
+            .select('*')
+            .eq('id', currentActivePet.id)
+            .single();
+
+          if (aucData) {
+            // เช็คเงื่อนไข: การประมูลต้องปิดแล้วเท่านั้นจึงจะสรุปยอดได้
+            const now = new Date().getTime();
+            const expTime = new Date(aucData.expires_at).getTime();
+            const isEnded = expTime <= now || aucData.status === 'ended';
+
+            if (!isEnded) {
+              alert('⚠️ ห้องประมูลนี้ยังไม่ปิดทำการประมูล ไม่สามารถสรุปยอดผู้ชนะได้จนกว่าจะสิ้นสุดเวลาประมูลครับ');
+              return;
+            }
+            price = aucData.current_price;
+          }
+        }
+
+        if (price === undefined || price === null) {
+          price = 0;
+        }
+
+        messageText = `💰 สรุปยอดชำระเงินรวมสินค้า "${currentActivePet.title || 'รายการ'}"\nยอดสุทธิ: ฿${Number(price).toLocaleString()} บาท`;
       }
 
       if (messageText) {
