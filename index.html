@@ -432,7 +432,7 @@
     </div>
   </div>
 
-  <!-- Modal: ยืนยันการปิดการซื้อขาย 2 ทาง -->
+  <!-- Modal: ยืนยันการปิดการซื้อขาย 2 ทาง (ถูกต้องตามลำดับการกด 2 ฝ่าย) -->
   <div id="close-chat-confirm-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm hidden items-center justify-center z-[70] p-4">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden p-6 text-center space-y-4">
       <div class="w-14 h-14 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto text-2xl font-bold">
@@ -1683,7 +1683,7 @@
       }
     });
 
-    // --- ระบบปิดการซื้อขาย / สนทนาแบบยืนยัน 2 ทาง (อัปเดตข้อความแจ้งเตือนให้กดปุ่มมุมขวาบน) ---
+    // --- ระบบปิดการซื้อขายแยกตามขั้นตอน (ครั้งแรกส่งขอ + แจ้งเตือนเข้าแชท / ครั้งที่สองยืนยันลบจริง) ---
     window.promptCloseChat = async function() {
       if (!currentUser || !currentActivePet || !targetChatUserId) return;
 
@@ -1702,11 +1702,14 @@
       const msgEl = document.getElementById('close-chat-msg');
 
       if (!closingData) {
-        msgEl.innerText = '⚠️ คุณกำลังขอปิดการซื้อขาย/สนทนานี้ เมื่ออีกฝ่ายกดยืนยัน ข้อมูลแชทและรูปภาพทั้งหมดจะถูกลบถาวร คุณต้องการส่งคำขอหรือไม่?';
+        // ยังไม่มีใครขอปิด -> ถามเพื่อส่งคำขอครั้งแรก
+        msgEl.innerText = '⚠️ คุณกำลังขอปิดการซื้อขาย/สนทนานี้ เมื่อกดยืนยัน ระบบจะส่งคำขอและแจ้งเตือนไปยังคู่สนทนา คุณต้องการส่งคำขอหรือไม่?';
       } else if (closingData.requested_by === currentUser.id) {
-        msgEl.innerText = '⏳ คุณได้ส่งคำขอปิดการซื้อขายไปแล้ว กำลังรอให้อีกฝ่ายกดยืนยันครับ';
+        // ตัวเองเป็นคนขอไปแล้ว แต่อีกฝ่ายยังไม่กด
+        msgEl.innerText = '⏳ คุณได้ส่งคำขอปิดการซื้อขายไปแล้ว กำลังรอให้อีกฝ่ายกดยืนยันผ่านปุ่ม "ปิดการซื้อขาย" มุมขวาบนครับ';
       } else {
-        msgEl.innerText = '🚨 คู่สนทนาได้ส่งคำขอปิดการซื้อขายมาแล้ว! หากคุณกดยืนยัน ข้อมูลแชทและรูปภาพทั้งหมดจะถูกลบถาวรทันทีและไม่สามารถกู้คืนได้';
+        // อีกฝ่ายเป็นคนขอมาแล้ว ตัวเองเพิ่งมากด -> ยืนยันปิดแชทถาวร
+        msgEl.innerText = '🚨 คู่สนทนาได้ส่งคำขอปิดการซื้อขายมาแล้ว! (คำเตือน: หากกดยืนยันแล้ว ข้อมูลแชทและรูปภาพทั้งหมดจะถูกลบถาวรและไม่สามารถกู้คืนได้)';
       }
 
       modal.classList.remove('hidden');
@@ -1730,7 +1733,7 @@
       const myName = currentUser.user_metadata?.full_name || currentUser.email.split('@')[0];
 
       if (!closingData) {
-        // 1. สร้างคำขอใหม่
+        // 1. บันทึกคำขอครั้งแรก
         const { error } = await supabaseClient
           .from('chat_closings')
           .insert([{
@@ -1744,7 +1747,7 @@
         if (error) {
           alert('เกิดข้อผิดพลาดในการส่งคำขอ: ' + error.message);
         } else {
-          // 2. ส่งข้อความแจ้งเตือนอัตโนมัติเข้าห้องแชท (ปรับข้อความตามคำแนะนำของอี้อวี่)
+          // 2. ส่งข้อความแจ้งเตือนเข้าแชท
           const noticeText = `🔒 [${myName}] ได้ส่งคำขอปิดการซื้อขาย/สนทนาแล้ว ขอให้คุณยืนยันโดยการกดปุ่ม 'ปิดการซื้อขาย' มุมขวาบนของหน้าต่างแชท (คำเตือน: หากกดยืนยันแล้ว ข้อมูลแชททั้งหมดจะถูกลบถาวรและไม่สามารถกู้คืนได้)`;
           
           await supabaseClient
@@ -1758,12 +1761,17 @@
               is_read: false
             }]);
 
-          alert('ส่งคำขอปิดการซื้อขายและแจ้งเตือนในแชทเรียบร้อยแล้ว รอให้อีกฝ่ายกดยืนยันครับ');
+          alert('ส่งคำขอปิดการซื้อขายเรียบร้อยแล้ว รอให้อีกฝ่ายกดยืนยันครับ');
           document.getElementById('close-chat-confirm-modal').classList.add('hidden');
           document.getElementById('close-chat-confirm-modal').classList.remove('flex');
         }
+      } else if (closingData.requested_by === currentUser.id) {
+        // ถ้าตัวเองเป็นคนขอแล้วมากดย้ำเอง แจ้งเตือนสถานะเฉยๆ ไม่ลบแชท
+        alert('คุณได้ส่งคำขอไปแล้ว กำลังรอให้อีกฝ่ายกดยืนยันครับ');
+        document.getElementById('close-chat-confirm-modal').classList.add('hidden');
+        document.getElementById('close-chat-confirm-modal').classList.remove('flex');
       } else {
-        // อีกฝ่ายกดยืนยันครบ 2 ทางแล้ว ทำการลบข้อมูลทั้งหมดทิ้งแบบถาวร
+        // อีกฝ่ายขอมาแล้ว ตัวเองมากดยืนยัน -> ครบ 2 ฝ่าย ลบแชทถาวรจริง!
         try {
           const { data: msgs } = await supabaseClient
             .from('messages')
