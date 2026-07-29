@@ -199,7 +199,6 @@
             <h2 id="sa-title" class="text-lg md:text-xl font-extrabold text-slate-900">ชื่อสินค้า</h2>
             <p id="sa-desc" class="text-xs text-slate-500 mt-1 whitespace-pre-wrap">รายละเอียดเพิ่มเติม...</p>
             
-            <!-- 🌟 แสดงข้อมูลค่าจัดส่งในห้องประมูลสด -->
             <div id="sa-shipping-box" class="mt-2 inline-flex items-center gap-1.5 bg-blue-50 text-blue-800 border border-blue-200 px-3 py-1.5 rounded-xl text-xs font-bold shadow-sm">
               📦 ค่าจัดส่ง: <span id="sa-shipping-display">-</span>
             </div>
@@ -359,7 +358,7 @@
     </div>
   </div>
 
-  <!-- 🌟 Modal: สร้างห้องประมูล (เพิ่มช่องกรอกค่าส่ง) -->
+  <!-- 🌟 Modal: สร้างห้องประมูล (อัปเดต 10 หมวดหมู่สัตว์เลี้ยง) -->
   <div id="create-auction-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4 overflow-y-auto">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden my-8">
       <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center">
@@ -375,11 +374,16 @@
           <div>
             <label class="block text-xs font-bold text-slate-700 mb-1">หมวดหมู่ / ชนิด *</label>
             <select id="auc-species" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:outline-none">
-              <option value="Tortoise">Tortoise (เต่าบก)</option>
-              <option value="Gecko">Gecko (ตุ๊กแก)</option>
-              <option value="Frog">Frog (กบ)</option>
-              <option value="Cat">Cat (แมว)</option>
-              <option value="Other">อื่นๆ</option>
+              <option value="เต่า">🐢 เต่า</option>
+              <option value="กิ้งก่า">🦎 กิ้งก่า</option>
+              <option value="ตุ๊กแก">🦎 ตุ๊กแก</option>
+              <option value="งู">🐍 งู</option>
+              <option value="แมงและสัตว์ไม่มีกระดูกสันหลัง">🕷️ แมงและสัตว์ไม่มีกระดูกสันหลัง</option>
+              <option value="สัตว์สะเทินน้ำสะเทินบก">🐸 สัตว์สะเทินน้ำสะเทินบก</option>
+              <option value="สัตว์เลี้ยงลูกด้วยนมขนาดเล็ก">🐭 สัตว์เลี้ยงลูกด้วยนมขนาดเล็ก</option>
+              <option value="นก">🐦 นก</option>
+              <option value="ปลาและสัตว์น้ำ">🐠 ปลาและสัตว์น้ำ</option>
+              <option value="อื่นๆ">📦 อื่น ๆ</option>
             </select>
           </div>
           <div>
@@ -1036,7 +1040,7 @@
       const species = document.getElementById('auc-species').value;
       const startPrice = parseFloat(document.getElementById('auc-start-price').value);
       const buyoutPrice = document.getElementById('auc-buyout-price').value ? parseFloat(document.getElementById('auc-buyout-price').value) : null;
-      const shippingFee = parseFloat(document.getElementById('auc-shipping-fee').value) || 0; // 🌟 ค่าขนส่ง
+      const shippingFee = parseFloat(document.getElementById('auc-shipping-fee').value) || 0;
       
       const days = parseInt(document.getElementById('auc-days').value) || 0;
       const hours = parseInt(document.getElementById('auc-hours').value) || 0;
@@ -1045,7 +1049,7 @@
 
       const payload = {
         title, species, start_price: startPrice, current_price: startPrice, buyout_price: buyoutPrice,
-        shipping_fee: shippingFee, // 🌟 บันทึกค่าขนส่งลงฐานข้อมูล
+        shipping_fee: shippingFee,
         images: [document.getElementById('auc-image-url').value],
         description: document.getElementById('auc-description').value.trim(),
         seller_id: currentUser.id,
@@ -1310,7 +1314,6 @@
       document.getElementById('sa-image').src = activeAuction.images?.[0] || '';
       document.getElementById('sa-current-price').innerText = `฿${Number(activeAuction.current_price).toLocaleString()}`;
 
-      // 🌟 แสดงข้อมูลค่าจัดส่งในหน้าต่างห้องประมูลสด
       const shippingFee = Number(activeAuction.shipping_fee || 0);
       const shippingDisplay = document.getElementById('sa-shipping-display');
       if (shippingFee === 0) {
