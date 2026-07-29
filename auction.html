@@ -57,9 +57,14 @@
       <span class="text-xs text-slate-500" id="auction-count">กำลังโหลดข้อมูล...</span>
     </div>
 
-    <!-- แถบหมวดหมู่สถานะการประมูล + ปุ่มเปิด Pop-up เลือกหมวดหมู่สัตว์ (สลับปุ่มให้ "ทั้งหมดที่ประมูลอยู่" มาอยู่หน้าสุด) -->
+    <!-- แถบหมวดหมู่สถานะการประมูล + ปุ่มเปิด Pop-up เลือกหมวดหมู่สัตว์ (ย้ายปุ่มเลือกหมวดหมู่มาไว้ข้างหน้าสุดด้านซ้าย) -->
     <div class="mb-6 flex justify-between items-center pb-2 border-b border-slate-200 gap-2 overflow-x-auto">
-      <div class="flex space-x-2 min-w-max" id="auction-category-tabs">
+      <div class="flex space-x-2 min-w-max items-center" id="auction-category-tabs">
+        <!-- 🌟 ปุ่มเปิด Pop-up หมวดหมู่สัตว์ ย้ายมาไว้ข้างหน้าสุด -->
+        <button onclick="openSpeciesModal()" class="shrink-0 bg-white/80 hover:bg-white text-slate-900 border border-slate-300 px-4 py-2 rounded-full text-xs font-bold transition shadow-sm flex items-center gap-1.5 backdrop-blur-md">
+          <span>🏷️</span> <span id="selected-species-label">หมวดหมู่ทั้งหมด</span> ▾
+        </button>
+
         <button onclick="filterAuctionCategory('ALL')" class="auc-cat-tab bg-red-600 text-white px-4 py-2 rounded-full text-xs font-bold transition shadow-sm">
           🔨 ทั้งหมดที่ประมูลอยู่
         </button>
@@ -76,11 +81,6 @@
           🏆 ที่ชนะประมูลแล้ว
         </button>
       </div>
-
-      <!-- 🌟 ปุ่มเปิด Pop-up หมวดหมู่สัตว์ -->
-      <button onclick="openSpeciesModal()" class="shrink-0 bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-full text-xs font-bold transition shadow-sm flex items-center gap-1.5">
-        <span>🏷️</span> <span id="selected-species-label">หมวดหมู่ทั้งหมด</span> ▾
-      </button>
     </div>
 
     <div id="seller-hub-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -90,11 +90,11 @@
     </div>
   </main>
 
-  <!-- 🌟 Modal: Pop-up เลือกหมวดหมู่สัตว์เลี้ยงสไตล์ฟองสบู่ / ม่านกระจก (Bubble & Frosted Glass UI) -->
+  <!-- 🌟 Modal: Pop-up เลือกหมวดหมู่สัตว์เลี้ยงสไตล์ฟองสบู่ / ม่านกระจกห้องน้ำโปร่งใส (Bubble & Frosted Glass UI) -->
   <div id="species-modal" class="fixed inset-0 bg-slate-950/40 backdrop-blur-md hidden items-center justify-center z-50 p-4 transition-all">
-    <div class="bg-white/70 backdrop-blur-xl border border-white/60 rounded-3xl shadow-[0_8px_32px_0_rgba(31,38,135,0.15)] w-full max-w-md overflow-hidden flex flex-col max-h-[85vh]">
-      <div class="bg-white/40 backdrop-blur-md border-b border-white/40 text-slate-900 px-6 py-4 flex justify-between items-center shrink-0">
-        <h3 class="font-extrabold text-base flex items-center gap-2"><span>🫧</span> เลือกหมวดหมู่สัตว์เลี้ยง</h3>
+    <div class="bg-white/45 backdrop-blur-2xl border border-white/70 rounded-[2.5rem] shadow-[0_8px_32px_0_rgba(31,38,135,0.18)] w-full max-w-md overflow-hidden flex flex-col max-h-[85vh]">
+      <div class="bg-white/30 backdrop-blur-md border-b border-white/40 text-slate-900 px-6 py-4 flex justify-between items-center shrink-0">
+        <h3 class="font-extrabold text-base flex items-center gap-2 text-slate-800"><span>🫧</span> เลือกหมวดหมู่สัตว์เลี้ยง</h3>
         <button onclick="closeSpeciesModal()" class="text-slate-500 hover:text-slate-900 text-xl font-bold w-8 h-8 rounded-full bg-white/50 flex items-center justify-center transition shadow-sm">&times;</button>
       </div>
       <div class="p-4 overflow-y-auto space-y-2.5 flex-1" id="species-list-container">
@@ -579,7 +579,7 @@
         const rawName = sp.replace(/^[^\s]+\s/, '');
         const isSelected = (currentSelectedSpecies === 'ALL' && sp.includes('ทั้งหมด')) || currentSelectedSpecies === rawName;
         return `
-          <button onclick="selectSpeciesFilter('${sp}')" class="w-full text-left px-4 py-3 rounded-2xl text-xs font-bold transition flex items-center justify-between backdrop-blur-md ${isSelected ? 'bg-red-600/90 text-white shadow-[0_4px_20px_rgba(220,38,38,0.4)] border border-red-500/50' : 'bg-white/40 hover:bg-white/70 text-slate-700 border border-white/60 shadow-[0_2px_10px_rgba(0,0,0,0.02)]'}">
+          <button onclick="selectSpeciesFilter('${sp}')" class="w-full text-left px-5 py-3.5 rounded-[2rem] text-xs font-bold transition flex items-center justify-between backdrop-blur-xl ${isSelected ? 'bg-red-600/90 text-white shadow-[0_4px_25px_rgba(220,38,38,0.45)] border border-red-400/60' : 'bg-white/40 hover:bg-white/75 text-slate-700 border border-white/70 shadow-[0_2px_12px_rgba(0,0,0,0.03)]'}">
             <span>${sp}</span>
             ${isSelected ? '<span class="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center text-xs">✓</span>' : ''}
           </button>
