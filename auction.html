@@ -423,7 +423,6 @@
           </div>
         `;
 
-        // 🌟 เรียกใช้ฟังก์ชันอัปเดต Badge นับจำนวนข้อความที่ยังไม่ได้อ่าน
         updateUnreadBadgeCount();
 
         if (createAucBtn) createAucBtn.classList.remove('hidden');
@@ -438,7 +437,6 @@
       fetchAuctions();
     }
 
-    // 🌟 สเต็ปที่ 1: ฟังก์ชันคำนวณและแสดง Badge แจ้งเตือนข้อความที่ปุ่มรวมด้านนอก
     async function updateUnreadBadgeCount() {
       const quickChatContainer = document.getElementById('quick-action-chat-container');
       if (!currentUser || !quickChatContainer) return;
@@ -929,7 +927,8 @@
           sender_id: currentUser.id,
           receiver_id: winnerId,
           sender_name: myName,
-          content: welcomeText
+          content: welcomeText,
+          is_read: false
         }]);
         await fetchAuctionChatMessages(activeAuction.id, winnerId);
       }
@@ -962,7 +961,7 @@
         .eq('auction_id', auctionId)
         .eq('sender_id', otherUserId)
         .eq('receiver_id', currentUser.id)
-        .eq('is_read', false);
+        .eq('is_read:false', false); // ป้องกัน syntax ผิดพลาด
     }
 
     function closeAuctionChatModal() {
@@ -1009,6 +1008,7 @@
       }
     }
 
+    // 🌟 สเต็ปที่ 2: อัปเกรดฟังก์ชันเปิด Inbox Modal ให้แสดงจุดแดงกระพริบและป้าย "ใหม่" ในห้องแชทที่ยังไม่ได้อ่าน
     window.openAuctionInboxModal = async function() {
       if (!currentUser) return;
       lockBodyScroll();
@@ -1039,8 +1039,13 @@
             otherUserId: otherUserId,
             otherUserName: (msg.sender_id === currentUser.id) ? 'คู่สนทนา' : (msg.sender_name || 'ผู้ซื้อ/ผู้ขาย'),
             lastMessage: msg.content || '',
-            lastTime: msg.created_at
+            lastTime: msg.created_at,
+            hasUnread: false
           };
+        }
+        // ตรวจสอบว่ามีข้อความที่ส่งมาหาเราและยังไม่ได้อ่านหรือไม่ในกลุ่มนี้
+        if (msg.receiver_id === currentUser.id && !msg.is_read) {
+          chatGroups[key].hasUnread = true;
         }
       });
 
@@ -1051,18 +1056,29 @@
         const isImg = item.lastMessage.startsWith('http');
 
         return `
-          <div onclick="selectAuctionChatFromInbox('${item.auction_id}', '${item.otherUserId}', '${item.otherUserName}', '${aucObj.title}')" class="p-3.5 hover:bg-slate-100 cursor-pointer rounded-xl transition flex justify-between items-center">
-            <div class="flex items-center space-x-3">
-              <div class="relative w-10 h-10 rounded-full bg-red-600 text-white font-bold flex items-center justify-center text-sm">
+          <div onclick="selectAuctionChatFromInbox('${item.auction_id}', '${item.otherUserId}', '${item.otherUserName}', '${aucObj.title}')" class="p-3.5 hover:bg-slate-100 cursor-pointer rounded-xl transition flex justify-between items-center relative">
+            <div class="flex items-center space-x-3 min-w-0 pr-2">
+              <div class="relative w-10 h-10 rounded-full bg-red-600 text-white font-bold flex items-center justify-center text-sm shrink-0">
                 ${item.otherUserName.charAt(0).toUpperCase()}
+                ${item.hasUnread ? `
+                  <span class="absolute -top-1 -right-1 bg-red-600 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center animate-bounce shadow-md">!</span>
+                  <span class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full animate-ping opacity-75"></span>
+                ` : ''}
               </div>
-              <div>
-                <p class="font-bold text-slate-800 text-sm">${item.otherUserName}</p>
-                <p class="text-xs text-red-600 font-semibold truncate max-w-[180px]">${aucObj.title}</p>
-                <p class="text-xs text-slate-500 truncate max-w-[200px]">${isImg ? '📷 [รูปภาพ/สลิป]' : item.lastMessage}</p>
+              <div class="min-w-0">
+                <p class="font-bold text-slate-800 text-sm truncate">${item.otherUserName}</p>
+                <p class="text-xs text-red-600 font-semibold truncate">${aucObj.title}</p>
+                <p class="text-xs text-slate-500 truncate">${isImg ? '📷 [รูปภาพ/สลิป]' : item.lastMessage}</p>
               </div>
             </div>
-            <span class="text-[10px] text-slate-400">${timeStr}</span>
+            <div class="text-right shrink-0">
+              <span class="text-[10px] text-slate-400 block">${timeStr}</span>
+              ${item.hasUnread ? `
+                <span class="inline-block mt-1 bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full animate-pulse shadow-sm">
+                  ใหม่
+                </span>
+              ` : ''}
+            </div>
           </div>
         `;
       }).join('');
