@@ -820,7 +820,7 @@
       if (profileData) {
         if (profileData.role) currentUserRole = profileData.role;
 
-        if (profileData.full_name && !nameInput.value) {
+        if (profileData.full_name) {
           nameInput.value = profileData.full_name;
         }
         
@@ -874,7 +874,8 @@
       e.preventDefault();
       if (!currentUser) return;
 
-      const newName = document.getElementById('profile-name').value.trim();
+      const nameInput = document.getElementById('profile-name');
+      const newName = nameInput.value.trim();
       if (!newName) {
         alert('กรุณากรอกชื่อผู้ใช้ / ชื่อร้านค้า');
         return;
@@ -887,7 +888,6 @@
       saveBtn.innerText = 'กำลังตรวจสอบชื่อซ้ำ...';
 
       try {
-        // ตรวจสอบชื่อซ้ำกับสมาชิกท่านอื่นในตาราง profiles (ยกเว้น ID ของตัวเอง)
         const { data: existingProfiles, error: checkError } = await supabaseClient
           .from('profiles')
           .select('id, full_name')
@@ -927,6 +927,10 @@
           .upsert(updatePayload);
 
         if (error) throw error;
+
+        if (currentUser.user_metadata) {
+          currentUser.user_metadata.full_name = newName;
+        }
 
         await supabaseClient.auth.updateUser({
           data: { full_name: newName }
