@@ -220,14 +220,23 @@
     </div>
   </div>
 
+  <!-- 🌟 กล่องข้อความ Inbox (พร้อมช่องค้นหาอัจฉริยะด้านบนสุด) -->
   <div id="auction-inbox-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
-    <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg h-[550px] flex flex-col overflow-hidden">
-      <div class="bg-slate-900 text-white px-5 py-3.5 flex justify-between items-center border-b border-slate-800">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg h-[580px] flex flex-col overflow-hidden">
+      <div class="bg-slate-900 text-white px-5 py-3.5 flex justify-between items-center border-b border-slate-800 shrink-0">
         <div class="flex items-center space-x-2">
           <span class="text-lg">💬</span>
           <h4 class="font-bold text-base">กล่องข้อความสนทนาทั้งหมด (ประมูล)</h4>
         </div>
         <button onclick="closeAuctionInboxModal()" class="text-slate-400 hover:text-white text-xl font-bold">&times;</button>
+      </div>
+
+      <!-- ช่องค้นหาอัจฉริยะ -->
+      <div class="p-3 bg-slate-100 border-b border-slate-200 shrink-0">
+        <div class="relative">
+          <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">🔍</span>
+          <input type="text" id="auction-inbox-search" oninput="filterInboxChatList()" placeholder="ค้นหาชื่อ, ชื่อสินค้า หรือข้อความในแชท..." class="w-full pl-9 pr-4 py-2 bg-white border border-slate-300 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-red-500">
+        </div>
       </div>
 
       <div id="auction-inbox-list" class="flex-1 overflow-y-auto p-4 divide-y divide-slate-100">
@@ -382,8 +391,8 @@
 
     let aucChatChannel = null;
     let targetAuctionChatUserId = null;
+    let cachedInboxGroups = []; // เก็บข้อมูลรายการแชทสำหรับระบบค้นหา
 
-    // 🌟 โครงสร้าง KYC ดั้งเดิม 100% (ไม่ปรับเปลี่ยน)
     async function updateAuthUI(user) {
       currentUser = user;
       currentUserRole = 'user';
@@ -474,7 +483,7 @@
       event.stopPropagation();
       if (!currentUser) {
         alert('กรุณาเข้าสู่ระบบก่อนกดติดตามหน้าร้านครับ');
-        document.getElementById('auth-modal').classList.add('hidden');
+        document.getElementById('auth-modal').classList.remove('hidden');
         document.getElementById('auth-modal').classList.add('flex');
         return;
       }
@@ -1008,12 +1017,15 @@
       }
     }
 
-    // 🌟 สเต็ปที่ 4: ฟังก์ชัน Inbox Modal พร้อมแสดงสัญลักษณ์พิเศษ (🏆 สำหรับผู้ชนะ / 🏠 สำหรับผู้ขายทั่วไป)
+    // 🌟 ระบบ Inbox Modal พร้อมช่องค้นหาอัจฉริยะ (Search Filter)
     window.openAuctionInboxModal = async function() {
       if (!currentUser) return;
       lockBodyScroll();
       const modal = document.getElementById('auction-inbox-modal');
       const listContainer = document.getElementById('auction-inbox-list');
+      const searchInput = document.getElementById('auction-inbox-search');
+      if (searchInput) searchInput.value = ''; // รีเซ็ตช่องค้นหาทุกครั้งที่เปิด
+      
       modal.classList.remove('hidden');
       modal.classList.add('flex');
       listContainer.innerHTML = '<div class="text-center text-xs text-slate-400 py-8">กำลังโหลดรายการข้อความประมูล...</div>';
@@ -1025,6 +1037,7 @@
         .order('created_at', { ascending: false });
 
       if (error || !messages || messages.length === 0) {
+        cachedInboxGroups = [];
         listContainer.innerHTML = `<div class="text-center text-xs text-slate-400 py-8">ยังไม่มีกล่องข้อความสนทนาการประมูล</div>`;
         return;
       }
@@ -1034,10 +1047,12 @@
         const otherUserId = (msg.sender_id === currentUser.id) ? msg.receiver_id : msg.sender_id;
         const key = `${msg.auction_id}_${otherUserId}`;
         if (!chatGroups[key]) {
+          const aucObj = globalAuctions.find(a => a.id === msg.auction_id) || { id: msg.auction_id, title: 'สินค้าประมูล', seller_id: '', last_bidder_id: '' };
           chatGroups[key] = {
             auction_id: msg.auction_id,
             otherUserId: otherUserId,
             otherUserName: (msg.sender_id === currentUser.id) ? 'คู่สนทนา' : (msg.sender_name || 'ผู้ซื้อ/ผู้ขาย'),
+            auctionTitle: aucObj.title,
             lastMessage: msg.content || '',
             lastTime: msg.created_at,
             hasUnread: false
@@ -1048,18 +1063,26 @@
         }
       });
 
-      const groupList = Object.values(chatGroups);
-      listContainer.innerHTML = groupList.map(item => {
-        const aucObj = globalAuctions.find(a => a.id === item.auction_id) || { id: item.auction_id, title: 'สินค้าประมูล', seller_id: '', last_bidder_id: '' };
+      cachedInboxGroups = Object.values(chatGroups);
+      renderInboxList(cachedInboxGroups);
+    };
+
+    function renderInboxList(groups) {
+      const listContainer = document.getElementById('auction-inbox-list');
+      if (!groups.length) {
+        listContainer.innerHTML = `<div class="text-center text-xs text-slate-400 py-8">ไม่พบห้องแชทที่ตรงกับการค้นหา</div>`;
+        return;
+      }
+
+      listContainer.innerHTML = groups.map(item => {
+        const aucObj = globalAuctions.find(a => a.id === item.auction_id) || { id: item.auction_id, title: item.auctionTitle, seller_id: '', last_bidder_id: '' };
         const timeStr = new Date(item.lastTime).toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
         const isImg = item.lastMessage.startsWith('http');
 
-        // ตรวจสอบสถานะผู้ชนะการประมูล
         const isUserSeller = currentUser.id === aucObj.seller_id;
         const isWinnerMatch = aucObj.last_bidder_id && aucObj.last_bidder_id === item.otherUserId;
         const isMyWinningSeller = !isUserSeller && aucObj.seller_id === item.otherUserId && aucObj.last_bidder_id === currentUser.id;
 
-        // กำหนดไอคอนและสีพื้นหลังตามที่ดีไซน์ไว้
         let avatarIcon = item.otherUserName.charAt(0).toUpperCase();
         let avatarBgClass = 'bg-red-600 text-white';
         let badgeSubIcon = '';
@@ -1105,6 +1128,25 @@
           </div>
         `;
       }).join('');
+    }
+
+    // ฟังก์ชันกรองแชทตามคำค้นหาแบบ Real-time
+    window.filterInboxChatList = function() {
+      const keyword = document.getElementById('auction-inbox-search').value.toLowerCase().trim();
+      if (!keyword) {
+        renderInboxList(cachedInboxGroups);
+        return;
+      }
+
+      const filtered = cachedInboxGroups.filter(item => {
+        const aucObj = globalAuctions.find(a => a.id === item.auction_id) || { title: item.auctionTitle || '' };
+        const nameMatch = item.otherUserName.toLowerCase().includes(keyword);
+        const titleMatch = aucObj.title.toLowerCase().includes(keyword);
+        const msgMatch = item.lastMessage.toLowerCase().includes(keyword);
+        return nameMatch || titleMatch || msgMatch;
+      });
+
+      renderInboxList(filtered);
     };
 
     window.closeAuctionInboxModal = function() {
