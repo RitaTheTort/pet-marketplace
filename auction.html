@@ -204,7 +204,7 @@
         <button onclick="closeAuctionChatModal()" class="text-slate-400 hover:text-white text-xl font-bold px-1">&times;</button>
       </div>
 
-      <!-- 🌟 ปุ่ม Quick Actions สำหรับผู้ขาย -->
+      <!-- ปุ่ม Quick Actions สำหรับผู้ขาย -->
       <div id="seller-quick-actions" class="bg-slate-100 px-3 py-2 border-b border-slate-200 flex gap-2 overflow-x-auto shrink-0 hidden">
         <button type="button" onclick="sendQuickAction('bank')" class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 text-[11px] font-bold px-3 py-1.5 rounded-lg whitespace-nowrap shadow-sm transition">
           💳 ส่งเลขบัญชี
@@ -447,7 +447,6 @@
 
         updateUnreadBadgeCount();
 
-        if (createAucBtn) createAucBtn.classList.add('hidden'); // ซ่อนปุ่มเดิมไปก่อนถ้ามี
         if (createAucBtn) createAucBtn.classList.remove('hidden');
       } else {
         container.innerHTML = `
@@ -460,7 +459,6 @@
       fetchAuctions();
     }
 
-    // 🌟 อัปเดตตัวเลขและจุดไฟกระพริบ Badge แจ้งเตือนข้อความที่ยังไม่ได้อ่าน
     async function updateUnreadBadgeCount() {
       const quickChatContainer = document.getElementById('quick-action-chat-container');
       if (!currentUser || !quickChatContainer) return;
@@ -907,8 +905,8 @@
     window.openAuctionSellerChat = function() {
       if (!currentUser) {
         alert('กรุณาเข้าสู่ระบบก่อนติดต่อครับ');
-        document.getElementById('auth-modal').classList.remove('hidden');
         document.getElementById('auth-modal').classList.add('flex');
+        document.getElementById('auth-modal').classList.remove('hidden');
         return;
       }
       if (!activeAuction) return;
@@ -955,7 +953,8 @@
           sender_id: currentUser.id,
           receiver_id: winnerId,
           sender_name: myName,
-          content: welcomeText
+          content: welcomeText,
+          is_read: false
         }]);
         await fetchAuctionChatMessages(activeAuction.id, winnerId);
       }
@@ -970,7 +969,6 @@
       document.getElementById('auc-chat-avatar').innerText = (otherUserName || 'C').charAt(0).toUpperCase();
       document.getElementById('auc-chat-title').innerText = `ประมูล: ${auc.title || 'สินค้า'}`;
 
-      // แสดงปุ่ม Quick Actions เฉพาะถ้าผู้ใช้งานปัจจุบันคือผู้ขาย
       const quickActionEl = document.getElementById('seller-quick-actions');
       if (quickActionEl) {
         if (auc.seller_id === currentUser.id) {
@@ -1012,7 +1010,6 @@
       updateUnreadBadgeCount();
     }
 
-    // 🌟 ฟังก์ชันส่งข้อความด่วน Quick Actions (เลขบัญชี, จัดส่ง, สรุปยอด)
     async function sendQuickAction(type) {
       if (!currentUser || !activeAuction || !targetAuctionChatUserId) return;
       const myName = currentUser.user_metadata?.full_name || currentUser.email.split('@')[0];
@@ -1051,7 +1048,6 @@
       }
     }
 
-    // 🌟 ฟังก์ชันส่งรูปภาพ / สลิปในแชทประมูล (พร้อมบีบอัดภาพ)
     async function sendChatImage(inputEl) {
       const file = inputEl.files[0];
       if (!file || !currentUser || !activeAuction || !targetAuctionChatUserId) return;
@@ -1084,6 +1080,7 @@
       }
     }
 
+    // 🌟 อัปเกรดเปิด Inbox พร้อมนับและแสดงจุดไฟกระพริบแดง + ตัวเลขแยกตามห้อง
     window.openAuctionInboxModal = async function() {
       if (!currentUser) return;
       lockBodyScroll();
@@ -1114,8 +1111,13 @@
             otherUserId: otherUserId,
             otherUserName: (msg.sender_id === currentUser.id) ? 'คู่สนทนา' : (msg.sender_name || 'ผู้ซื้อ/ผู้ขาย'),
             lastMessage: msg.content || '',
-            lastTime: msg.created_at
+            lastTime: msg.created_at,
+            unreadCount: 0
           };
+        }
+        // นับเฉพาะข้อความที่ส่งมาหาเรา และยังไม่ได้อ่าน
+        if (msg.receiver_id === currentUser.id && !msg.is_read) {
+          chatGroups[key].unreadCount += 1;
         }
       });
 
@@ -1126,18 +1128,26 @@
         const isImg = item.lastMessage.startsWith('http');
 
         return `
-          <div onclick="selectAuctionChatFromInbox('${item.auction_id}', '${item.otherUserId}', '${item.otherUserName}', '${aucObj.title}')" class="p-3.5 hover:bg-slate-100 cursor-pointer rounded-xl transition flex justify-between items-center">
-            <div class="flex items-center space-x-3">
-              <div class="relative w-10 h-10 rounded-full bg-red-600 text-white font-bold flex items-center justify-center text-sm">
+          <div onclick="selectAuctionChatFromInbox('${item.auction_id}', '${item.otherUserId}', '${item.otherUserName}', '${aucObj.title}')" class="p-3.5 hover:bg-slate-100 cursor-pointer rounded-xl transition flex justify-between items-center relative">
+            <div class="flex items-center space-x-3 min-w-0 pr-2">
+              <div class="relative w-10 h-10 rounded-full bg-red-600 text-white font-bold flex items-center justify-center text-sm shrink-0">
                 ${item.otherUserName.charAt(0).toUpperCase()}
+                ${item.unreadCount > 0 ? `<span class="absolute -top-1 -right-1 bg-red-600 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center animate-bounce">${item.unreadCount}</span>` : ''}
               </div>
-              <div>
-                <p class="font-bold text-slate-800 text-sm">${item.otherUserName}</p>
-                <p class="text-xs text-red-600 font-semibold truncate max-w-[180px]">${aucObj.title}</p>
-                <p class="text-xs text-slate-500 truncate max-w-[200px]">${isImg ? '📷 [รูปภาพ/สลิป]' : item.lastMessage}</p>
+              <div class="min-w-0">
+                <p class="font-bold text-slate-800 text-sm truncate">${item.otherUserName}</p>
+                <p class="text-xs text-red-600 font-semibold truncate">${aucObj.title}</p>
+                <p class="text-xs text-slate-500 truncate">${isImg ? '📷 [รูปภาพ/สลิป]' : item.lastMessage}</p>
               </div>
             </div>
-            <span class="text-[10px] text-slate-400">${timeStr}</span>
+            <div class="text-right shrink-0">
+              <span class="text-[10px] text-slate-400 block">${timeStr}</span>
+              ${item.unreadCount > 0 ? `
+                <span class="inline-block mt-1 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full animate-pulse">
+                  ใหม่ (${item.unreadCount})
+                </span>
+              ` : ''}
+            </div>
           </div>
         `;
       }).join('');
@@ -1192,7 +1202,6 @@
           ? `bg-amber-100 text-amber-900 border-2 border-amber-400 font-extrabold text-sm md:text-base p-3 rounded-2xl shadow-md my-1 text-center` 
           : `max-w-[75%] px-3.5 py-2 rounded-2xl text-xs ${isMe ? 'bg-red-600 text-white rounded-br-none' : 'bg-white text-slate-800 border border-slate-200 rounded-bl-none shadow-sm'}`;
 
-        // สถานะอ่านแล้ว ✓✓ หรือ อ่านแล้ว
         const readStatusText = msg.is_read ? '<span class="text-[9px] text-emerald-500 font-bold ml-1">✓✓ อ่านแล้ว</span>' : '<span class="text-[9px] text-slate-300 ml-1">✓ ส่งแล้ว</span>';
 
         return `
