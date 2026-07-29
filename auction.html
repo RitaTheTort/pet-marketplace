@@ -474,7 +474,7 @@
       event.stopPropagation();
       if (!currentUser) {
         alert('กรุณาเข้าสู่ระบบก่อนกดติดตามหน้าร้านครับ');
-        document.getElementById('auth-modal').classList.remove('hidden');
+        document.getElementById('auth-modal').classList.add('hidden');
         document.getElementById('auth-modal').classList.add('flex');
         return;
       }
@@ -1008,6 +1008,7 @@
       }
     }
 
+    // 🌟 สเต็ปที่ 4: ฟังก์ชัน Inbox Modal พร้อมแสดงสัญลักษณ์พิเศษ (🏆 สำหรับผู้ชนะ / 🏠 สำหรับผู้ขายทั่วไป)
     window.openAuctionInboxModal = async function() {
       if (!currentUser) return;
       lockBodyScroll();
@@ -1049,22 +1050,46 @@
 
       const groupList = Object.values(chatGroups);
       listContainer.innerHTML = groupList.map(item => {
-        const aucObj = globalAuctions.find(a => a.id === item.auction_id) || { id: item.auction_id, title: 'สินค้าประมูล' };
+        const aucObj = globalAuctions.find(a => a.id === item.auction_id) || { id: item.auction_id, title: 'สินค้าประมูล', seller_id: '', last_bidder_id: '' };
         const timeStr = new Date(item.lastTime).toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
         const isImg = item.lastMessage.startsWith('http');
+
+        // ตรวจสอบสถานะผู้ชนะการประมูล
+        const isUserSeller = currentUser.id === aucObj.seller_id;
+        const isWinnerMatch = aucObj.last_bidder_id && aucObj.last_bidder_id === item.otherUserId;
+        const isMyWinningSeller = !isUserSeller && aucObj.seller_id === item.otherUserId && aucObj.last_bidder_id === currentUser.id;
+
+        // กำหนดไอคอนและสีพื้นหลังตามที่ดีไซน์ไว้
+        let avatarIcon = item.otherUserName.charAt(0).toUpperCase();
+        let avatarBgClass = 'bg-red-600 text-white';
+        let badgeSubIcon = '';
+
+        if (isUserSeller && isWinnerMatch) {
+          avatarIcon = '🏆';
+          avatarBgClass = 'bg-amber-500 text-white font-black shadow-md border-2 border-amber-300';
+          badgeSubIcon = '<span class="absolute -bottom-1 -right-1 bg-amber-600 text-white text-[8px] px-1 rounded-full font-bold">ผู้ชนะ</span>';
+        } else if (isMyWinningSeller) {
+          avatarIcon = '🏠';
+          avatarBgClass = 'bg-purple-600 text-white shadow-md';
+          badgeSubIcon = '<span class="absolute -bottom-1 -right-1 bg-amber-500 text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-black">🏆</span>';
+        } else if (!isUserSeller) {
+          avatarIcon = '🏠';
+          avatarBgClass = 'bg-slate-700 text-white';
+        }
 
         return `
           <div onclick="selectAuctionChatFromInbox('${item.auction_id}', '${item.otherUserId}', '${item.otherUserName}', '${aucObj.title}')" class="p-3.5 hover:bg-slate-100 cursor-pointer rounded-xl transition flex justify-between items-center relative">
             <div class="flex items-center space-x-3 min-w-0 pr-2">
-              <div class="relative w-10 h-10 rounded-full bg-red-600 text-white font-bold flex items-center justify-center text-sm shrink-0">
-                ${item.otherUserName.charAt(0).toUpperCase()}
+              <div class="relative w-10 h-10 rounded-full ${avatarBgClass} flex items-center justify-center text-sm shrink-0">
+                ${avatarIcon}
+                ${badgeSubIcon}
                 ${item.hasUnread ? `
                   <span class="absolute -top-1 -right-1 bg-red-600 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center animate-bounce shadow-md">!</span>
                   <span class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full animate-ping opacity-75"></span>
                 ` : ''}
               </div>
               <div class="min-w-0">
-                <p class="font-bold text-slate-800 text-sm truncate">${item.otherUserName}</p>
+                <p class="font-bold text-slate-800 text-sm truncate">${item.otherUserName} ${isWinnerMatch ? '<span class="text-[10px] text-amber-700 font-extrabold bg-amber-100 px-1.5 py-0.5 rounded ml-1">🏆 ผู้ชนะ</span>' : ''}</p>
                 <p class="text-xs text-red-600 font-semibold truncate">${aucObj.title}</p>
                 <p class="text-xs text-slate-500 truncate">${isImg ? '📷 [รูปภาพ/สลิป]' : item.lastMessage}</p>
               </div>
@@ -1094,7 +1119,6 @@
       openAuctionChat(aucObj, otherUserId, otherUserName);
     };
 
-    // 🌟 สเต็ปที่ 3: เพิ่มฟังก์ชันแสดงสัญลักษณ์เช็กถูกคู่ (✓✓ อ่านแล้ว) ภายในห้องแชท
     async function fetchAuctionChatMessages(auctionId, otherUserId) {
       const container = document.getElementById('auc-chat-messages');
       container.innerHTML = '<div class="text-center text-xs text-slate-400 py-4">กำลังโหลดข้อความประมูล...</div>';
@@ -1132,7 +1156,6 @@
           ? `bg-amber-100 text-amber-900 border-2 border-amber-400 font-extrabold text-sm md:text-base p-3 rounded-2xl shadow-md my-1 text-center` 
           : `max-w-[75%] px-3.5 py-2 rounded-2xl text-xs ${isMe ? 'bg-red-600 text-white rounded-br-none' : 'bg-white text-slate-800 border border-slate-200 rounded-bl-none shadow-sm'}`;
 
-        // สถานะ Read Receipt (เช็กถูกคู่เมื่ออ่านแล้ว)
         const readStatusText = msg.is_read 
           ? '<span class="text-[9px] text-emerald-600 font-bold ml-1">✓✓ อ่านแล้ว</span>' 
           : '<span class="text-[9px] text-slate-400 ml-1">✓ ส่งแล้ว</span>';
