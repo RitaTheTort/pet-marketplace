@@ -188,7 +188,7 @@
     </div>
   </div>
 
-  <!-- 🌟 หน้าต่างแชทรวมห้องประมูล -->
+  <!-- 🌟 หน้าต่างแชทรวมห้องประมูล (เพิ่มปุ่ม "ปิดการซื้อขาย" ตามตำแหน่งที่อี้อวี่เลือก) -->
   <div id="auction-chat-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-[80] p-4">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg h-[650px] flex flex-col overflow-hidden relative">
       <div class="bg-slate-900 text-white px-5 py-3 flex justify-between items-center border-b border-slate-800 shrink-0">
@@ -196,11 +196,13 @@
           <div class="w-9 h-9 rounded-full bg-red-600 flex items-center justify-center font-bold text-sm text-white shrink-0" id="auc-chat-avatar">A</div>
           <div class="min-w-0">
             <h4 id="auc-chat-name" class="font-bold text-sm leading-tight truncate">คู่สนทนา</h4>
-            <p id="auc-chat-title" class="text-[11px] text-red-300 truncate max-w-[180px]">ห้องแชทประมูล</p>
+            <p id="auc-chat-title" class="text-[11px] text-red-300 truncate max-w-[150px]">ห้องแชทประมูล</p>
           </div>
         </div>
         
-        <div class="flex items-center space-x-3 shrink-0">
+        <!-- ส่วนปุ่ม ปิดการซื้อขาย, กลับ, และกากบาท -->
+        <div class="flex items-center space-x-2 shrink-0">
+          <div id="close-trade-btn-container"></div>
           <button onclick="backToAuctionInbox()" class="text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 text-xs font-bold px-2.5 py-1.5 rounded-lg transition flex items-center gap-1 shadow-sm" title="กลับไปหน้ากล่องข้อความ">
             &larr; กลับ
           </button>
@@ -209,7 +211,7 @@
       </div>
 
       <div class="bg-amber-50 border-b border-amber-200 px-3 py-1.5 text-center shrink-0">
-        <p class="text-[10px] text-amber-800 font-medium">ℹ️ รูปภาพและประวัติการสนทนาจะถูกลบอัตโนมัติใน 30 วัน หรือเมื่อมีการปิดการซื้อขาย</p>
+        <p class="text-[10px] text-amber-800 font-medium">ℹ️ รูปภาพและประวัติการสนทนาในห้องแชทรวมถึงไฟล์ภาพจะถูกลบอัตโนมัติเมื่อมีการปิดการซื้อขาย</p>
       </div>
 
       <div id="auc-chat-messages" class="flex-1 p-4 overflow-y-auto space-y-3 bg-slate-50 text-sm">
@@ -224,6 +226,21 @@
         <input type="text" id="auc-chat-input" placeholder="พิมพ์ข้อความสอบถามการประมูล..." class="flex-1 px-4 py-2 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500">
         <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl text-sm font-bold transition whitespace-nowrap shrink-0">ส่ง</button>
       </form>
+    </div>
+  </div>
+
+  <!-- 🌟 Modal ยืนยันปิดการซื้อขาย / ส่งคำขอ / รอการยืนยัน -->
+  <div id="trade-confirm-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm hidden items-center justify-center z-[90] p-4">
+    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden p-6 text-center space-y-4">
+      <div class="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto text-3xl shadow-inner">🔒</div>
+      <h3 class="text-lg font-extrabold text-slate-900">ขอปิดการซื้อขาย / สนทนา</h3>
+      <p id="trade-modal-desc" class="text-xs text-slate-600 leading-relaxed">
+        ⚠️ คุณกำลังขอปิดการซื้อขาย/สนทนานี้ เมื่อกดกดยืนยัน ระบบจะส่งคำขอและแจ้งเตือนไปยังคู่สนทนา คุณต้องการส่งคำขอหรือไม่?
+      </p>
+      <div class="grid grid-cols-2 gap-3 pt-2" id="trade-modal-buttons">
+        <button onclick="closeTradeConfirmModal()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 py-3 rounded-xl font-bold text-sm transition">ยกเลิก</button>
+        <button onclick="executeCloseTrade()" class="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl font-bold text-sm shadow-lg transition">ยืนยันการปิด</button>
+      </div>
     </div>
   </div>
 
@@ -406,6 +423,7 @@
     let aucChatChannel = null;
     let targetAuctionChatUserId = null;
     let cachedInboxGroups = [];
+    let activeChatMetaData = null; // เก็บข้อมูลผู้ขอปิดการซื้อขาย
 
     async function updateAuthUI(user) {
       currentUser = user;
@@ -497,7 +515,7 @@
       event.stopPropagation();
       if (!currentUser) {
         alert('กรุณาเข้าสู่ระบบก่อนกดติดตามหน้าร้านครับ');
-        document.getElementById('auth-modal').classList.add('hidden');
+        document.getElementById('auth-modal').classList.remove('hidden');
         document.getElementById('auth-modal').classList.add('flex');
         return;
       }
@@ -971,9 +989,191 @@
       document.getElementById('auction-chat-modal').classList.add('flex');
 
       await markMessagesAsRead(auc.id, otherUserId);
+      await fetchAuctionChatMetaData(auc.id, otherUserId);
       await fetchAuctionChatMessages(auc.id, otherUserId);
       subscribeAuctionChatRealtime(auc.id, otherUserId);
       updateUnreadBadgeCount();
+    }
+
+    async function fetchAuctionChatMetaData(auctionId, otherUserId) {
+      if (!currentUser) return;
+      const { data } = await supabaseClient
+        .from('auction_messages')
+        .select('*')
+        .eq('auction_id', auctionId)
+        .or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${otherUserId}),and(sender_id.eq.${otherUserId},receiver_id.eq.${currentUser.id})`)
+        .order('created_at', { ascending: false });
+
+      activeChatMetaData = null;
+      if (data) {
+        // ค้นหาข้อความขอปิดการซื้อขายล่าสุด
+        const closeReq = data.find(m => m.content && m.content.includes("ได้ส่งคำขอปิดการซื้อขาย/สนทนาแล้ว"));
+        if (closeReq) {
+          activeChatMetaData = {
+            requesterId: closeReq.sender_id
+          };
+        }
+      }
+      renderCloseTradeButton();
+    }
+
+    function renderCloseTradeButton() {
+      const container = document.getElementById('close-trade-btn-container');
+      if (!container || !currentUser) return;
+
+      const isSameUser = (currentUser.id === targetAuctionChatUserId);
+      
+      if (isSameUser) {
+        container.innerHTML = `
+          <button onclick="promptCloseTrade()" class="bg-red-600 hover:bg-red-700 text-white text-[11px] font-bold px-2.5 py-1.5 rounded-lg transition flex items-center gap-1 shadow-sm" title="ปิดการซื้อขาย">
+            🔒 ปิดการซื้อขาย
+          </button>
+        `;
+        return;
+      }
+
+      // กรณีคนละคนกัน เช็คว่าใครเป็นคนขอปิดไปแล้ว
+      if (activeChatMetaData && activeChatMetaData.requesterId === currentUser.id) {
+        // เราเป็นคนขอไปแล้ว -> ล็อกปุ่ม
+        container.innerHTML = `
+          <button onclick="promptCloseTradeWaiting()" class="bg-amber-600 text-white text-[11px] font-bold px-2 py-1.5 rounded-lg opacity-90 cursor-not-allowed flex items-center gap-1 shadow-sm" title="รออีกฝ่ายยืนยัน">
+            ⏳ รออีกฝ่ายยืนยัน
+          </button>
+        `;
+      } else {
+        // ยังไม่มีใครขอ หรืออีกฝ่ายเป็นคนขอ -> สามารถกดเพื่อยืนยันปิดได้
+        container.innerHTML = `
+          <button onclick="promptCloseTrade()" class="bg-red-600 hover:bg-red-700 text-white text-[11px] font-bold px-2.5 py-1.5 rounded-lg transition flex items-center gap-1 shadow-sm" title="ปิดการซื้อขาย">
+            🔒 ปิดการซื้อขาย
+          </button>
+        `;
+      }
+    }
+
+    window.promptCloseTrade = function() {
+      const modal = document.getElementById('trade-confirm-modal');
+      const desc = document.getElementById('trade-modal-desc');
+      const isSameUser = (currentUser.id === targetAuctionChatUserId);
+
+      if (isSameUser) {
+        desc.innerHTML = `⚠️ คุณกำลังจะปิดการซื้อขาย/สนทนานี้ ข้อมูลและรูปภาพทั้งหมดจะถูกลบถาวร คุณต้องการดำเนินการต่อหรือไม่?`;
+      } else {
+        desc.innerHTML = `⚠️ คุณกำลังขอปิดการซื้อขาย/สนทนานี้ เมื่อกดยืนยัน ระบบจะส่งคำขอและแจ้งเตือนไปยังคู่สนทนา คุณต้องการส่งคำขอหรือไม่?`;
+      }
+
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    };
+
+    window.promptCloseTradeWaiting = function() {
+      const modal = document.getElementById('trade-confirm-modal');
+      const desc = document.getElementById('trade-modal-desc');
+      const buttons = document.getElementById('trade-modal-buttons');
+
+      desc.innerHTML = `⏳ คุณได้ส่งคำขอปิดการซื้อขายไปแล้ว กำลังรอให้อีกฝ่ายกดยืนยันผ่านปุ่ม "ปิดการซื้อขาย" มุมขวาบนครับ`;
+      buttons.innerHTML = `
+        <button onclick="closeTradeConfirmModal()" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 py-3 rounded-xl font-bold text-sm transition">ปิดหน้าต่าง</button>
+      `;
+
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    };
+
+    window.closeTradeConfirmModal = function() {
+      const modal = document.getElementById('trade-confirm-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+      // คืนค่าปุ่ม modal กลับเป็นแบบปกติ
+      document.getElementById('trade-modal-buttons').innerHTML = `
+        <button onclick="closeTradeConfirmModal()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 py-3 rounded-xl font-bold text-sm transition">ยกเลิก</button>
+        <button onclick="executeCloseTrade()" class="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl font-bold text-sm shadow-lg transition">ยืนยันการปิด</button>
+      `;
+    };
+
+    window.executeCloseTrade = async function() {
+      closeTradeConfirmModal();
+      if (!currentUser || !activeAuction || !targetAuctionChatUserId) return;
+
+      const isSameUser = (currentUser.id === targetAuctionChatUserId);
+      const myName = currentUser.user_metadata?.full_name || currentUser.email.split('@')[0];
+
+      if (isSameUser) {
+        // เงื่อนไข 1: คนเดียวกัน ลบห้องแชทและรูปภาพทันที
+        await deleteEntireChatRoom(activeAuction.id, currentUser.id, currentUser.id);
+        alert('ปิดการซื้อขายและลบข้อมูลแชทเรียบร้อยแล้ว');
+        closeAuctionChatModal();
+        openAuctionInboxModal();
+        return;
+      }
+
+      // เงื่อนไข 2: คนละคนกัน
+      if (activeChatMetaData && activeChatMetaData.requesterId && activeChatMetaData.requesterId !== currentUser.id) {
+        // อีกฝ่ายเคยขอมาแล้ว เรากดซ้ำเพื่อยืนยัน -> ปิดห้องและลบข้อมูลถาวรทันที!
+        await deleteEntireChatRoom(activeAuction.id, currentUser.id, targetAuctionChatUserId);
+        alert('ทั้งสองฝ่ายยืนยันปิดการซื้อขายเรียบร้อย ระบบได้ลบข้อมูลแชทถาวรแล้ว');
+        closeAuctionChatModal();
+        openAuctionInboxModal();
+      } else {
+        // เราเป็นคนเริ่มกดขอคนแรก -> ส่งข้อความแจ้งเตือนเข้าแชท (ภาพ C) และแสดง Modal B
+        const alertMsg = `🔒 [${myName}] ได้ส่งคำขอปิดการซื้อขาย/สนทนาแล้ว ขอให้คุณยืนยันโดยการกดปุ่ม 'ปิดการซื้อขาย' มุมขวาบนของหน้าต่างแชท (คำเตือน: หากกดยืนยันแล้ว ข้อมูลแชททั้งหมดจะถูกลบถาวรและไม่สามารถกู้คืนได้)`;
+        
+        await supabaseClient.from('auction_messages').insert([{
+          auction_id: activeAuction.id,
+          sender_id: currentUser.id,
+          receiver_id: targetAuctionChatUserId,
+          sender_name: myName,
+          content: alertMsg,
+          is_read: false
+        }]);
+
+        await fetchAuctionChatMetaData(activeAuction.id, targetAuctionChatUserId);
+        await fetchAuctionChatMessages(activeAuction.id, targetAuctionChatUserId);
+
+        // แสดง Modal สำเร็จ (ภาพ B)
+        const modal = document.getElementById('trade-confirm-modal');
+        const desc = document.getElementById('trade-modal-desc');
+        const buttons = document.getElementById('trade-modal-buttons');
+
+        desc.innerHTML = `ส่งคำขอปิดการซื้อขายเรียบร้อยแล้ว รอให้อีกฝ่ายกดยืนยันครับ`;
+        buttons.innerHTML = `
+          <button onclick="closeTradeConfirmModal()" class="w-full bg-slate-800 hover:bg-slate-700 text-white py-3 rounded-xl font-bold text-sm transition">Close</button>
+        `;
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+      }
+    };
+
+    // ฟังก์ชันลบห้องแชทและรูปภาพใน Storage ถาวร
+    async function deleteEntireChatRoom(auctionId, userA, userB) {
+      try {
+        // ดึงข้อความทั้งหมดในห้องนี้เพื่อตรวจสอบหารูปภาพและลบออกจาก Storage
+        const { data: allMsgs } = await supabaseClient
+          .from('auction_messages')
+          .select('content')
+          .eq('auction_id', auctionId)
+          .or(`and(sender_id.eq.${userA},receiver_id.eq.${userB}),and(sender_id.eq.${userB},receiver_id.eq.${userA})`);
+
+        if (allMsgs) {
+          for (const m of allMsgs) {
+            if (m.content && m.content.startsWith('http') && m.content.includes('/chat-images/')) {
+              const parts = m.content.split('/chat-images/');
+              if (parts.length > 1) {
+                await supabaseClient.storage.from('chat-images').remove([parts[1]]);
+              }
+            }
+          }
+        }
+
+        // ลบข้อมูลข้อความออกจากตารางฐานข้อมูล
+        await supabaseClient
+          .from('auction_messages')
+          .delete()
+          .eq('auction_id', auctionId)
+          .or(`and(sender_id.eq.${userA},receiver_id.eq.${userB}),and(sender_id.eq.${userB},receiver_id.eq.${userA})`);
+
+      } catch (err) {
+        console.error('Delete chat error:', err);
+      }
     }
 
     async function markMessagesAsRead(auctionId, otherUserId) {
@@ -1220,31 +1420,34 @@
         const isMe = msg.sender_id === currentUser.id;
         const timeStr = new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         const isWinnerWelcome = msg.content && msg.content.includes("ยินดีด้วย!!");
+        const isCloseTradeAlert = msg.content && msg.content.includes("ได้ส่งคำขอปิดการซื้อขาย/สนทนาแล้ว");
         const isImg = msg.content && msg.content.startsWith('http');
         
         let bubbleContent = `<p class="whitespace-pre-wrap">${msg.content}</p>`;
         if (isImg) {
-          // เปลี่ยนจากการเปิดแท็บใหม่ เป็นการเรียกเปิด Lightbox Modal ภายในหน้าแชท
           bubbleContent = `<img src="${msg.content}" onclick="openLightbox('${msg.content}')" class="w-40 h-auto rounded-lg shadow cursor-pointer hover:opacity-90 transition">`;
         }
 
-        const contentBubbleStyle = isWinnerWelcome 
-          ? `bg-amber-100 text-amber-900 border-2 border-amber-400 font-extrabold text-sm md:text-base p-3 rounded-2xl shadow-md my-1 text-center` 
-          : `max-w-[75%] px-3.5 py-2 rounded-2xl text-xs ${isMe ? 'bg-red-600 text-white rounded-br-none' : 'bg-white text-slate-800 border border-slate-200 rounded-bl-none shadow-sm'}`;
+        let contentBubbleStyle = `max-w-[75%] px-3.5 py-2 rounded-2xl text-xs ${isMe ? 'bg-red-600 text-white rounded-br-none' : 'bg-white text-slate-800 border border-slate-200 rounded-bl-none shadow-sm'}`;
+        if (isWinnerWelcome) {
+          contentBubbleStyle = `bg-amber-100 text-amber-900 border-2 border-amber-400 font-extrabold text-sm md:text-base p-3 rounded-2xl shadow-md my-1 text-center`;
+        } else if (isCloseTradeAlert) {
+          contentBubbleStyle = `bg-blue-600 text-white font-medium text-xs md:text-sm p-3.5 rounded-2xl shadow-md my-1 text-center`;
+        }
 
         const readStatusText = msg.is_read 
           ? '<span class="text-[9px] text-emerald-600 font-bold ml-1">✓✓ อ่านแล้ว</span>' 
           : '<span class="text-[9px] text-slate-400 ml-1">✓ ส่งแล้ว</span>';
 
         return `
-          <div class="flex flex-col ${isMe && !isWinnerWelcome ? 'items-end' : 'items-start'} ${isWinnerWelcome ? 'items-center w-full my-2' : ''}">
+          <div class="flex flex-col ${isMe && !isWinnerWelcome && !isCloseTradeAlert ? 'items-end' : 'items-start'} ${isWinnerWelcome || isCloseTradeAlert ? 'items-center w-full my-2' : ''}">
             <span class="text-[10px] text-slate-400 mb-0.5 px-1">${isMe ? 'คุณ' : (msg.sender_name || 'คู่สนทนา')}</span>
             <div class="${contentBubbleStyle}">
               ${bubbleContent}
             </div>
             <div class="flex items-center gap-1 mt-0.5 px-1">
               <span class="text-[9px] text-slate-400">${timeStr}</span>
-              ${isMe && !isWinnerWelcome ? readStatusText : ''}
+              ${isMe && !isWinnerWelcome && !isCloseTradeAlert ? readStatusText : ''}
             </div>
           </div>
         `;
@@ -1259,6 +1462,7 @@
           const newMsg = payload.new;
           if (newMsg && ((newMsg.sender_id === currentUser.id && newMsg.receiver_id === otherUserId) || (newMsg.sender_id === otherUserId && newMsg.receiver_id === currentUser.id))) {
             await markMessagesAsRead(auctionId, otherUserId);
+            await fetchAuctionChatMetaData(auctionId, otherUserId);
             fetchAuctionChatMessages(auctionId, otherUserId);
             updateUnreadBadgeCount();
           }
