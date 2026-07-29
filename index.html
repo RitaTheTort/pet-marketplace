@@ -269,7 +269,7 @@
 
         <div class="pt-3 flex justify-end space-x-3 border-t border-slate-100">
           <button type="button" id="cancel-btn" class="px-4 py-2 border border-slate-300 rounded-lg text-slate-600 text-sm font-medium hover:bg-slate-50 transition">ยกเลิก</button>
-          <button type="submit" id="submit-btn" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-bold shadow transition">บันทึกประกาศ</button>
+          <button type="submit" id="submit-btn" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold shadow transition">บันทึกประกาศ</button>
         </div>
       </form>
     </div>
@@ -432,7 +432,7 @@
     </div>
   </div>
 
-  <!-- Modal: ยืนยันการปิดการซื้อขาย 2 ทาง (ถูกต้องตามลำดับการกด 2 ฝ่าย) -->
+  <!-- Modal: ยืนยันการปิดการซื้อขาย 2 ทาง (ปรับปรุงซ่อนปุ่มแดงสำหรับผู้ส่งคำขอก่อน) -->
   <div id="close-chat-confirm-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm hidden items-center justify-center z-[70] p-4">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden p-6 text-center space-y-4">
       <div class="w-14 h-14 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto text-2xl font-bold">
@@ -442,11 +442,12 @@
       <p id="close-chat-msg" class="text-xs text-slate-600 leading-relaxed">
         คำเตือน: หากกดยืนยันแล้ว ข้อมูลแชทและรูปภาพทั้งหมดจะถูกลบถาวรและไม่สามารถกู้คืนได้
       </p>
-      <div class="grid grid-cols-2 gap-3 pt-2">
+      <!-- เปลี่ยนโครงสร้างปุ่มให้ซ่อน/แสดงตามสถานะคำขอ -->
+      <div id="close-chat-buttons-grid" class="grid grid-cols-2 gap-3 pt-2">
         <button type="button" onclick="document.getElementById('close-chat-confirm-modal').classList.add('hidden'); document.getElementById('close-chat-confirm-modal').classList.remove('flex');" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 py-3 rounded-xl font-bold text-sm transition">
           ยกเลิก
         </button>
-        <button type="button" onclick="executeCloseChat()" class="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl font-bold text-sm shadow-lg transition">
+        <button type="button" id="confirm-close-chat-btn" onclick="executeCloseChat()" class="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl font-bold text-sm shadow-lg transition">
           ยืนยันการปิด
         </button>
       </div>
@@ -1683,7 +1684,7 @@
       }
     });
 
-    // --- ระบบปิดการซื้อขายแยกตามขั้นตอน (ครั้งแรกส่งขอ + แจ้งเตือนเข้าแชท / ครั้งที่สองยืนยันลบจริง) ---
+    // --- ระบบปิดการซื้อขายแบบปลอดภัย (ซ่อนปุ่มยืนยันสีแดงสำหรับผู้ส่งคำขอ) ---
     window.promptCloseChat = async function() {
       if (!currentUser || !currentActivePet || !targetChatUserId) return;
 
@@ -1700,16 +1701,24 @@
 
       const modal = document.getElementById('close-chat-confirm-modal');
       const msgEl = document.getElementById('close-chat-msg');
+      const confirmBtn = document.getElementById('confirm-close-chat-btn');
+      const buttonsGrid = document.getElementById('close-chat-buttons-grid');
 
       if (!closingData) {
-        // ยังไม่มีใครขอปิด -> ถามเพื่อส่งคำขอครั้งแรก
+        // ยังไม่มีใครขอปิด -> แสดงปุ่มยืนยันปกติเพื่อส่งคำขอครั้งแรก
         msgEl.innerText = '⚠️ คุณกำลังขอปิดการซื้อขาย/สนทนานี้ เมื่อกดยืนยัน ระบบจะส่งคำขอและแจ้งเตือนไปยังคู่สนทนา คุณต้องการส่งคำขอหรือไม่?';
+        confirmBtn.classList.remove('hidden');
+        buttonsGrid.className = "grid grid-cols-2 gap-3 pt-2";
       } else if (closingData.requested_by === currentUser.id) {
-        // ตัวเองเป็นคนขอไปแล้ว แต่อีกฝ่ายยังไม่กด
+        // ตัวเองเป็นคนขอไปแล้ว แต่อีกฝ่ายยังไม่กด -> ซ่อนปุ่มยืนยันสีแดง ป้องกันการกดซ้ำลบแชทเอง
         msgEl.innerText = '⏳ คุณได้ส่งคำขอปิดการซื้อขายไปแล้ว กำลังรอให้อีกฝ่ายกดยืนยันผ่านปุ่ม "ปิดการซื้อขาย" มุมขวาบนครับ';
+        confirmBtn.classList.add('hidden');
+        buttonsGrid.className = "grid grid-cols-1 gap-3 pt-2";
       } else {
-        // อีกฝ่ายเป็นคนขอมาแล้ว ตัวเองเพิ่งมากด -> ยืนยันปิดแชทถาวร
+        // อีกฝ่ายเป็นคนขอมาแล้ว ตัวเองมากด -> แสดงปุ่มยืนยันสีแดงเพื่อปิดแชทถาวรจริง
         msgEl.innerText = '🚨 คู่สนทนาได้ส่งคำขอปิดการซื้อขายมาแล้ว! (คำเตือน: หากกดยืนยันแล้ว ข้อมูลแชทและรูปภาพทั้งหมดจะถูกลบถาวรและไม่สามารถกู้คืนได้)';
+        confirmBtn.classList.remove('hidden');
+        buttonsGrid.className = "grid grid-cols-2 gap-3 pt-2";
       }
 
       modal.classList.remove('hidden');
@@ -1765,12 +1774,7 @@
           document.getElementById('close-chat-confirm-modal').classList.add('hidden');
           document.getElementById('close-chat-confirm-modal').classList.remove('flex');
         }
-      } else if (closingData.requested_by === currentUser.id) {
-        // ถ้าตัวเองเป็นคนขอแล้วมากดย้ำเอง แจ้งเตือนสถานะเฉยๆ ไม่ลบแชท
-        alert('คุณได้ส่งคำขอไปแล้ว กำลังรอให้อีกฝ่ายกดยืนยันครับ');
-        document.getElementById('close-chat-confirm-modal').classList.add('hidden');
-        document.getElementById('close-chat-confirm-modal').classList.remove('flex');
-      } else {
+      } else if (closingData.requested_by !== currentUser.id) {
         // อีกฝ่ายขอมาแล้ว ตัวเองมากดยืนยัน -> ครบ 2 ฝ่าย ลบแชทถาวรจริง!
         try {
           const { data: msgs } = await supabaseClient
