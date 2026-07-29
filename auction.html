@@ -96,7 +96,6 @@
         <button onclick="closeMyAuctionsModal()" class="text-slate-400 hover:text-white text-2xl font-bold px-2 py-0.5 rounded-lg transition">&times;</button>
       </div>
 
-      <!-- 🌟 เพิ่ม id ให้ scroll container เพื่อใช้ล็อกตำแหน่งจอ -->
       <div id="my-modal-scroll-container" class="p-4 md:p-6 bg-slate-50 overflow-y-auto flex-1 space-y-6">
         <div class="bg-white p-4 md:p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
           <h4 class="font-extrabold text-slate-900 text-sm flex items-center gap-2">
@@ -130,7 +129,6 @@
         <button onclick="closeAdminHallModal()" class="text-slate-400 hover:text-white text-2xl font-bold px-2 py-0.5 rounded-lg transition">&times;</button>
       </div>
 
-      <!-- 🌟 เพิ่ม id ให้ scroll container ของแอดมินด้วย -->
       <div id="admin-modal-scroll-container" class="p-4 md:p-6 bg-slate-50 overflow-y-auto flex-1 space-y-6">
         <div class="bg-white p-4 md:p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
           <h4 class="font-extrabold text-slate-900 text-sm flex items-center gap-2">
@@ -200,6 +198,12 @@
 
             <h2 id="sa-title" class="text-lg md:text-xl font-extrabold text-slate-900">ชื่อสินค้า</h2>
             <p id="sa-desc" class="text-xs text-slate-500 mt-1 whitespace-pre-wrap">รายละเอียดเพิ่มเติม...</p>
+            
+            <!-- 🌟 แสดงข้อมูลค่าจัดส่งในห้องประมูลสด -->
+            <div id="sa-shipping-box" class="mt-2 inline-flex items-center gap-1.5 bg-blue-50 text-blue-800 border border-blue-200 px-3 py-1.5 rounded-xl text-xs font-bold shadow-sm">
+              📦 ค่าจัดส่ง: <span id="sa-shipping-display">-</span>
+            </div>
+
             <p id="sa-retention-info" class="text-[10px] text-slate-400 mt-2 italic">ℹ️ ข้อมูลการประมูลนี้จะถูกจัดเก็บรักษาไว้เป็นเวลา 30 วันหลังสิ้นสุดการประมูล</p>
           </div>
 
@@ -355,6 +359,7 @@
     </div>
   </div>
 
+  <!-- 🌟 Modal: สร้างห้องประมูล (เพิ่มช่องกรอกค่าส่ง) -->
   <div id="create-auction-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4 overflow-y-auto">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden my-8">
       <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center">
@@ -382,9 +387,16 @@
             <input type="number" id="auc-start-price" required placeholder="เช่น 10000" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:outline-none">
           </div>
         </div>
-        <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">ราคาซื้อทันที (Buy-It-Now)</label>
-          <input type="number" id="auc-buyout-price" placeholder="ไม่บังคับ เช่น 25000" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:outline-none">
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">ราคาซื้อทันที (Buy-It-Now)</label>
+            <input type="number" id="auc-buyout-price" placeholder="ไม่บังคับ เช่น 25000" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">ค่าขนส่ง (บาท) *</label>
+            <input type="number" id="auc-shipping-fee" required value="0" min="0" placeholder="ระบุ 0 ถ้าฟรีค่าส่ง" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:outline-none">
+          </div>
         </div>
 
         <div>
@@ -646,7 +658,7 @@
 
     async function renderMyAuctionsData() {
       const scrollContainer = document.getElementById('my-modal-scroll-container');
-      const savedScrollTop = scrollContainer ? scrollContainer.scrollTop : 0; // 🌟 บันทึกตำแหน่งจอเดิม
+      const savedScrollTop = scrollContainer ? scrollContainer.scrollTop : 0;
 
       const grid = document.getElementById('my-auctions-grid');
       const statsContainer = document.getElementById('my-stats-container');
@@ -739,7 +751,6 @@
         `;
       }).join('');
 
-      // 🌟 คืนค่าตำแหน่ง Scroll เดิมทันทีหลังจากเรนเดอร์เสร็จ
       if (scrollContainer) {
         scrollContainer.scrollTop = savedScrollTop;
       }
@@ -751,7 +762,6 @@
       document.getElementById('my-auctions-modal').classList.remove('flex');
     };
 
-    // 🌟 อัปเดตสถานะแบบ Silent Update (ไม่รีเซ็ต Scroll ตำแหน่งเดิม)
     window.updateAuctionOrderStatus = async function(auctionId, newStatus) {
       if (!currentUser) return;
       try {
@@ -796,7 +806,7 @@
 
     async function renderAdminHallData() {
       const scrollContainer = document.getElementById('admin-modal-scroll-container');
-      const savedScrollTop = scrollContainer ? scrollContainer.scrollTop : 0; // 🌟 บันทึกตำแหน่งจอเดิมฝั่งแอดมิน
+      const savedScrollTop = scrollContainer ? scrollContainer.scrollTop : 0;
 
       const grid = document.getElementById('admin-hall-grid');
       const statsContainer = document.getElementById('admin-stats-container');
@@ -890,13 +900,11 @@
         `;
       }).join('');
 
-      // 🌟 คืนค่าตำแหน่ง Scroll เดิมฝั่งแอดมินทันที
       if (scrollContainer) {
         scrollContainer.scrollTop = savedScrollTop;
       }
     }
 
-    // 🌟 อัปเดตสถานะฝั่งแอดมินแบบ Silent Update (ไม่เด้งขึ้นบน)
     window.updateAdminAuctionOrderStatus = async function(auctionId, newStatus) {
       if (!currentUser || (currentUserRole !== 'admin' && currentUserRole !== 'super_admin')) return;
       try {
@@ -1028,6 +1036,7 @@
       const species = document.getElementById('auc-species').value;
       const startPrice = parseFloat(document.getElementById('auc-start-price').value);
       const buyoutPrice = document.getElementById('auc-buyout-price').value ? parseFloat(document.getElementById('auc-buyout-price').value) : null;
+      const shippingFee = parseFloat(document.getElementById('auc-shipping-fee').value) || 0; // 🌟 ค่าขนส่ง
       
       const days = parseInt(document.getElementById('auc-days').value) || 0;
       const hours = parseInt(document.getElementById('auc-hours').value) || 0;
@@ -1036,6 +1045,7 @@
 
       const payload = {
         title, species, start_price: startPrice, current_price: startPrice, buyout_price: buyoutPrice,
+        shipping_fee: shippingFee, // 🌟 บันทึกค่าขนส่งลงฐานข้อมูล
         images: [document.getElementById('auc-image-url').value],
         description: document.getElementById('auc-description').value.trim(),
         seller_id: currentUser.id,
@@ -1052,6 +1062,7 @@
         closeCreateAuctionModal();
         document.getElementById('create-auction-form').reset();
         document.getElementById('auc-image-url').value = '';
+        document.getElementById('auc-shipping-fee').value = '0';
         fetchAuctions();
       } catch (err) {
         alert(`เกิดข้อผิดพลาด: ${err.message}`);
@@ -1299,6 +1310,15 @@
       document.getElementById('sa-image').src = activeAuction.images?.[0] || '';
       document.getElementById('sa-current-price').innerText = `฿${Number(activeAuction.current_price).toLocaleString()}`;
 
+      // 🌟 แสดงข้อมูลค่าจัดส่งในหน้าต่างห้องประมูลสด
+      const shippingFee = Number(activeAuction.shipping_fee || 0);
+      const shippingDisplay = document.getElementById('sa-shipping-display');
+      if (shippingFee === 0) {
+        shippingDisplay.innerHTML = `<strong class="text-emerald-700">ส่งฟรี</strong>`;
+      } else {
+        shippingDisplay.innerHTML = `<strong class="text-blue-700">฿${shippingFee.toLocaleString()}</strong>`;
+      }
+
       renderSellerDashboardReturnButton();
 
       const buyoutBox = document.getElementById('sa-buyout-box');
@@ -1396,6 +1416,7 @@
       const winnerId = activeAuction.last_bidder_id;
       const winnerName = activeAuction.last_bidder_name || 'ผู้ชนะประมูล';
       const finalPrice = Number(activeAuction.current_price).toLocaleString();
+      const shippingFee = Number(activeAuction.shipping_fee || 0);
 
       await openAuctionChat(activeAuction, winnerId, winnerName);
 
@@ -1408,7 +1429,7 @@
       const hasWelcomed = existingMsgs && existingMsgs.some(m => m.content && m.content.includes("ยินดีด้วย!!"));
 
       if (!hasWelcomed) {
-        const welcomeText = `🎉 ยินดีด้วย!! คุณคือผู้ชนะประมูลที่ราคา ฿${finalPrice}`;
+        const welcomeText = `🎉 ยินดีด้วย!! คุณคือผู้ชนะประมูลที่ราคา ฿${finalPrice} ${shippingFee > 0 ? `(ค่าจัดส่ง ฿${shippingFee.toLocaleString()}) รวมยอดชำระทั้งสิ้น ฿${(Number(activeAuction.current_price) + shippingFee).toLocaleString()}` : '(ส่งฟรี)'}`;
         const myName = currentUser.user_metadata?.full_name || currentUser.email.split('@')[0];
         
         await supabaseClient.from('auction_messages').insert([{
