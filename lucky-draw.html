@@ -97,7 +97,6 @@
                     #fef3c7 216deg 234deg, #fee2e2 234deg 252deg, #d1fae5 252deg 270deg, #ffedd5 270deg 288deg,
                     #fef3c7 288deg 306deg, #fee2e2 306deg 324deg, #d1fae5 324deg 342deg, #ffedd5 342deg 360deg
                 );">
-                    <!-- Index 0 ถึง 19 วางตรงกลางแต่ละช่วงช่องพอดี (ทีละ 18 องศา เริ่มที่ 9 องศา) -->
                     <div class="wheel-slice" style="transform: rotate(9deg);"><span class="text-xs font-bold text-slate-800 bg-white/90 px-1.5 py-0.5 rounded shadow-sm">1T</span></div>
                     <div class="wheel-slice" style="transform: rotate(27deg);"><span class="text-[10px] font-bold text-rose-700 bg-rose-100 px-1.5 py-0.5 rounded shadow-sm">5T</span></div>
                     <div class="wheel-slice" style="transform: rotate(45deg);"><span class="text-xs font-bold text-slate-800 bg-white/90 px-1.5 py-0.5 rounded shadow-sm">1T</span></div>
@@ -167,11 +166,11 @@
         </div>
     </main>
 
-    <!-- Script ตรรกะใหม่ ตรง 100% -->
+    <!-- Script ตรรกะใหม่ แก้ไขจุดที่ผิดพลาดเรียบร้อย -->
     <script>
         let currentTotalRotation = 0;
         let userTokens = parseInt(localStorage.getItem('exotic_tokens')) || 0;
-        let freeSpinsToday = localStorage.getItem('exotic_free_spin'] !== 'used';
+        let freeSpinsToday = localStorage.getItem('exotic_free_spin') !== 'used';
 
         document.getElementById('userTokenCount').innerText = userTokens;
         updateSpinButtonUI();
@@ -191,7 +190,6 @@
             }
         }
 
-        // อาเรย์ตรงกับตำแหน่งช่องบนวงล้อเรียงตามเข็มนาฬิกาจากบนสุดเป๊ะๆ
         const wheelValues = [1, 5, 1, 2, 1, 3, 1, 2, 1, 2, 1, 5, 1, 2, 1, 3, 1, 2, 1, 3];
 
         function spinWheel() {
@@ -203,23 +201,18 @@
             const btn = document.getElementById('spinBtn');
             btn.disabled = true;
 
-            // 1. สุ่มเลือกช่องเป้าหมาย (0 - 19)
             const targetIndex = Math.floor(Math.random() * wheelValues.length);
             const targetToken = wheelValues[targetIndex];
 
-            // 2. คำนวณองศาแบบตรงไปตรงมา: แต่ละช่องกว้าง 18 องศา
-            // อยากให้ช่อง index ไหนมาอยู่ด้านบน (0 องศา) ต้องหมุนไปให้ตรงข้ามกับตำแหน่งกึ่งกลางของช่องนั้น
             const sliceAngle = 18;
             const targetCenterAngle = (targetIndex * sliceAngle) + (sliceAngle / 2);
             
-            // หมุนวนไป 10 รอบเต็ม (360 * 10) + ระยะทางที่ต้องไปหยุดที่ช่องนั้นพอดิบพอดี
             const extraDegrees = 360 - targetCenterAngle;
             currentTotalRotation += 360 * 10 + extraDegrees;
 
             const wheel = document.getElementById('wheel');
             wheel.style.transform = `rotate(${currentTotalRotation}deg)`;
 
-            // 3. แสดงผลหลังวงล้อหยุด (4 วินาที)
             setTimeout(() => {
                 userTokens += targetToken;
                 localStorage.setItem('exotic_tokens', userTokens);
