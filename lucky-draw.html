@@ -40,7 +40,7 @@
             z-index: 50;
             filter: drop-shadow(0 3px 2px rgba(0,0,0,0.3));
         }
-        /* จัดวางชิ้นส่วนแต่ละช่องของวงล้อ 16 ช่อง (ช่องละ 22.5 องศา) */
+        /* จัดวางตัวเลขให้อยู่กึ่งกลางแต่ละแฉกวงล้อพอดี */
         .wheel-slice {
             position: absolute;
             top: 0;
@@ -49,10 +49,9 @@
             height: 100%;
             transform-origin: left center;
             display: flex;
-            align-items: flex-start;
+            align-items: center;
             justify-content: flex-end;
-            padding-right: 20px;
-            padding-top: 15px;
+            padding-right: 35px;
         }
     </style>
 </head>
@@ -91,30 +90,30 @@
             <div class="wheel-container mb-6">
                 <div class="pointer"></div>
                 
-                <!-- วงล้อ 16 ช่อง พร้อมสีสลับกัน -->
+                <!-- วงล้อ 16 ช่อง สีสลับกัน -->
                 <div id="wheel" style="background: conic-gradient(
                     #fef3c7 0deg 22.5deg, #d1fae5 22.5deg 45deg, #fef3c7 45deg 67.5deg, #fee2e2 67.5deg 90deg,
                     #fef3c7 90deg 112.5deg, #d1fae5 112.5deg 135deg, #fef3c7 135deg 157.5deg, #e0e7ff 157.5deg 180deg,
                     #fef3c7 180deg 202.5deg, #d1fae5 202.5deg 225deg, #fef3c7 225deg 247.5deg, #ffedd5 247.5deg 270deg,
                     #fef3c7 270deg 292.5deg, #d1fae5 292.5deg 315deg, #fef3c7 315deg 337.5deg, #f3e8ff 337.5deg 360deg
                 );">
-                    <!-- ข้อความแต่ละช่องจัดมุมให้อยู่ตรงกลางแฉกเป๊ะ ๆ -->
-                    <div class="wheel-slice" style="transform: rotate(11.25deg);"><span class="text-[10px] font-bold text-slate-700 bg-white/70 px-1 rounded">1T</span></div>
-                    <div class="wheel-slice" style="transform: rotate(33.75deg);"><span class="text-[10px] font-bold text-slate-700 bg-white/70 px-1 rounded">2T</span></div>
-                    <div class="wheel-slice" style="transform: rotate(56.25deg);"><span class="text-[10px] font-bold text-slate-700 bg-white/70 px-1 rounded">1T</span></div>
-                    <div class="wheel-slice" style="transform: rotate(78.75deg);"><span class="text-[10px] font-bold text-slate-700 bg-white/70 px-1 rounded">3T</span></div>
-                    <div class="wheel-slice" style="transform: rotate(101.25deg);"><span class="text-[10px] font-bold text-slate-700 bg-white/70 px-1 rounded">1T</span></div>
-                    <div class="wheel-slice" style="transform: rotate(123.75deg);"><span class="text-[10px] font-bold text-slate-700 bg-white/70 px-1 rounded">2T</span></div>
-                    <div class="wheel-slice" style="transform: rotate(146.25deg);"><span class="text-[10px] font-bold text-slate-700 bg-white/70 px-1 rounded">1T</span></div>
-                    <div class="wheel-slice" style="transform: rotate(168.75deg);"><span class="text-[10px] font-bold text-slate-700 bg-white/70 px-1 rounded">5T</span></div>
-                    <div class="wheel-slice" style="transform: rotate(191.25deg);"><span class="text-[10px] font-bold text-slate-700 bg-white/70 px-1 rounded">1T</span></div>
-                    <div class="wheel-slice" style="transform: rotate(213.75deg);"><span class="text-[10px] font-bold text-slate-700 bg-white/70 px-1 rounded">2T</span></div>
-                    <div class="wheel-slice" style="transform: rotate(236.25deg);"><span class="text-[10px] font-bold text-slate-700 bg-white/70 px-1 rounded">1T</span></div>
-                    <div class="wheel-slice" style="transform: rotate(258.75deg);"><span class="text-[10px] font-bold text-amber-700 bg-amber-100 px-1 rounded">10T</span></div>
-                    <div class="wheel-slice" style="transform: rotate(281.25deg);"><span class="text-[10px] font-bold text-slate-700 bg-white/70 px-1 rounded">1T</span></div>
-                    <div class="wheel-slice" style="transform: rotate(303.75deg);"><span class="text-[10px] font-bold text-slate-700 bg-white/70 px-1 rounded">2T</span></div>
-                    <div class="wheel-slice" style="transform: rotate(326.25deg);"><span class="text-[10px] font-bold text-slate-700 bg-white/70 px-1 rounded">1T</span></div>
-                    <div class="wheel-slice" style="transform: rotate(348.75deg);"><span class="text-[10px] font-bold text-slate-700 bg-white/70 px-1 rounded">3T</span></div>
+                    <!-- ตัวเลขรางวัลแต่ละช่อง (หมุนตั้งฉากให้อ่านง่ายและตรงกลางช่อง) -->
+                    <div class="wheel-slice" style="transform: rotate(11.25deg);"><span class="text-xs font-bold text-slate-800 bg-white/90 px-2 py-0.5 rounded shadow-sm">1T</span></div>
+                    <div class="wheel-slice" style="transform: rotate(33.75deg);"><span class="text-xs font-bold text-slate-800 bg-white/90 px-2 py-0.5 rounded shadow-sm">2T</span></div>
+                    <div class="wheel-slice" style="transform: rotate(56.25deg);"><span class="text-xs font-bold text-slate-800 bg-white/90 px-2 py-0.5 rounded shadow-sm">1T</span></div>
+                    <div class="wheel-slice" style="transform: rotate(78.75deg);"><span class="text-xs font-bold text-slate-800 bg-white/90 px-2 py-0.5 rounded shadow-sm">3T</span></div>
+                    <div class="wheel-slice" style="transform: rotate(101.25deg);"><span class="text-xs font-bold text-slate-800 bg-white/90 px-2 py-0.5 rounded shadow-sm">1T</span></div>
+                    <div class="wheel-slice" style="transform: rotate(123.75deg);"><span class="text-xs font-bold text-slate-800 bg-white/90 px-2 py-0.5 rounded shadow-sm">2T</span></div>
+                    <div class="wheel-slice" style="transform: rotate(146.25deg);"><span class="text-xs font-bold text-slate-800 bg-white/90 px-2 py-0.5 rounded shadow-sm">1T</span></div>
+                    <div class="wheel-slice" style="transform: rotate(168.75deg);"><span class="text-xs font-bold text-slate-800 bg-white/90 px-2 py-0.5 rounded shadow-sm">5T</span></div>
+                    <div class="wheel-slice" style="transform: rotate(191.25deg);"><span class="text-xs font-bold text-slate-800 bg-white/90 px-2 py-0.5 rounded shadow-sm">1T</span></div>
+                    <div class="wheel-slice" style="transform: rotate(213.75deg);"><span class="text-xs font-bold text-slate-800 bg-white/90 px-2 py-0.5 rounded shadow-sm">2T</span></div>
+                    <div class="wheel-slice" style="transform: rotate(236.25deg);"><span class="text-xs font-bold text-slate-800 bg-white/90 px-2 py-0.5 rounded shadow-sm">1T</span></div>
+                    <div class="wheel-slice" style="transform: rotate(258.75deg);"><span class="text-xs font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded shadow-sm">10T</span></div>
+                    <div class="wheel-slice" style="transform: rotate(281.25deg);"><span class="text-xs font-bold text-slate-800 bg-white/90 px-2 py-0.5 rounded shadow-sm">1T</span></div>
+                    <div class="wheel-slice" style="transform: rotate(303.75deg);"><span class="text-xs font-bold text-slate-800 bg-white/90 px-2 py-0.5 rounded shadow-sm">2T</span></div>
+                    <div class="wheel-slice" style="transform: rotate(326.25deg);"><span class="text-xs font-bold text-slate-800 bg-white/90 px-2 py-0.5 rounded shadow-sm">1T</span></div>
+                    <div class="wheel-slice" style="transform: rotate(348.75deg);"><span class="text-xs font-bold text-slate-800 bg-white/90 px-2 py-0.5 rounded shadow-sm">3T</span></div>
                 </div>
 
                 <!-- ปุ่มหมุนตรงกลาง -->
@@ -130,6 +129,11 @@
                 🎲 หมุนวงล้อเลย (ฟรีวันนี้)
             </button>
             <p id="spinStatus" class="text-xs text-slate-400 mt-2">สิทธิ์หมุนฟรีวันนี้: 1 ครั้ง</p>
+
+            <!-- ปุ่มรีเซ็ตสิทธิ์สำหรับทดสอบระบบ -->
+            <button onclick="resetSpinLimit()" class="mt-4 text-xs text-slate-500 hover:text-emerald-600 underline transition">
+                🔄 รีเซ็ตสิทธิ์วันนี้ (สำหรับทดสอบ)
+            </button>
         </div>
 
         <!-- Rules Box -->
@@ -170,17 +174,26 @@
         let freeSpinsToday = localStorage.getItem('exotic_free_spin') !== 'used';
 
         document.getElementById('userTokenCount').innerText = userTokens;
-        if (!freeSpinsToday) {
+        updateSpinButtonUI();
+
+        function updateSpinButtonUI() {
             const btn = document.getElementById('spinBtn');
-            btn.innerText = "หมดสิทธิ์หมุนฟรีวันนี้";
-            btn.classList.add('opacity-50', 'cursor-not-allowed', 'bg-slate-400');
-            btn.classList.remove('bg-emerald-600', 'hover:bg-emerald-700');
-            document.getElementById('spinStatus').innerText = "กลับมาหมุนใหม่ได้ในวันพรุ่งนี้";
+            if (!freeSpinsToday) {
+                btn.innerText = "หมดสิทธิ์หมุนฟรีวันนี้";
+                btn.classList.add('opacity-50', 'cursor-not-allowed', 'bg-slate-400');
+                btn.classList.remove('bg-emerald-600', 'hover:bg-emerald-700');
+                document.getElementById('spinStatus').innerText = "กลับมาหมุนใหม่ได้ในวันพรุ่งนี้";
+            } else {
+                btn.innerText = "🎲 หมุนวงล้อเลย (ฟรีวันนี้)";
+                btn.classList.remove('opacity-50', 'cursor-not-allowed', 'bg-slate-400');
+                btn.classList.add('bg-emerald-600', 'hover:bg-emerald-700');
+                document.getElementById('spinStatus').innerText = "สิทธิ์หมุนฟรีวันนี้: 1 ครั้ง";
+            }
         }
 
         function spinWheel() {
             if (!freeSpinsToday) {
-                alert('คุณใช้สิทธิ์หมุนฟรีของวันนี้ไปแล้วครับ!');
+                alert('คุณใช้สิทธิ์หมุนฟรีของวันนี้ไปแล้วครับ! (สามารถกดปุ่มรีเซ็ตด้านล่างเพื่อทดสอบเพิ่มได้)');
                 return;
             }
 
@@ -192,30 +205,31 @@
             let rewardToken = 1;
             let targetSliceIndex = 0;
 
+            // Mapping ตำแหน่งช่องบนวงล้อ 16 ช่อง (ช่องละ 22.5 องศา) ให้ตรงกับเรทเปอร์เซ็นต์
             if (rand < 70) {
                 rewardToken = 1;
-                const slots = [0, 2, 4, 6, 8, 10, 12, 14];
+                const slots = [0, 2, 4, 6, 8, 10, 12, 14]; // ช่องที่ได้ 1 Token
                 targetSliceIndex = slots[Math.floor(Math.random() * slots.length)];
             } else if (rand < 90) {
                 rewardToken = 2;
-                const slots = [1, 5, 9, 13];
+                const slots = [1, 5, 9, 13]; // ช่องที่ได้ 2 Tokens
                 targetSliceIndex = slots[Math.floor(Math.random() * slots.length)];
             } else if (rand < 96) {
                 rewardToken = 3;
-                const slots = [3, 15];
+                const slots = [3, 15]; // ช่องที่ได้ 3 Tokens
                 targetSliceIndex = slots[Math.floor(Math.random() * slots.length)];
             } else if (rand < 99) {
                 rewardToken = 5;
-                targetSliceIndex = 7;
+                targetSliceIndex = 7; // ช่องที่ได้ 5 Tokens
             } else {
                 rewardToken = 10;
-                targetSliceIndex = 11;
+                targetSliceIndex = 11; // ช่องที่ได้ 10 Tokens (แจ็คพอต)
             }
 
             const sliceDegree = 22.5;
-            // คำนวณองศาให้เข็มชี้ตรงกลางช่องพอดี
+            // คำนวณองศาให้เข็มชี้ตรงกลางช่องที่สุ่มได้เป๊ะๆ
             const extraDegrees = 360 - (targetSliceIndex * sliceDegree + sliceDegree / 2);
-            const totalRotation = currentRotation + (360 * 5) + extraDegrees;
+            const totalRotation = currentRotation + (360 * 6) + extraDegrees;
             currentRotation = totalRotation;
 
             const wheel = document.getElementById('wheel');
@@ -228,13 +242,18 @@
                 freeSpinsToday = false;
 
                 document.getElementById('userTokenCount').innerText = userTokens;
-                btn.innerText = "หมดสิทธิ์หมุนฟรีวันนี้";
-                btn.classList.add('opacity-50', 'cursor-not-allowed', 'bg-slate-400');
-                btn.classList.remove('bg-emerald-600', 'hover:bg-emerald-700');
-                document.getElementById('spinStatus').innerText = "กลับมาหมุนใหม่ได้ในวันพรุ่งนี้";
+                updateSpinButtonUI();
+                btn.disabled = false;
 
                 alert(`🎉 ยินดีด้วยครับ! คุณสุ่มได้ ${rewardToken} Token! บันทึกลงกระเป๋าเรียบร้อยแล้ว`);
             }, 4000);
+        }
+
+        function resetSpinLimit() {
+            localStorage.removeItem('exotic_free_spin');
+            freeSpinsToday = true;
+            updateSpinButtonUI();
+            alert('🔄 รีเซ็ตสิทธิ์หมุนฟรีของวันนี้เรียบร้อยแล้ว! สามารถทดลองหมุนใหม่ได้เลยครับ');
         }
     </script>
 </body>
