@@ -96,6 +96,7 @@
                     #fef3c7 180deg 202.5deg, #d1fae5 202.5deg 225deg, #fef3c7 225deg 247.5deg, #ffedd5 247.5deg 270deg,
                     #fef3c7 270deg 292.5deg, #d1fae5 292.5deg 315deg, #fef3c7 315deg 337.5deg, #f3e8ff 337.5deg 360deg
                 );">
+                    <!-- จัดเรียงตัวเลข 16 ช่องให้ตรงกับ Array ด้านล่างเป๊ะๆ (ช่องที่ 7 คือ 5T ตามภาพที่ถูกต้อง) -->
                     <div class="wheel-slice" style="transform: rotate(11.25deg);"><span class="text-xs font-bold text-slate-800 bg-white/90 px-2 py-0.5 rounded shadow-sm">1T</span></div>
                     <div class="wheel-slice" style="transform: rotate(33.75deg);"><span class="text-xs font-bold text-slate-800 bg-white/90 px-2 py-0.5 rounded shadow-sm">2T</span></div>
                     <div class="wheel-slice" style="transform: rotate(56.25deg);"><span class="text-xs font-bold text-slate-800 bg-white/90 px-2 py-0.5 rounded shadow-sm">1T</span></div>
@@ -165,11 +166,11 @@
         </div>
     </main>
 
-    <!-- Script แก้ไของศาการหยุดให้ตรงกับช่องรางวัลเป๊ะๆ -->
+    <!-- Script ควบคุมความแม่นยำของวงล้อ -->
     <script>
         let currentRotation = 0;
         let userTokens = parseInt(localStorage.getItem('exotic_tokens')) || 0;
-        let freeSpinsToday = localStorage.getItem('exotic_free_spin') !== 'used';
+        let freeSpinsToday = localStorage.getItem('exotic_free_spin'] !== 'used';
 
         document.getElementById('userTokenCount').innerText = userTokens;
         updateSpinButtonUI();
@@ -189,7 +190,7 @@
             }
         }
 
-        // ค่าของรางวัลเรียงตามเข็มนาฬิกา 16 ช่อง ตรงกับหน้าจอเป๊ะ
+        // ค่าของรางวัลเรียงตามเข็มนาฬิกา 16 ช่องตรงกับ HTML ด้านบนเป๊ะๆ
         const wheelValues = [1, 2, 1, 3, 1, 2, 1, 5, 1, 2, 1, 10, 1, 2, 1, 3];
 
         function spinWheel() {
@@ -201,7 +202,7 @@
             const btn = document.getElementById('spinBtn');
             btn.disabled = true;
 
-            // 1. สุ่มเรทเปอร์เซ็นต์ตามที่กำหนด
+            // 1. สุ่มเรทเปอร์เซ็นต์ตามกติกา
             const rand = Math.random() * 100;
             let targetToken = 1;
 
@@ -211,27 +212,26 @@
             else if (rand < 99) targetToken = 5;
             else targetToken = 10;
 
-            // 2. ค้นหา Index ของช่องที่เป็นรางวัลนี้
+            // 2. สุ่มเลือก Index ของช่องที่เป็นรางวัลนี้
             let matchingIndices = [];
             wheelValues.forEach((val, idx) => {
                 if (val === targetToken) matchingIndices.push(idx);
             });
             const targetIndex = matchingIndices[Math.floor(Math.random() * matchingIndices.length)];
 
-            // 3. คำนวณองศาใหม่ให้หมุนไปหยุดตรงช่องด้านบนพอดิบพอดี
-            const sliceAngle = 360 / 16;
-            const targetAngle = targetIndex * sliceAngle + (sliceAngle / 2);
-            const totalRotation = currentRotation + (360 * 6) + (360 - (targetAngle % 360)) - (currentRotation % 360);
-            currentRotation += (360 * 6) + ((360 - targetAngle) - (currentRotation % 360));
-
-            // ใช้สูตรคำนวณตำแหน่งหยุดที่แม่นยำ
-            const finalRotation = currentRotation + (360 * 6) + (360 - (targetIndex * sliceAngle + sliceAngle / 2) - (currentRotation % 360));
-            currentRotation = finalRotation;
+            // 3. คำนวณองศาความแม่นยำสูง (แก้ให้เข็มชี้ตรงกลางช่องพอดีเป๊ะ)
+            const sliceAngle = 360 / 16; // 22.5 องศา
+            const targetCenterAngle = targetIndex * sliceAngle + (sliceAngle / 2);
+            
+            // สูตรคำนวณองศารวมให้หมุนไปตกที่ช่องเป้าหมายพอดี
+            const extraDegree = 360 - targetCenterAngle;
+            const finalTargetRotation = currentRotation - (currentRotation % 360) + (360 * 6) + extraDegree;
+            currentRotation = finalTargetRotation;
 
             const wheel = document.getElementById('wheel');
             wheel.style.transform = `rotate(${currentRotation}deg)`;
 
-            // 4. แจ้งผลลัพธ์หลังจากวงล้อหยุดหมุน
+            // 4. แสดงผลลัพธ์หลังจากวงล้อหยุดหมุน
             setTimeout(() => {
                 userTokens += targetToken;
                 localStorage.setItem('exotic_tokens', userTokens);
