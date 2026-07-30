@@ -1,72 +1,49 @@
-    <script>
-        let currentRotation = 0;
-        let userTokens = parseInt(localStorage.getItem('exotic_tokens')) || 0;
-        let freeSpinsToday = localStorage.getItem('exotic_free_spin') !== 'used';
-
-        document.getElementById('userTokenCount').innerText = userTokens;
-        updateSpinButtonUI();
-
-        function updateSpinButtonUI() {
-            const btn = document.getElementById('spinBtn');
-            if (!freeSpinsToday) {
-                btn.innerText = "หมดสิทธิ์หมุนฟรีวันนี้";
-                btn.classList.add('opacity-50', 'cursor-not-allowed', 'bg-slate-400');
-                btn.classList.remove('bg-emerald-600', 'hover:bg-emerald-700');
-                document.getElementById('spinStatus').innerText = "กลับมาหมุนใหม่ได้ในวันพรุ่งนี้";
-            } else {
-                btn.innerText = "🎲 หมุนวงล้อเลย (ฟรีวันนี้)";
-                btn.classList.remove('opacity-50', 'cursor-not-allowed', 'bg-slate-400');
-                btn.classList.add('bg-emerald-600', 'hover:bg-emerald-700');
-                document.getElementById('spinStatus').innerText = "สิทธิ์หมุนฟรีวันนี้: 1 ครั้ง";
-            }
+    <style>
+        body { font-family: 'Prompt', sans-serif; }
+        .wheel-container {
+            position: relative;
+            width: 320px;
+            height: 320px;
+            margin: 0 auto;
         }
-
-        // ค่าของรางวัลเรียงตามเข็มนาฬิกา 20 ช่อง ตรงกับ HTML เป๊ะๆ
-        const wheelValues = [1, 5, 1, 2, 1, 3, 1, 2, 1, 2, 1, 5, 1, 2, 1, 3, 1, 2, 1, 3];
-
-        function spinWheel() {
-            if (!freeSpinsToday) {
-                alert('คุณใช้สิทธิ์หมุนฟรีของวันนี้ไปแล้วครับ! (สามารถกดปุ่มรีเซ็ตด้านล่างเพื่อทดสอบเพิ่มได้)');
-                return;
-            }
-
-            const btn = document.getElementById('spinBtn');
-            btn.disabled = true;
-
-            // 1. สุ่มเลือก Index ของช่องตรงๆ (0 ถึง 19)
-            const targetIndex = Math.floor(Math.random() * wheelValues.length);
-            const targetToken = wheelValues[targetIndex];
-
-            // 2. คำนวณองศาใหม่ให้ตรงกับทิศทางตามเข็มนาฬิกาของหน้าจอ
-            const sliceAngle = 360 / 20; // 18 องศาต่อช่อง
-            const targetCenterAngle = (targetIndex * sliceAngle) + (sliceAngle / 2);
-            
-            // ใช้ค่าบวกเพื่อให้วงล้อหมุนตามเข็มไปหาตำแหน่งช่องเป้าหมายที่อยู่ด้านบนพอดี
-            const totalRotation = currentRotation + (360 * 6) + (360 - (targetCenterAngle + (currentRotation % 360)) % 360);
-            currentRotation = totalRotation;
-
-            const wheel = document.getElementById('wheel');
-            wheel.style.transform = `rotate(${currentRotation}deg)`;
-
-            // 3. แสดงผลลัพธ์หลังจากวงล้อหยุดหมุน
-            setTimeout(() => {
-                userTokens += targetToken;
-                localStorage.setItem('exotic_tokens', userTokens);
-                localStorage.setItem('exotic_free_spin', 'used');
-                freeSpinsToday = false;
-
-                document.getElementById('userTokenCount').innerText = userTokens;
-                updateSpinButtonUI();
-                btn.disabled = false;
-
-                alert(`🎉 ยินดีด้วยครับ! คุณสุ่มได้ ${targetToken} Token! บันทึกลงกระเป๋าเรียบร้อยแล้ว`);
-            }, 4000);
+        @media (min-width: 640px) {
+            .wheel-container { width: 380px; height: 380px; }
         }
-
-        function resetSpinLimit() {
-            localStorage.removeItem('exotic_free_spin');
-            freeSpinsToday = true;
-            updateSpinButtonUI();
-            alert('🔄 รีเซ็ตสิทธิ์หมุนฟรีของวันนี้เรียบร้อยแล้ว! สามารถทดลองหมุนใหม่ได้เลยครับ');
+        #wheel {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            position: relative;
+            overflow: hidden;
+            /* ใช้ตัวแปร --final-rotate ควบคุมองศาโดยตรง แม่นยำที่สุด */
+            transform: rotate(var(--final-rotate, 0deg));
+            transition: transform 4s cubic-bezier(0.15, 0.95, 0.15, 1);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            border: 8px solid #059669;
         }
-    </script>
+        .pointer {
+            position: absolute;
+            top: -22px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 14px solid transparent;
+            border-right: 14px solid transparent;
+            border-top: 28px solid #DC2626;
+            z-index: 50;
+            filter: drop-shadow(0 3px 2px rgba(0,0,0,0.3));
+        }
+        .wheel-slice {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 50%;
+            height: 100%;
+            transform-origin: left center;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 30px;
+        }
+    </style>
