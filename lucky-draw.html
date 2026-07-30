@@ -89,7 +89,7 @@
             <div class="wheel-container mb-6">
                 <div class="pointer"></div>
                 
-                <!-- วงล้อ 16 ช่อง เรียงลำดับตาม Array ด้านล่าง -->
+                <!-- วงล้อ 16 ช่อง สีสลับกัน -->
                 <div id="wheel" style="background: conic-gradient(
                     #fef3c7 0deg 22.5deg, #d1fae5 22.5deg 45deg, #fef3c7 45deg 67.5deg, #fee2e2 67.5deg 90deg,
                     #fef3c7 90deg 112.5deg, #d1fae5 112.5deg 135deg, #fef3c7 135deg 157.5deg, #e0e7ff 157.5deg 180deg,
@@ -165,11 +165,11 @@
         </div>
     </main>
 
-    <!-- Script แก้ไขสูตรคำนวณองศาให้ตรงกับหน้าจอเป๊ะๆ -->
+    <!-- Script แก้ไของศาการหยุดให้ตรงกับช่องรางวัลเป๊ะๆ -->
     <script>
         let currentRotation = 0;
         let userTokens = parseInt(localStorage.getItem('exotic_tokens')) || 0;
-        let freeSpinsToday = localStorage.getItem('exotic_free_spin'] !== 'used';
+        let freeSpinsToday = localStorage.getItem('exotic_free_spin') !== 'used';
 
         document.getElementById('userTokenCount').innerText = userTokens;
         updateSpinButtonUI();
@@ -189,7 +189,7 @@
             }
         }
 
-        // รายชื่อรางวัลเรียงตามเข็มนาฬิกา 16 ช่อง (Index 0 ถึง 15)
+        // ค่าของรางวัลเรียงตามเข็มนาฬิกา 16 ช่อง ตรงกับหน้าจอเป๊ะ
         const wheelValues = [1, 2, 1, 3, 1, 2, 1, 5, 1, 2, 1, 10, 1, 2, 1, 3];
 
         function spinWheel() {
@@ -201,7 +201,7 @@
             const btn = document.getElementById('spinBtn');
             btn.disabled = true;
 
-            // 1. สุ่มเรทเปอร์เซ็นต์ตามที่อี้อวี่กำหนด
+            // 1. สุ่มเรทเปอร์เซ็นต์ตามที่กำหนด
             const rand = Math.random() * 100;
             let targetToken = 1;
 
@@ -211,25 +211,27 @@
             else if (rand < 99) targetToken = 5;
             else targetToken = 10;
 
-            // 2. ค้นหาช่อง (Index) ทั้งหมดที่เป็นรางวัลนี้ แล้วสุ่มเลือกมา 1 ช่อง
+            // 2. ค้นหา Index ของช่องที่เป็นรางวัลนี้
             let matchingIndices = [];
             wheelValues.forEach((val, idx) => {
                 if (val === targetToken) matchingIndices.push(idx);
             });
             const targetIndex = matchingIndices[Math.floor(Math.random() * matchingIndices.length)];
 
-            // 3. คำนวณองศาให้เข็มชี้ด้านบน (0 องศา) ตรงกับกึ่งกลางของช่อง Index นั้นๆ พอดี
-            const sliceAngle = 360 / 16; // 22.5 องศาต่อช่อง
-            const targetAngle = 360 - (targetIndex * sliceAngle + sliceAngle / 2);
-            
-            // หมุนวนไป 6 รอบเต็ม + ไปยังองศาเป้าหมาย
-            const totalRotation = currentRotation + (360 * 6) + (targetAngle - (currentRotation % 360));
-            currentRotation = totalRotation;
+            // 3. คำนวณองศาใหม่ให้หมุนไปหยุดตรงช่องด้านบนพอดิบพอดี
+            const sliceAngle = 360 / 16;
+            const targetAngle = targetIndex * sliceAngle + (sliceAngle / 2);
+            const totalRotation = currentRotation + (360 * 6) + (360 - (targetAngle % 360)) - (currentRotation % 360);
+            currentRotation += (360 * 6) + ((360 - targetAngle) - (currentRotation % 360));
+
+            // ใช้สูตรคำนวณตำแหน่งหยุดที่แม่นยำ
+            const finalRotation = currentRotation + (360 * 6) + (360 - (targetIndex * sliceAngle + sliceAngle / 2) - (currentRotation % 360));
+            currentRotation = finalRotation;
 
             const wheel = document.getElementById('wheel');
-            wheel.style.transform = `rotate(${totalRotation}deg)`;
+            wheel.style.transform = `rotate(${currentRotation}deg)`;
 
-            // 4. แสดงผลลัพธ์หลังจากวงล้อหยุดหมุน (4 วินาที)
+            // 4. แจ้งผลลัพธ์หลังจากวงล้อหยุดหมุน
             setTimeout(() => {
                 userTokens += targetToken;
                 localStorage.setItem('exotic_tokens', userTokens);
