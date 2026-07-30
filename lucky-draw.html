@@ -15,7 +15,7 @@
             margin: 0 auto;
         }
         @media (min-width: 640px) {
-            .wheel-container { width: 400px; height: 400px; }
+            .wheel-container { width: 380px; height: 380px; }
         }
         #wheel {
             width: 100%;
@@ -29,100 +29,118 @@
         }
         .pointer {
             position: absolute;
-            top: -20px;
+            top: -22px;
             left: 50%;
             transform: translateX(-50%);
             width: 0;
             height: 0;
-            border-left: 15px solid transparent;
-            border-right: 15px solid transparent;
-            border-top: 30px solid #DC2626;
+            border-left: 14px solid transparent;
+            border-right: 14px solid transparent;
+            border-top: 28px solid #DC2626;
             z-index: 50;
             filter: drop-shadow(0 3px 2px rgba(0,0,0,0.3));
+        }
+        /* จัดวางชิ้นส่วนแต่ละช่องของวงล้อ 16 ช่อง (ช่องละ 22.5 องศา) */
+        .wheel-slice {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 50%;
+            height: 100%;
+            transform-origin: left center;
+            display: flex;
+            align-items: flex-start;
+            justify-content: flex-end;
+            padding-right: 20px;
+            padding-top: 15px;
         }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
 
+    <!-- Header Navigation -->
     <header class="bg-white shadow-sm border-b border-emerald-100 sticky top-0 z-40">
         <div class="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
-            <div class="flex items-center space-x-3">
+            <div class="flex items-center space-x-2">
                 <span class="text-2xl">🐢</span>
-                <span class="font-bold text-lg text-emerald-700">Exotic Market Lucky Draw</span>
+                <span class="font-bold text-base sm:text-lg text-emerald-700">Exotic Lucky Draw</span>
             </div>
-            <div class="flex items-center space-x-4">
-                <div class="bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-full flex items-center space-x-2">
+            <div class="flex items-center space-x-3">
+                <div class="bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full flex items-center space-x-1.5 text-sm">
                     <span class="text-amber-500 font-bold">🪙 Token:</span>
                     <span id="userTokenCount" class="font-bold text-emerald-800">0</span>
                 </div>
-                <a href="index.html" class="text-sm font-medium text-slate-600 hover:text-emerald-600 transition">กลับหน้าหลัก</a>
+                <a href="index.html" class="text-xs sm:text-sm font-medium text-slate-600 hover:text-emerald-600 transition">กลับหน้าหลัก</a>
             </div>
         </div>
     </header>
 
-    <main class="flex-grow max-w-4xl mx-auto px-4 py-8 w-full flex flex-col items-center">
+    <!-- Main Content -->
+    <main class="flex-grow max-w-4xl mx-auto px-4 py-6 w-full flex flex-col items-center">
         
-        <div class="bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-2xl p-6 shadow-lg w-full mb-8 text-center relative overflow-hidden">
-            <div class="relative z-10">
-                <h1 class="text-2xl sm:text-3xl font-bold mb-2">🎁 วงล้อลุ้นโชคสะสม Token</h1>
-                <p class="text-emerald-100 text-sm sm:text-base max-w-xl mx-auto">
-                    หมุนฟรีวันละ 1 ครั้ง! สะสม Token ไปใช้เปิดร้าน ลงประกาศขาย หรือสร้างห้องประมูลสัตว์เลี้ยง Exotic สุดพิเศษของคุณได้เลย
-                </p>
-                <div class="mt-4 inline-flex items-center bg-white/10 backdrop-blur px-4 py-1.5 rounded-full text-xs sm:text-sm font-medium">
-                    <span>โควตาเปิดร้านฟรีคงเหลือ: <strong id="freePostCount" class="text-amber-300">10</strong> / 10 โพสต์</span>
-                </div>
-            </div>
+        <!-- Info Banner -->
+        <div class="bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-2xl p-5 shadow-lg w-full mb-6 text-center">
+            <h1 class="text-xl sm:text-2xl font-bold mb-1">🎁 วงล้อลุ้นโชคสะสม Token</h1>
+            <p class="text-emerald-100 text-xs sm:text-sm max-w-lg mx-auto">
+                หมุนฟรีวันละ 1 ครั้ง! สะสม Token ไว้ใช้เปิดร้านหรือลงประกาศขายสัตว์เลี้ยงฟรี
+            </p>
         </div>
 
-        <div class="bg-white rounded-3xl p-6 shadow-xl border border-slate-100 flex flex-col items-center w-full max-w-lg mb-8">
+        <!-- Wheel Area -->
+        <div class="bg-white rounded-3xl p-6 shadow-xl border border-slate-100 flex flex-col items-center w-full max-w-md mb-6">
             <div class="wheel-container mb-6">
                 <div class="pointer"></div>
+                
+                <!-- วงล้อ 16 ช่อง พร้อมสีสลับกัน -->
                 <div id="wheel" style="background: conic-gradient(
                     #fef3c7 0deg 22.5deg, #d1fae5 22.5deg 45deg, #fef3c7 45deg 67.5deg, #fee2e2 67.5deg 90deg,
                     #fef3c7 90deg 112.5deg, #d1fae5 112.5deg 135deg, #fef3c7 135deg 157.5deg, #e0e7ff 157.5deg 180deg,
                     #fef3c7 180deg 202.5deg, #d1fae5 202.5deg 225deg, #fef3c7 225deg 247.5deg, #ffedd5 247.5deg 270deg,
                     #fef3c7 270deg 292.5deg, #d1fae5 292.5deg 315deg, #fef3c7 315deg 337.5deg, #f3e8ff 337.5deg 360deg
                 );">
-                    <div class="absolute inset-0 flex items-center justify-center font-bold text-slate-700 text-xs">
-                        <div class="absolute w-full h-full flex items-start justify-center pt-2"><span class="bg-white/80 px-1 rounded">1 T</span></div>
-                        <div class="absolute w-full h-full flex items-start justify-center pt-2 transform rotate-[22.5deg]"><span class="bg-white/80 px-1 rounded">2 T</span></div>
-                        <div class="absolute w-full h-full flex items-start justify-center pt-2 transform rotate-[45deg]"><span class="bg-white/80 px-1 rounded">1 T</span></div>
-                        <div class="absolute w-full h-full flex items-start justify-center pt-2 transform rotate-[67.5deg]"><span class="bg-white/80 px-1 rounded">3 T</span></div>
-                        <div class="absolute w-full h-full flex items-start justify-center pt-2 transform rotate-[90deg]"><span class="bg-white/80 px-1 rounded">1 T</span></div>
-                        <div class="absolute w-full h-full flex items-start justify-center pt-2 transform rotate-[112.5deg]"><span class="bg-white/80 px-1 rounded">2 T</span></div>
-                        <div class="absolute w-full h-full flex items-start justify-center pt-2 transform rotate-[135deg]"><span class="bg-white/80 px-1 rounded">1 T</span></div>
-                        <div class="absolute w-full h-full flex items-start justify-center pt-2 transform rotate-[157.5deg]"><span class="bg-white/80 px-1 rounded">5 T</span></div>
-                        <div class="absolute w-full h-full flex items-start justify-center pt-2 transform rotate-[180deg]"><span class="bg-white/80 px-1 rounded">1 T</span></div>
-                        <div class="absolute w-full h-full flex items-start justify-center pt-2 transform rotate-[202.5deg]"><span class="bg-white/80 px-1 rounded">2 T</span></div>
-                        <div class="absolute w-full h-full flex items-start justify-center pt-2 transform rotate-[225deg]"><span class="bg-white/80 px-1 rounded">1 T</span></div>
-                        <div class="absolute w-full h-full flex items-start justify-center pt-2 transform rotate-[247.5deg]"><span class="bg-white/80 px-1 rounded">10 T</span></div>
-                        <div class="absolute w-full h-full flex items-start justify-center pt-2 transform rotate-[270deg]"><span class="bg-white/80 px-1 rounded">1 T</span></div>
-                        <div class="absolute w-full h-full flex items-start justify-center pt-2 transform rotate-[292.5deg]"><span class="bg-white/80 px-1 rounded">2 T</span></div>
-                        <div class="absolute w-full h-full flex items-start justify-center pt-2 transform rotate-[315deg]"><span class="bg-white/80 px-1 rounded">1 T</span></div>
-                        <div class="absolute w-full h-full flex items-start justify-center pt-2 transform rotate-[337.5deg]"><span class="bg-white/80 px-1 rounded">3 T</span></div>
-                    </div>
+                    <!-- ข้อความแต่ละช่องจัดมุมให้อยู่ตรงกลางแฉกเป๊ะ ๆ -->
+                    <div class="wheel-slice" style="transform: rotate(11.25deg);"><span class="text-[10px] font-bold text-slate-700 bg-white/70 px-1 rounded">1T</span></div>
+                    <div class="wheel-slice" style="transform: rotate(33.75deg);"><span class="text-[10px] font-bold text-slate-700 bg-white/70 px-1 rounded">2T</span></div>
+                    <div class="wheel-slice" style="transform: rotate(56.25deg);"><span class="text-[10px] font-bold text-slate-700 bg-white/70 px-1 rounded">1T</span></div>
+                    <div class="wheel-slice" style="transform: rotate(78.75deg);"><span class="text-[10px] font-bold text-slate-700 bg-white/70 px-1 rounded">3T</span></div>
+                    <div class="wheel-slice" style="transform: rotate(101.25deg);"><span class="text-[10px] font-bold text-slate-700 bg-white/70 px-1 rounded">1T</span></div>
+                    <div class="wheel-slice" style="transform: rotate(123.75deg);"><span class="text-[10px] font-bold text-slate-700 bg-white/70 px-1 rounded">2T</span></div>
+                    <div class="wheel-slice" style="transform: rotate(146.25deg);"><span class="text-[10px] font-bold text-slate-700 bg-white/70 px-1 rounded">1T</span></div>
+                    <div class="wheel-slice" style="transform: rotate(168.75deg);"><span class="text-[10px] font-bold text-slate-700 bg-white/70 px-1 rounded">5T</span></div>
+                    <div class="wheel-slice" style="transform: rotate(191.25deg);"><span class="text-[10px] font-bold text-slate-700 bg-white/70 px-1 rounded">1T</span></div>
+                    <div class="wheel-slice" style="transform: rotate(213.75deg);"><span class="text-[10px] font-bold text-slate-700 bg-white/70 px-1 rounded">2T</span></div>
+                    <div class="wheel-slice" style="transform: rotate(236.25deg);"><span class="text-[10px] font-bold text-slate-700 bg-white/70 px-1 rounded">1T</span></div>
+                    <div class="wheel-slice" style="transform: rotate(258.75deg);"><span class="text-[10px] font-bold text-amber-700 bg-amber-100 px-1 rounded">10T</span></div>
+                    <div class="wheel-slice" style="transform: rotate(281.25deg);"><span class="text-[10px] font-bold text-slate-700 bg-white/70 px-1 rounded">1T</span></div>
+                    <div class="wheel-slice" style="transform: rotate(303.75deg);"><span class="text-[10px] font-bold text-slate-700 bg-white/70 px-1 rounded">2T</span></div>
+                    <div class="wheel-slice" style="transform: rotate(326.25deg);"><span class="text-[10px] font-bold text-slate-700 bg-white/70 px-1 rounded">1T</span></div>
+                    <div class="wheel-slice" style="transform: rotate(348.75deg);"><span class="text-[10px] font-bold text-slate-700 bg-white/70 px-1 rounded">3T</span></div>
                 </div>
+
+                <!-- ปุ่มหมุนตรงกลาง -->
                 <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-                    <div class="w-16 h-16 bg-white rounded-full shadow-md border-4 border-emerald-600 flex items-center justify-center text-emerald-700 font-bold text-sm">
+                    <div class="w-14 h-14 bg-white rounded-full shadow-md border-4 border-emerald-600 flex items-center justify-center text-emerald-700 font-bold text-xs tracking-wider">
                         SPIN
                     </div>
                 </div>
             </div>
 
-            <button id="spinBtn" onclick="spinWheel()" class="w-full max-w-xs bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold py-3 px-6 rounded-xl shadow-lg transition duration-200 text-lg flex items-center justify-center space-x-2">
-                <span>🎲 หมุนวงล้อเลย (ฟรีวันนี้)</span>
+            <!-- Action Button -->
+            <button id="spinBtn" onclick="spinWheel()" class="w-full max-w-xs bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold py-3 px-6 rounded-xl shadow-md transition duration-200 text-base">
+                🎲 หมุนวงล้อเลย (ฟรีวันนี้)
             </button>
             <p id="spinStatus" class="text-xs text-slate-400 mt-2">สิทธิ์หมุนฟรีวันนี้: 1 ครั้ง</p>
         </div>
 
-        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 w-full">
-            <h3 class="font-bold text-slate-700 mb-3 flex items-center space-x-2">
+        <!-- Rules Box -->
+        <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 w-full">
+            <h3 class="font-bold text-slate-700 mb-3 text-sm flex items-center space-x-2">
                 <span>💡</span>
                 <span>กติกาและสัดส่วนรางวัลในวงล้อ (16 ช่อง)</span>
             </h3>
-            <ul class="text-sm text-slate-600 space-y-2">
+            <ul class="text-xs sm:text-sm text-slate-600 space-y-2">
                 <li class="flex justify-between items-center border-b border-slate-100 pb-1">
-                    <span>🪙 ได้รับ 1 Token (ออกบ่อยสุด)</span>
+                    <span>🪙 ได้รับ 1 Token</span>
                     <span class="font-semibold text-emerald-600">70%</span>
                 </li>
                 <li class="flex justify-between items-center border-b border-slate-100 pb-1">
@@ -138,18 +156,14 @@
                     <span class="font-semibold text-emerald-600">3%</span>
                 </li>
                 <li class="flex justify-between items-center">
-                    <span>🔥 ได้รับ 10 Tokens (แรร์ไอเทมแจ็คพอต!)</span>
+                    <span>🔥 ได้รับ 10 Tokens (แจ็คพอต)</span>
                     <span class="font-semibold text-amber-600">1%</span>
                 </li>
             </ul>
         </div>
-
     </main>
 
-    <footer class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-500">
-        &copy; 2026 ตลาดนัดและประมูลสัตว์เลี้ยง Exotic. All rights reserved.
-    </footer>
-
+    <!-- Script ควบคุมการหมุนและความน่าจะเป็น -->
     <script>
         let currentRotation = 0;
         let userTokens = parseInt(localStorage.getItem('exotic_tokens')) || 0;
@@ -157,8 +171,10 @@
 
         document.getElementById('userTokenCount').innerText = userTokens;
         if (!freeSpinsToday) {
-            document.getElementById('spinBtn').innerText = "หมดสิทธิ์หมุนฟรีวันนี้";
-            document.getElementById('spinBtn').classList.add('opacity-50', 'cursor-not-allowed');
+            const btn = document.getElementById('spinBtn');
+            btn.innerText = "หมดสิทธิ์หมุนฟรีวันนี้";
+            btn.classList.add('opacity-50', 'cursor-not-allowed', 'bg-slate-400');
+            btn.classList.remove('bg-emerald-600', 'hover:bg-emerald-700');
             document.getElementById('spinStatus').innerText = "กลับมาหมุนใหม่ได้ในวันพรุ่งนี้";
         }
 
@@ -171,41 +187,33 @@
             const btn = document.getElementById('spinBtn');
             btn.disabled = true;
 
-            // สุ่มรางวัลตามน้ำหนักความน่าจะเป็นที่อี้อวี่กำหนด (16 ช่อง)
-            // 70% = 1, 20% = 2, 6% = 3, 3% = 5, 1% = 10
+            // สุ่มเรทความน่าจะเป็น 16 ช่อง
             const rand = Math.random() * 100;
             let rewardToken = 1;
-            let targetSliceIndex = 0; // index ช่องบนวงล้อ (0 ถึง 15)
+            let targetSliceIndex = 0;
 
-            // กำหนดว่าแต่ละรางวัลอยู่ช่องไหนบ้างบนวงล้อ 16 ช่อง (มุมช่องละ 22.5 องศา)
-            // สมมติช่องของรางวัล:
-            // 1 Token อยู่ช่องที่: 0, 2, 4, 6, 8, 10, 12, 14 (รวม 8 ช่อง = 50% ใกล้เคียง 70% หรือกระจายตามจริง)
-            // เพื่อความสมจริง เราสุ่มตามเรทเปอร์เซ็นต์ก่อน แล้วค่อยเลือกช่องสอดคล้อง
-            let selectedType;
             if (rand < 70) {
-                selectedType = 1;
+                rewardToken = 1;
                 const slots = [0, 2, 4, 6, 8, 10, 12, 14];
                 targetSliceIndex = slots[Math.floor(Math.random() * slots.length)];
             } else if (rand < 90) {
-                selectedType = 2;
+                rewardToken = 2;
                 const slots = [1, 5, 9, 13];
                 targetSliceIndex = slots[Math.floor(Math.random() * slots.length)];
             } else if (rand < 96) {
-                selectedType = 3;
+                rewardToken = 3;
                 const slots = [3, 15];
                 targetSliceIndex = slots[Math.floor(Math.random() * slots.length)];
             } else if (rand < 99) {
-                selectedType = 5;
+                rewardToken = 5;
                 targetSliceIndex = 7;
             } else {
-                selectedType = 10;
+                rewardToken = 10;
                 targetSliceIndex = 11;
             }
 
-            rewardToken = selectedType;
-
-            // คำนวณองศาการหมุน (หมุน 5 รอบเต็ม + ตำแหน่งช่องเป้าหมาย)
             const sliceDegree = 22.5;
+            // คำนวณองศาให้เข็มชี้ตรงกลางช่องพอดี
             const extraDegrees = 360 - (targetSliceIndex * sliceDegree + sliceDegree / 2);
             const totalRotation = currentRotation + (360 * 5) + extraDegrees;
             currentRotation = totalRotation;
@@ -220,8 +228,9 @@
                 freeSpinsToday = false;
 
                 document.getElementById('userTokenCount').innerText = userTokens;
-                document.getElementById('spinBtn').innerText = "หมดสิทธิ์หมุนฟรีวันนี้";
-                document.getElementById('spinBtn').classList.add('opacity-50', 'cursor-not-allowed');
+                btn.innerText = "หมดสิทธิ์หมุนฟรีวันนี้";
+                btn.classList.add('opacity-50', 'cursor-not-allowed', 'bg-slate-400');
+                btn.classList.remove('bg-emerald-600', 'hover:bg-emerald-700');
                 document.getElementById('spinStatus').innerText = "กลับมาหมุนใหม่ได้ในวันพรุ่งนี้";
 
                 alert(`🎉 ยินดีด้วยครับ! คุณสุ่มได้ ${rewardToken} Token! บันทึกลงกระเป๋าเรียบร้อยแล้ว`);
