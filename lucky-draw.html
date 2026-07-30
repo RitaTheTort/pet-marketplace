@@ -116,10 +116,10 @@
         </div>
     </main>
 
-    <!-- Script ระบบฟักไข่แบบเห็นตัวโผล่ -->
+    <!-- Script ระบบฟักไข่แบบแก้ไขให้ปุ่มกดได้ปกติ -->
     <script>
         let userTokens = parseInt(localStorage.getItem('exotic_tokens')) || 0;
-        let freeSpinsToday = localStorage.getItem('exotic_free_spin'] !== 'used';
+        let freeSpinsToday = localStorage.getItem('exotic_free_spin') !== 'used';
 
         document.getElementById('userTokenCount').innerText = userTokens;
         updateUI();
@@ -169,24 +169,24 @@
             if (rand < 30) {
                 earnedToken = 1;
                 rewardName = "🪙 ไข่ธรรมดา";
-                petEmoji = "🦎"; // กิ้งก่า
+                petEmoji = "🦎"; 
             } else if (rand < 70) {
                 earnedToken = 2;
                 rewardName = "🥈 ไข่เงิน";
-                petEmoji = "🐢"; // เต่า
+                petEmoji = "🐢"; 
             } else if (rand < 90) {
                 earnedToken = 3;
                 rewardName = "🥇 ไข่ทองคำ";
-                petEmoji = "🐍"; // งู
+                petEmoji = "🐍"; 
             } else {
                 earnedToken = 5;
                 rewardName = "🔥 ไข่โบราณ (แจ็คพอต!)";
-                petEmoji = "🦖"; // ไดโนเสาร์/มังกร
+                petEmoji = "🦖"; 
             }
 
             // สเตปที่ 2: ผ่านไป 1.5 วินาที ไข่เกิดรอยร้าว
             setTimeout(() => {
-                eggIcon.innerText = "🪺"; // เปลี่ยนเป็นสัญลักษณ์ไข่เริ่มปริ/แตก
+                eggIcon.innerText = "🪺"; 
                 instruction.innerText = "แคร็ก! เปลือกไข่เริ่มปริแล้ว...";
             }, 1500);
 
@@ -194,7 +194,7 @@
             setTimeout(() => {
                 eggIcon.classList.remove('animate-shake');
                 eggIcon.classList.add('animate-pop');
-                eggIcon.innerText = petEmoji; // แสดงตัวสัตว์เลี้ยงที่ฟักออกมา
+                eggIcon.innerText = petEmoji; 
                 instruction.innerText = `เซอร์ไพรส์! เจอ ${rewardName} ได้รับ ${earnedToken} Token!`;
 
                 userTokens += earnedToken;
@@ -208,7 +208,6 @@
 
                 alert(`🎉 ยินดีด้วยครับ! คุณฟักไข่ได้ "${rewardName}" และพบตัว ${petEmoji} ได้รับ ${earnedToken} Token เรียบร้อยแล้ว!`);
                 
-                // รีเซ็ตแอนิเมชันป๊อป
                 setTimeout(() => {
                     eggIcon.classList.remove('animate-pop');
                 }, 600);
@@ -219,6 +218,7 @@
         function resetSpinLimit() {
             localStorage.removeItem('exotic_free_spin');
             freeSpinsToday = true;
+            const eggIcon = document.getElementById('eggIcon');
             eggIcon.innerText = "🥚";
             eggIcon.classList.add('animate-pulse-slow');
             updateUI();
