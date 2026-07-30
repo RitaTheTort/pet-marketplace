@@ -17,14 +17,22 @@
         }
         @keyframes shake {
             0% { transform: translate(1px, 1px) rotate(0deg); }
-            20% { transform: translate(-3px, 0px) rotate(-1deg); }
-            40% { transform: translate(1px, -1px) rotate(1deg); }
-            60% { transform: translate(-3px, 1px) rotate(0deg); }
-            80% { transform: translate(1px, -1px) rotate(1deg); }
+            20% { transform: translate(-4px, 0px) rotate(-3deg); }
+            40% { transform: translate(2px, -1px) rotate(3deg); }
+            60% { transform: translate(-4px, 1px) rotate(0deg); }
+            80% { transform: translate(2px, -1px) rotate(2deg); }
             100% { transform: translate(1px, -2px) rotate(-1deg); }
         }
         .animate-shake {
-            animation: shake 0.5s infinite;
+            animation: shake 0.3s infinite;
+        }
+        @keyframes pop-out {
+            0% { transform: scale(0.5); opacity: 0; }
+            70% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .animate-pop {
+            animation: pop-out 0.6s ease-out forwards;
         }
     </style>
 </head>
@@ -54,7 +62,7 @@
         <div class="bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-2xl p-5 shadow-lg w-full mb-6 text-center max-w-md">
             <h1 class="text-xl sm:text-2xl font-bold mb-1">🦖 ออกสำรวจไข่สัตว์ Exotic</h1>
             <p class="text-emerald-100 text-xs sm:text-sm">
-                เลือกเปิดไข่ลึกลับฟรีวันละ 1 ครั้ง! ลุ้นรับ Token สะสมสูงสุด 5 Tokens
+                ลุ้นฟักไข่ลึกลับรับ Token ฟรีวันละ 1 ครั้ง!
             </p>
         </div>
 
@@ -62,10 +70,11 @@
         <div class="bg-white rounded-3xl p-8 shadow-xl border border-slate-100 flex flex-col items-center w-full max-w-md mb-6 text-center">
             
             <div id="eggContainer" class="my-8 cursor-pointer transition transform hover:scale-105" onclick="openEgg()">
+                <!-- พื้นที่แสดงไข่และตัวสัตว์เลี้ยง -->
                 <div id="eggIcon" class="text-8xl sm:text-9xl animate-pulse-slow select-none">
                     🥚
                 </div>
-                <p id="eggInstruction" class="text-xs text-emerald-600 font-semibold mt-4">แตะที่ไข่เพื่อทำการสำรวจ!</p>
+                <p id="eggInstruction" class="text-xs text-emerald-600 font-semibold mt-4">แตะที่ไข่เพื่อทำการฟัก!</p>
             </div>
 
             <!-- Action Button -->
@@ -107,10 +116,10 @@
         </div>
     </main>
 
-    <!-- Script ระบบสุ่มตรรกะหลังบ้าน 100% ไม่มีเพี้ยน -->
+    <!-- Script ระบบฟักไข่แบบเห็นตัวโผล่ -->
     <script>
         let userTokens = parseInt(localStorage.getItem('exotic_tokens')) || 0;
-        let freeSpinsToday = localStorage.getItem('exotic_free_spin') !== 'used';
+        let freeSpinsToday = localStorage.getItem('exotic_free_spin'] !== 'used';
 
         document.getElementById('userTokenCount').innerText = userTokens;
         updateUI();
@@ -129,7 +138,7 @@
                 btn.classList.remove('opacity-50', 'cursor-not-allowed', 'bg-slate-400');
                 btn.classList.add('bg-emerald-600', 'hover:bg-emerald-700');
                 document.getElementById('spinStatus').innerText = "สิทธิ์สำรวจฟรีวันนี้: 1 ครั้ง";
-                instruction.innerText = "แตะที่ไข่เพื่อทำการสำรวจ!";
+                instruction.innerText = "แตะที่ไข่เพื่อทำการฟัก!";
             }
         }
 
@@ -144,33 +153,49 @@
             const instruction = document.getElementById('eggInstruction');
             
             btn.disabled = true;
+            
+            // สเตปที่ 1: ไข่เริ่มสั่นและร้าว
             eggIcon.classList.remove('animate-pulse-slow');
             eggIcon.classList.add('animate-shake');
-            instruction.innerText = "กำลังฟักไข่และค้นหาสมบัติ...";
+            eggIcon.innerText = "🥚";
+            instruction.innerText = "ไข่กำลังสั่น...";
 
-            // สุ่มเรทความน่าจะเป็นแบบเป๊ะๆ (30%, 40%, 20%, 10%)
+            // สุ่มผลลัพธ์ล่วงหน้า
             const rand = Math.random() * 100;
             let earnedToken = 1;
             let rewardName = "ไข่ธรรมดา";
+            let petEmoji = "🐢";
 
             if (rand < 30) {
                 earnedToken = 1;
                 rewardName = "🪙 ไข่ธรรมดา";
+                petEmoji = "🦎"; // กิ้งก่า
             } else if (rand < 70) {
                 earnedToken = 2;
                 rewardName = "🥈 ไข่เงิน";
+                petEmoji = "🐢"; // เต่า
             } else if (rand < 90) {
                 earnedToken = 3;
                 rewardName = "🥇 ไข่ทองคำ";
+                petEmoji = "🐍"; // งู
             } else {
                 earnedToken = 5;
                 rewardName = "🔥 ไข่โบราณ (แจ็คพอต!)";
+                petEmoji = "🦖"; // ไดโนเสาร์/มังกร
             }
 
-            // หน่วงเวลาจำลองเอฟเฟกต์ฟักไข่ 2.5 วินาที
+            // สเตปที่ 2: ผ่านไป 1.5 วินาที ไข่เกิดรอยร้าว
+            setTimeout(() => {
+                eggIcon.innerText = "🪺"; // เปลี่ยนเป็นสัญลักษณ์ไข่เริ่มปริ/แตก
+                instruction.innerText = "แคร็ก! เปลือกไข่เริ่มปริแล้ว...";
+            }, 1500);
+
+            // สเตปที่ 3: ผ่านไป 3 วินาที เปลือกแตกออกและตัวด้านในโผล่พรวดออกมา
             setTimeout(() => {
                 eggIcon.classList.remove('animate-shake');
-                eggIcon.innerText = earnedToken >= 3 ? "🦖" : "🐢"; // เปลี่ยนไอคอนตามความหายาก
+                eggIcon.classList.add('animate-pop');
+                eggIcon.innerText = petEmoji; // แสดงตัวสัตว์เลี้ยงที่ฟักออกมา
+                instruction.innerText = `เซอร์ไพรส์! เจอ ${rewardName} ได้รับ ${earnedToken} Token!`;
 
                 userTokens += earnedToken;
                 localStorage.setItem('exotic_tokens', userTokens);
@@ -181,20 +206,21 @@
                 updateUI();
                 btn.disabled = false;
 
-                alert(`🎉 ยินดีด้วยครับ! คุณสำรวจพบ "${rewardName}" ได้รับ ${earnedToken} Token! บันทึกลงกระเป๋าเรียบร้อยแล้ว`);
+                alert(`🎉 ยินดีด้วยครับ! คุณฟักไข่ได้ "${rewardName}" และพบตัว ${petEmoji} ได้รับ ${earnedToken} Token เรียบร้อยแล้ว!`);
                 
-                // รีเซ็ตไอคอนกลับเป็นไข่หลังจากกดรับ
+                // รีเซ็ตแอนิเมชันป๊อป
                 setTimeout(() => {
-                    eggIcon.innerText = "🥚";
-                    eggIcon.classList.add('animate-pulse-slow');
-                }, 1000);
+                    eggIcon.classList.remove('animate-pop');
+                }, 600);
 
-            }, 2500);
+            }, 3000);
         }
 
         function resetSpinLimit() {
             localStorage.removeItem('exotic_free_spin');
             freeSpinsToday = true;
+            eggIcon.innerText = "🥚";
+            eggIcon.classList.add('animate-pulse-slow');
             updateUI();
             alert('🔄 รีเซ็ตสิทธิ์สำรวจเรียบร้อยแล้ว!');
         }
