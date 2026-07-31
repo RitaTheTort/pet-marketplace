@@ -65,19 +65,19 @@
           <span>🏷️</span> <span id="selected-species-label">หมวดหมู่ทั้งหมด</span> ▾
         </button>
 
-        <button onclick="filterAuctionCategory('ALL')" class="auc-cat-tab bg-red-600 text-white px-4 py-2 rounded-full text-xs font-bold transition shadow-sm">
+        <button onclick="filterAuctionCategory(event, 'ALL')" class="auc-cat-tab bg-red-600 text-white px-4 py-2 rounded-full text-xs font-bold transition shadow-sm">
           🔨 ทั้งหมดที่ประมูลอยู่
         </button>
-        <button onclick="filterAuctionCategory('HOT')" class="auc-cat-tab bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 px-4 py-2 rounded-full text-xs font-bold transition">
+        <button onclick="filterAuctionCategory(event, 'HOT')" class="auc-cat-tab bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 px-4 py-2 rounded-full text-xs font-bold transition">
           🔥 ที่กำลังเดือด ๆ
         </button>
-        <button onclick="filterAuctionCategory('BIDDING')" class="auc-cat-tab bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 px-4 py-2 rounded-full text-xs font-bold transition">
+        <button onclick="filterAuctionCategory(event, 'BIDDING')" class="auc-cat-tab bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 px-4 py-2 rounded-full text-xs font-bold transition">
           ⏳ ที่กำลังประมูลอยู่
         </button>
-        <button onclick="filterAuctionCategory('NO_BID')" class="auc-cat-tab bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 px-4 py-2 rounded-full text-xs font-bold transition">
+        <button onclick="filterAuctionCategory(event, 'NO_BID')" class="auc-cat-tab bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 px-4 py-2 rounded-full text-xs font-bold transition">
           🏷️ ที่ยังไม่มีผู้ประมูล
         </button>
-        <button onclick="filterAuctionCategory('WON')" class="auc-cat-tab bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 px-4 py-2 rounded-full text-xs font-bold transition">
+        <button onclick="filterAuctionCategory(event, 'WON')" class="auc-cat-tab bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 px-4 py-2 rounded-full text-xs font-bold transition">
           🏆 ที่ชนะประมูลแล้ว
         </button>
       </div>
@@ -121,10 +121,10 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-2 pb-2 border-b border-slate-200" id="my-filter-tabs">
-          <button onclick="filterMyAuctions('ALL')" class="my-hall-tab bg-slate-900 text-white px-3.5 py-1.5 rounded-full text-xs font-bold transition shadow-sm">ทั้งหมด</button>
-          <button onclick="filterMyAuctions('รอการชำระเงิน')" class="my-hall-tab bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 px-3.5 py-1.5 rounded-full text-xs font-bold transition">⏳ รอการชำระเงิน</button>
-          <button onclick="filterMyAuctions('ชำระเงินแล้ว')" class="my-hall-tab bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 px-3.5 py-1.5 rounded-full text-xs font-bold transition">💳 ชำระเงินแล้ว</button>
-          <button onclick="filterMyAuctions('จัดส่งสำเร็จแล้ว')" class="my-hall-tab bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 px-3.5 py-1.5 rounded-full text-xs font-bold transition">🚚 จัดส่งสำเร็จแล้ว</button>
+          <button onclick="filterMyAuctions(event, 'ALL')" class="my-hall-tab bg-slate-900 text-white px-3.5 py-1.5 rounded-full text-xs font-bold transition shadow-sm">ทั้งหมด</button>
+          <button onclick="filterMyAuctions(event, 'รอการชำระเงิน')" class="my-hall-tab bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 px-3.5 py-1.5 rounded-full text-xs font-bold transition">⏳ รอการชำระเงิน</button>
+          <button onclick="filterMyAuctions(event, 'ชำระเงินแล้ว')" class="my-hall-tab bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 px-3.5 py-1.5 rounded-full text-xs font-bold transition">💳 ชำระเงินแล้ว</button>
+          <button onclick="filterMyAuctions(event, 'จัดส่งสำเร็จแล้ว')" class="my-hall-tab bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 px-3.5 py-1.5 rounded-full text-xs font-bold transition">🚚 จัดส่งสำเร็จแล้ว</button>
         </div>
 
         <div id="my-auctions-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4 pb-4">
@@ -154,10 +154,10 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-2 pb-2 border-b border-slate-200" id="admin-filter-tabs">
-          <button onclick="filterAdminHall('ALL')" class="admin-hall-tab bg-slate-900 text-white px-3.5 py-1.5 rounded-full text-xs font-bold transition shadow-sm">ทั้งหมด</button>
-          <button onclick="filterAdminHall('รอการชำระเงิน')" class="admin-hall-tab bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 px-3.5 py-1.5 rounded-full text-xs font-bold transition">⏳ รอการชำระเงิน</button>
-          <button onclick="filterAdminHall('ชำระเงินแล้ว')" class="admin-hall-tab bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 px-3.5 py-1.5 rounded-full text-xs font-bold transition">💳 ชำระเงินแล้ว</button>
-          <button onclick="filterAdminHall('จัดส่งสำเร็จแล้ว')" class="admin-hall-tab bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 px-3.5 py-1.5 rounded-full text-xs font-bold transition">🚚 จัดส่งสำเร็จแล้ว</button>
+          <button onclick="filterAdminHall(event, 'ALL')" class="admin-hall-tab bg-slate-900 text-white px-3.5 py-1.5 rounded-full text-xs font-bold transition shadow-sm">ทั้งหมด</button>
+          <button onclick="filterAdminHall(event, 'รอการชำระเงิน')" class="admin-hall-tab bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 px-3.5 py-1.5 rounded-full text-xs font-bold transition">⏳ รอการชำระเงิน</button>
+          <button onclick="filterAdminHall(event, 'ชำระเงินแล้ว')" class="admin-hall-tab bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 px-3.5 py-1.5 rounded-full text-xs font-bold transition">💳 ชำระเงินแล้ว</button>
+          <button onclick="filterAdminHall(event, 'จัดส่งสำเร็จแล้ว')" class="admin-hall-tab bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 px-3.5 py-1.5 rounded-full text-xs font-bold transition">🚚 จัดส่งสำเร็จแล้ว</button>
         </div>
 
         <div id="admin-hall-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4 pb-4">
@@ -196,7 +196,7 @@
         <div class="lg:col-span-2 space-y-4">
           <div class="relative h-64 bg-slate-900 rounded-xl overflow-hidden flex items-center justify-center cursor-pointer group" onclick="openLightbox(document.getElementById('sa-image').src)">
             <img id="sa-image" src="" class="max-w-full max-h-full object-contain transition group-hover:scale-105">
-            <span class="absolute top-3 left-3 bg-red-600 text-white font-bold text-xs px-2.5 py-1 rounded shadow pointer-events-none">LIVE AUCTION</span>
+            <span id="sa-live-badge" class="absolute top-3 left-3 bg-red-600 text-white font-bold text-xs px-2.5 py-1 rounded shadow pointer-events-none">LIVE AUCTION</span>
             <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition flex items-center justify-center pointer-events-none">
               <span class="bg-black/60 text-white text-xs px-3 py-1.5 rounded-lg font-bold">🔍 คลิกเพื่อดูรูปใหญ่</span>
             </div>
@@ -427,14 +427,14 @@
           </div>
           <div>
             <label class="block text-xs font-bold text-slate-700 mb-1">ราคาเริ่มต้น (บาท) *</label>
-            <input type="number" id="auc-start-price" required placeholder="เช่น 10000" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:outline-none">
+            <input type="number" id="auc-start-price" required min="1" step="1" placeholder="เช่น 10000" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:outline-none">
           </div>
         </div>
 
         <div class="grid grid-cols-2 gap-4">
           <div>
             <label class="block text-xs font-bold text-slate-700 mb-1">ราคาซื้อทันที (Buy-It-Now)</label>
-            <input type="number" id="auc-buyout-price" placeholder="ไม่บังคับ เช่น 25000" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:outline-none">
+            <input type="number" id="auc-buyout-price" min="1" step="1" placeholder="ไม่บังคับ เช่น 25000" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:outline-none">
           </div>
           <div>
             <label class="block text-xs font-bold text-slate-700 mb-1">ค่าขนส่ง (บาท) *</label>
@@ -493,7 +493,7 @@
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden">
       <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center">
         <h3 class="font-bold text-lg">เข้าสู่ระบบ</h3>
-        <button onclick="document.getElementById('auth-modal').classList.add('hidden')" class="text-slate-400 hover:text-white text-xl font-bold">&times;</button>
+        <button onclick="closeAuthModal()" class="text-slate-400 hover:text-white text-xl font-bold">&times;</button>
       </div>
       <form id="auth-form" class="p-6 space-y-4">
         <div>
@@ -510,15 +510,47 @@
   </div>
 
   <script>
-    function lockBodyScroll() { document.body.style.overflow = 'hidden'; }
-    function unlockBodyScroll() { document.body.style.overflow = ''; }
+    let bodyScrollLockCount = 0;
+    function lockBodyScroll() {
+      bodyScrollLockCount += 1;
+      document.body.style.overflow = 'hidden';
+    }
+    function unlockBodyScroll() {
+      bodyScrollLockCount = Math.max(0, bodyScrollLockCount - 1);
+      if (bodyScrollLockCount === 0) document.body.style.overflow = '';
+    }
+    function openAuthModal() {
+      const modal = document.getElementById('auth-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+    function closeAuthModal() {
+      const modal = document.getElementById('auth-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+    function escapeHTML(value) {
+      return String(value ?? '').replace(/[&<>'"]/g, ch => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+      })[ch]);
+    }
+    function safeImageUrl(value) {
+      try {
+        const url = new URL(String(value || ''), window.location.href);
+        return ['http:', 'https:'].includes(url.protocol) ? url.href : '';
+      } catch (_) { return ''; }
+    }
 
     function showToast(message) {
       const container = document.getElementById('toast-container');
       if (!container) return;
       const toast = document.createElement('div');
       toast.className = 'bg-slate-900 text-white text-xs font-bold px-4 py-3 rounded-xl shadow-xl pointer-events-auto transition transform translate-y-2 opacity-0 flex items-center gap-2';
-      toast.innerHTML = `<span>✅</span> <span>${message}</span>`;
+      const icon = document.createElement('span');
+      icon.textContent = '✅';
+      const text = document.createElement('span');
+      text.textContent = String(message ?? '');
+      toast.append(icon, text);
       container.appendChild(toast);
 
       setTimeout(() => {
@@ -547,7 +579,7 @@
             ctx.drawImage(img, 0, 0, width, height);
             canvas.toBlob((blob) => {
               if (!blob) { reject(new Error('Canvas to Blob failed')); return; }
-              resolve(new File([blob], file.name, { type: 'image/jpeg', lastModified: Date.now() }));
+              resolve(new File([blob], `${file.name.replace(/\.[^.]+$/, '') || 'image'}.jpg`, { type: 'image/jpeg', lastModified: Date.now() }));
             }, 'image/jpeg', quality);
           };
           img.onerror = (error) => reject(error);
@@ -566,6 +598,8 @@
     let globalAuctions = [];
     let activeAuction = null;
     let lastActiveSellerId = null;
+    let auctionReturnContext = { type: 'main', sellerId: null };
+    let myParticipatingAuctionIds = new Set();
     let selectedIncrement = 100;
     let singleRoomInterval = null;
     let activeSubscription = null;
@@ -599,7 +633,7 @@
       const container = document.getElementById('species-list-container');
       container.innerHTML = speciesList.map(sp => {
         const rawName = sp.replace(/^[^\s]+\s/, '');
-        const isSelected = (currentSelectedSpecies === 'ALL' && sp.includes('ทั้งหมด')) || currentSelectedSpecies === rawName;
+        const isSelected = (currentSelectedSpecies === 'ALL' && sp.includes('ทั้งหมด')) || currentSelectedSpecies === sp;
         return `
           <button onclick="selectSpeciesFilter('${sp}')" class="w-full text-left px-5 py-3.5 rounded-[2rem] text-xs font-bold transition flex items-center justify-between backdrop-blur-xl ${isSelected ? 'bg-red-600/90 text-white shadow-[0_4px_25px_rgba(220,38,38,0.45)] border border-red-400/60' : 'bg-white/40 hover:bg-white/75 text-slate-700 border border-white/70 shadow-[0_2px_12px_rgba(0,0,0,0.03)]'}">
             <span>${sp}</span>
@@ -624,8 +658,7 @@
         currentSelectedSpecies = 'ALL';
         document.getElementById('selected-species-label').innerText = 'หมวดหมู่ทั้งหมด';
       } else {
-        const rawName = spName.replace(/^[^\s]+\s/, '');
-        currentSelectedSpecies = rawName;
+        currentSelectedSpecies = spName;
         document.getElementById('selected-species-label').innerText = spName;
       }
       closeSpeciesModal();
@@ -666,6 +699,12 @@
           userFavorites = favData.map(f => f.seller_id);
         }
 
+        const { data: myBidData } = await supabaseClient
+          .from('auction_bids')
+          .select('auction_id')
+          .eq('bidder_id', user.id);
+        myParticipatingAuctionIds = new Set((myBidData || []).map(b => b.auction_id));
+
         container.innerHTML = `
           <div class="flex items-center space-x-2 bg-slate-800 px-3 py-1.5 rounded-lg text-xs text-white">
             <span>คุณ ${displayName} ${currentKycStatus === 'approved' ? '✓' : '(ยังไม่ KYC)'}</span>
@@ -702,6 +741,7 @@
         if (myAuctionsNavContainer) myAuctionsNavContainer.innerHTML = '';
         if (adminHallNavContainer) adminHallNavContainer.innerHTML = '';
         if (quickChatContainer) quickChatContainer.innerHTML = '';
+        myParticipatingAuctionIds = new Set();
         if (createAucBtn) createAucBtn.classList.add('hidden');
       }
       if (activeAuction) {
@@ -736,13 +776,13 @@
       `;
     }
 
-    window.filterMyAuctions = async function(status) {
+    window.filterMyAuctions = async function(evt, status) {
       currentMyAuctionsFilter = status;
       const tabs = document.querySelectorAll('.my-hall-tab');
       tabs.forEach(tab => {
         tab.className = 'my-hall-tab bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 px-3.5 py-1.5 rounded-full text-xs font-bold transition';
       });
-      event.target.className = 'my-hall-tab bg-slate-900 text-white px-3.5 py-1.5 rounded-full text-xs font-bold transition shadow-sm';
+      evt.currentTarget.className = 'my-hall-tab bg-slate-900 text-white px-3.5 py-1.5 rounded-full text-xs font-bold transition shadow-sm';
       await renderMyAuctionsData();
     };
 
@@ -893,13 +933,13 @@
       document.getElementById('admin-hall-modal').classList.remove('flex');
     };
 
-    window.filterAdminHall = async function(status) {
+    window.filterAdminHall = async function(evt, status) {
       currentAdminHallFilter = status;
       const tabs = document.querySelectorAll('.admin-hall-tab');
       tabs.forEach(tab => {
         tab.className = 'admin-hall-tab bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 px-3.5 py-1.5 rounded-full text-xs font-bold transition';
       });
-      event.target.className = 'admin-hall-tab bg-slate-900 text-white px-3.5 py-1.5 rounded-full text-xs font-bold transition shadow-sm';
+      evt.currentTarget.className = 'admin-hall-tab bg-slate-900 text-white px-3.5 py-1.5 rounded-full text-xs font-bold transition shadow-sm';
       await renderAdminHallData();
     };
 
@@ -1052,8 +1092,7 @@
       event.stopPropagation();
       if (!currentUser) {
         alert('กรุณาเข้าสู่ระบบก่อนกดติดตามหน้าร้านครับ');
-        document.getElementById('auth-modal').classList.add('hidden');
-        document.getElementById('auth-modal').classList.add('flex');
+        openAuthModal();
         return;
       }
 
@@ -1098,7 +1137,7 @@
       submitBtn.disabled = true; submitBtn.innerText = 'กำลังบีบอัดและอัปโหลดภาพ...';
       try {
         const optimizedFile = await compressImage(file, 1200, 0.8);
-        const fileName = `auc_${Date.now()}_${Math.random()}.${file.name.split('.').pop()}`;
+        const fileName = `auc_${crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}_${Math.random().toString(36).slice(2)}`}.jpg`;
         const { error } = await supabaseClient.storage.from('pet-images').upload(fileName, optimizedFile);
         if (error) throw error;
         const { data: publicUrlData } = await supabaseClient.storage.from('pet-images').getPublicUrl(fileName);
@@ -1136,6 +1175,9 @@
       const startPrice = parseFloat(document.getElementById('auc-start-price').value);
       const buyoutPrice = document.getElementById('auc-buyout-price').value ? parseFloat(document.getElementById('auc-buyout-price').value) : null;
       const shippingFee = parseFloat(document.getElementById('auc-shipping-fee').value) || 0;
+      if (!Number.isFinite(startPrice) || startPrice <= 0) { alert('ราคาเริ่มต้นต้องมากกว่า 0 บาท'); return; }
+      if (buyoutPrice !== null && (!Number.isFinite(buyoutPrice) || buyoutPrice <= startPrice)) { alert('ราคาซื้อทันทีต้องมากกว่าราคาเริ่มต้น'); return; }
+      if (!Number.isFinite(shippingFee) || shippingFee < 0) { alert('ค่าขนส่งต้องไม่ติดลบ'); return; }
       
       const days = parseInt(document.getElementById('auc-days').value) || 0;
       const hours = parseInt(document.getElementById('auc-hours').value) || 0;
@@ -1151,8 +1193,8 @@
         seller_name: currentUser.user_metadata?.full_name || currentUser.email.split('@')[0],
         expires_at: new Date(Date.now() + totalMilliseconds).toISOString(),
         status: 'active', last_bidder_id: null, last_bidder_name: null,
-        order_status: 'รอการชำระเงิน',
-        created_at: new Date().toISOString() // 🌟 บันทึกเวลาเริ่มต้นเพื่อใช้คำนวณช่วงเวลา Buyout (30%-80%)
+        order_status: null,
+        created_at: new Date().toISOString() // บันทึกเวลาเริ่มต้นเพื่อใช้คำนวณช่วงเวลา Buyout (30%-60%)
       };
 
       try {
@@ -1181,13 +1223,13 @@
       }
     }
 
-    window.filterAuctionCategory = function(cat) {
+    window.filterAuctionCategory = function(evt, cat) {
       currentAuctionCategory = cat;
       const tabs = document.querySelectorAll('.auc-cat-tab');
       tabs.forEach(tab => {
         tab.className = 'auc-cat-tab bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 px-4 py-2 rounded-full text-xs font-bold transition';
       });
-      event.target.className = 'auc-cat-tab bg-red-600 text-white px-4 py-2 rounded-full text-xs font-bold transition shadow-sm';
+      evt.currentTarget.className = 'auc-cat-tab bg-red-600 text-white px-4 py-2 rounded-full text-xs font-bold transition shadow-sm';
       renderCurrentAuctionView();
     };
 
@@ -1200,7 +1242,7 @@
         filtered = filtered.filter(auc => {
           const expTime = new Date(auc.expires_at).getTime();
           const isEnded = expTime <= now || auc.status === 'ended';
-          const hasMyBid = currentUser && auc.last_bidder_id === currentUser.id;
+          const hasMyBid = currentUser && myParticipatingAuctionIds.has(auc.id);
           const currentPrice = Number(auc.current_price || 0);
           const startPrice = Number(auc.start_price || 0);
           const isHot = !isEnded && (currentPrice - startPrice) > (startPrice * 0.2);
@@ -1208,11 +1250,11 @@
           if (currentAuctionCategory === 'HOT') return !isEnded && isHot;
           if (currentAuctionCategory === 'BIDDING') return !isEnded && hasMyBid;
           if (currentAuctionCategory === 'NO_BID') return !isEnded && currentPrice === startPrice;
-          if (currentAuctionCategory === 'WON') return isEnded && hasMyBid;
+          if (currentAuctionCategory === 'WON') return isEnded && currentUser && auc.last_bidder_id === currentUser.id;
           return false;
         });
       } else {
-        filtered = filtered.filter(auc => new Date(auc.expires_at).getTime() > now);
+        filtered = filtered.filter(auc => new Date(auc.expires_at).getTime() > now && auc.status !== 'ended');
       }
 
       if (currentSelectedSpecies !== 'ALL') {
@@ -1269,7 +1311,9 @@
         const images = seller.items.map(item => item.images?.[0]).filter(Boolean);
 
         let imagePreviewHTML = '';
-        if (images.length === 1) {
+        if (images.length === 0) {
+          imagePreviewHTML = `<div class="h-48 bg-slate-200 flex items-center justify-center text-slate-500 text-sm font-bold">ไม่มีรูปภาพ</div>`;
+        } else if (images.length === 1) {
           imagePreviewHTML = `<div class="h-48 bg-slate-900 relative overflow-hidden flex items-center justify-center"><img src="${images[0]}" class="max-w-full max-h-full object-contain"></div>`;
         } else if (images.length === 2) {
           imagePreviewHTML = `<div class="h-48 grid grid-cols-2 gap-0.5 bg-slate-900 overflow-hidden"><div class="flex items-center justify-center h-full"><img src="${images[0]}" class="max-w-full max-h-full object-contain"></div><div class="flex items-center justify-center h-full"><img src="${images[1]}" class="max-w-full max-h-full object-contain"></div></div>`;
@@ -1291,7 +1335,7 @@
               </div>
               <div class="p-5 space-y-3">
                 <div class="flex justify-between items-center text-xs text-slate-500">
-                  <span>สถานะผู้ขาย: <strong class="text-blue-600">✓ ผ่านการยืนยัน</strong></span>
+                  <span>สถานะผู้ขาย: <strong class="text-blue-600">สมาชิกเปิดประมูล</strong></span>
                   <span class="bg-red-50 text-red-600 font-bold px-2 py-0.5 rounded-full">${itemCount} ชิ้นที่กำลังประมูล</span>
                 </div>
               </div>
@@ -1330,7 +1374,7 @@
               </div>
               <div class="p-4 space-y-3">
                 <div class="flex justify-between items-center"><span class="text-xs font-bold uppercase bg-red-50 text-red-600 px-2 py-0.5 rounded">${auc.species}</span><span class="text-[11px] text-slate-500">ร้าน: ${auc.seller_name || 'ผู้ขาย'}</span></div>
-                <div class="bg-red-50/85 text-red-600 p-3 rounded-xl border border-red-200 text-center"><p class="text-[10px] font-bold mb-0.5">เวลาประมูลคงเหลือ</p><div id="sub-timer-${auc.id}" class="text-xl font-mono font-black tracking-widest text-red-600">00:00:00</div></div>
+                <div class="bg-red-50/85 text-red-600 p-3 rounded-xl border border-red-200 text-center"><p class="text-[10px] font-bold mb-0.5">เวลาประมูลคงเหลือ</p><div data-auction-timer="${auc.id}" class="text-xl font-mono font-black tracking-widest text-red-600">00:00:00</div></div>
                 <h3 class="font-bold text-slate-900 text-base line-clamp-1">${auc.title}</h3>
                 <div class="bg-emerald-50 p-3 rounded-xl border border-emerald-100 flex justify-between items-center"><div><p class="text-[10px] text-emerald-700 font-medium">ราคาปัจจุบัน</p><p class="text-lg font-black text-emerald-800">฿${Number(auc.current_price).toLocaleString()}</p></div><div class="text-right"><p class="text-[10px] text-slate-500 font-medium">ผู้ชนะปัจจุบัน</p><p class="text-xs font-bold text-slate-700 truncate max-w-[90px]">${auc.last_bidder_name || '-'}</p></div></div>
               </div>
@@ -1343,6 +1387,7 @@
     }
 
     window.openSellerRoomsModal = function(sellerId) {
+      auctionReturnContext = { type: 'seller', sellerId };
       lastActiveSellerId = sellerId;
       let sellerAuctions = globalAuctions.filter(a => (a.seller_id || 'unknown') === sellerId);
       if (!sellerAuctions.length) return;
@@ -1370,7 +1415,7 @@
               </div>
               <div class="p-4 space-y-3">
                 <span class="text-xs font-bold uppercase bg-red-50 text-red-600 px-2 py-0.5 rounded">${auc.species}</span>
-                <div class="bg-red-50/85 text-red-600 p-3 rounded-xl border border-red-200 text-center"><p class="text-[10px] font-bold mb-0.5">เวลาประมูลคงเหลือ</p><div id="sub-timer-${auc.id}" class="text-xl font-mono font-black tracking-widest text-red-600">00:00:00</div></div>
+                <div class="bg-red-50/85 text-red-600 p-3 rounded-xl border border-red-200 text-center"><p class="text-[10px] font-bold mb-0.5">เวลาประมูลคงเหลือ</p><div data-auction-timer="${auc.id}" class="text-xl font-mono font-black tracking-widest text-red-600">00:00:00</div></div>
                 <h3 class="font-bold text-slate-900 text-base line-clamp-1">${auc.title}</h3>
                 <div class="bg-emerald-50 p-3 rounded-xl border border-emerald-100 flex justify-between items-center"><div><p class="text-[10px] text-emerald-700 font-medium">ราคาปัจจุบัน</p><p class="text-lg font-black text-emerald-800">฿${Number(auc.current_price).toLocaleString()}</p></div><div class="text-right"><p class="text-[10px] text-slate-500 font-medium">ผู้ชนะปัจจุบัน</p><p class="text-xs font-bold text-slate-700 truncate max-w-[90px]">${auc.last_bidder_name || '-'}</p></div></div>
               </div>
@@ -1407,7 +1452,11 @@
       } catch (err) { alert('เกิดข้อผิดพลาดในการลบ: ' + err.message); }
     };
 
-    window.openSingleAuctionModal = async function(aucId) {
+    window.openSingleAuctionModal = async function(aucId, source = null) {
+      if (source === 'my') auctionReturnContext = { type: 'my', sellerId: null };
+      else if (source === 'admin') auctionReturnContext = { type: 'admin', sellerId: null };
+      else if (!document.getElementById('seller-rooms-modal').classList.contains('hidden')) auctionReturnContext = { type: 'seller', sellerId: lastActiveSellerId };
+      else auctionReturnContext = { type: 'main', sellerId: null };
       await refreshActiveAuctionData(aucId);
       if (!activeAuction) return;
 
@@ -1465,7 +1514,7 @@
       document.getElementById('single-auction-modal').classList.add('flex');
     };
 
-    // 🌟 ฟังก์ชันตรวจสอบและควบคุมการแสดงผลปุ่ม "ซื้อทันที (Buyout)" ตามเงื่อนไขเวลา (30%-80%) และราคา (ไม่เกิน 60%)
+    // 🌟 ฟังก์ชันตรวจสอบและควบคุมการแสดงผลปุ่ม "ซื้อทันที (Buyout)" ตามเงื่อนไขเวลา (30%-60%) และราคา (ไม่เกิน 60%)
     function updateBuyoutButtonVisibility() {
       if (!activeAuction || !activeAuction.buyout_price) return;
       const buyoutBtn = document.getElementById('sa-buyout-btn');
@@ -1490,8 +1539,8 @@
       const isAdmin = currentUser && (currentUserRole === 'admin' || currentUserRole === 'super_admin');
       const isMyOwnItem = currentUser && activeAuction.seller_id === currentUser.id && !isAdmin;
 
-      // เงื่อนไข: อยู่ในช่วงเวลา 30% - 80% และราคาปัจจุบันยังไม่ถึง 60% ของราคา Buyout และการประมูลยังไม่จบ และไม่ใช่เจ้าของสินค้ากดซื้อเอง
-      const isInTimeWindow = timeProgress >= 30 && timeProgress <= 80;
+      // เงื่อนไข: อยู่ในช่วงเวลา 30% - 60% และราคาปัจจุบันยังไม่ถึง 60% ของราคา Buyout และการประมูลยังไม่จบ และไม่ใช่เจ้าของสินค้ากดซื้อเอง
+      const isInTimeWindow = timeProgress >= 30 && timeProgress < 60;
       const isUnderPriceThreshold = priceRatio < 60;
 
       if (!isEnded && !isMyOwnItem && isInTimeWindow && isUnderPriceThreshold) {
@@ -1506,8 +1555,7 @@
     window.confirmBuyoutPrompt = function() {
       if (!currentUser) {
         alert('กรุณาเข้าสู่ระบบก่อนทำการซื้อทันทีครับ');
-        document.getElementById('auth-modal').classList.remove('hidden');
-        document.getElementById('auth-modal').classList.add('flex');
+        openAuthModal();
         return;
       }
       if (currentKycStatus !== 'approved') {
@@ -1537,40 +1585,20 @@
     window.executeBuyout = async function() {
       closeBuyoutConfirmModal();
       if (!currentUser || !activeAuction) return;
-
-      const buyoutPrice = Number(activeAuction.buyout_price);
-      const buyerName = currentUser.user_metadata?.full_name || currentUser.email.split('@')[0];
-
       try {
-        const { error: updateError } = await supabaseClient
-          .from('auctions')
-          .update({ 
-            current_price: buyoutPrice,
-            status: 'ended',
-            last_bidder_id: currentUser.id,
-            last_bidder_name: buyerName,
-            order_status: 'รอการชำระเงิน'
-          })
-          .eq('id', activeAuction.id);
-
-        if (updateError) throw updateError;
-
-        await supabaseClient.from('auction_bids').insert([{
-          auction_id: activeAuction.id,
-          bidder_id: currentUser.id,
-          bidder_name: buyerName,
-          bid_amount: buyoutPrice
-        }]);
-
-        showToast('🎉 ซื้อทันที (Buyout) สำเร็จ คุณคือผู้ชนะการประมูล!');
+        const { data, error } = await supabaseClient.rpc('execute_auction_buyout', {
+          p_auction_id: activeAuction.id
+        });
+        if (error) throw error;
+        showToast('🎉 ซื้อทันทีสำเร็จ คุณคือผู้ชนะการประมูล!');
         await refreshActiveAuctionData(activeAuction.id);
-        
-        document.getElementById('sa-current-price').innerText = `฿${buyoutPrice.toLocaleString()}`;
-        document.getElementById('sa-buyout-btn').classList.add('hidden');
-        
+        document.getElementById('sa-current-price').innerText = `฿${Number(activeAuction.current_price).toLocaleString()}`;
         await loadBidHistory(activeAuction.id);
+        updateSingleRoomTimer();
         updateBidButtonState();
+        updateBuyoutButtonVisibility();
         checkWinnerContactVisibility();
+        myParticipatingAuctionIds.add(activeAuction.id);
         fetchAuctions();
       } catch (err) {
         alert(`ซื้อทันทีไม่สำเร็จ: ${err.message}`);
@@ -1620,16 +1648,17 @@
     window.openAuctionSellerChat = function() {
       if (!currentUser) {
         alert('กรุณาเข้าสู่ระบบก่อนติดต่อครับ');
-        document.getElementById('auth-modal').classList.add('hidden');
-        document.getElementById('auth-modal').classList.add('flex');
+        openAuthModal();
         return;
       }
       if (!activeAuction) return;
 
       if (activeAuction.seller_id === currentUser.id) {
-        const targetId = activeAuction.last_bidder_id || currentUser.id;
-        const targetName = activeAuction.last_bidder_name || 'ผู้สนใจประมูล';
-        openAuctionChat(activeAuction, targetId, targetName);
+        if (!activeAuction.last_bidder_id) {
+          alert('ยังไม่มีผู้เสนอราคา จึงยังไม่มีคู่สนทนาในห้องประมูลนี้ครับ');
+          return;
+        }
+        openAuctionChat(activeAuction, activeAuction.last_bidder_id, activeAuction.last_bidder_name || 'ผู้เสนอราคา');
         return;
       }
 
@@ -1678,6 +1707,7 @@
 
     async function openAuctionChat(auc, otherUserId, otherUserName) {
       if (!auc || !currentUser) return;
+      if (!otherUserId || otherUserId === currentUser.id) { alert('ไม่สามารถเปิดห้องแชทกับบัญชีของตนเองได้'); return; }
       activeAuction = auc;
       targetAuctionChatUserId = otherUserId;
 
@@ -1861,6 +1891,7 @@
 
       } catch (err) {
         console.error('Delete chat error:', err);
+        throw err;
       }
     }
 
@@ -1912,7 +1943,7 @@
 
       try {
         const optimizedFile = await compressImage(file, 1200, 0.8);
-        const fileName = `chat_${Date.now()}_${Math.random()}.${file.name.split('.').pop()}`;
+        const fileName = `chat_${crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}_${Math.random().toString(36).slice(2)}`}.jpg`;
         
         const { error: uploadErr } = await supabaseClient.storage.from('chat-images').upload(fileName, optimizedFile);
         if (uploadErr) throw uploadErr;
@@ -2247,7 +2278,6 @@
     }
 
     window.closeSingleAuctionModal = function() {
-      unlockBodyScroll();
       if (activeSubscription) {
         supabaseClient.removeChannel(activeSubscription);
         activeSubscription = null;
@@ -2255,15 +2285,18 @@
       document.getElementById('single-auction-modal').classList.add('hidden');
       document.getElementById('single-auction-modal').classList.remove('flex');
       if (singleRoomInterval) clearInterval(singleRoomInterval);
-      
-      const currentSellerIdToReturn = lastActiveSellerId;
+      unlockBodyScroll();
+
+      const returnContext = { ...auctionReturnContext };
       activeAuction = null;
       fetchAuctions();
 
-      if (currentSellerIdToReturn) {
-        setTimeout(() => {
-          openSellerRoomsModal(currentSellerIdToReturn);
-        }, 150);
+      if (returnContext.type === 'seller' && returnContext.sellerId) {
+        setTimeout(() => openSellerRoomsModal(returnContext.sellerId), 100);
+      } else if (returnContext.type === 'my') {
+        setTimeout(() => openMyAuctionsModal(), 100);
+      } else if (returnContext.type === 'admin') {
+        setTimeout(() => openAdminHallModal(), 100);
       }
     };
 
@@ -2275,7 +2308,11 @@
       const now = new Date().getTime();
       const distance = new Date(activeAuction.expires_at).getTime() - now;
 
-      if (distance < 0) {
+      const isEnded = distance <= 0 || activeAuction.status === 'ended';
+      const liveBadge = document.getElementById('sa-live-badge');
+      if (liveBadge) { liveBadge.textContent = isEnded ? 'AUCTION CLOSED' : 'LIVE AUCTION'; liveBadge.className = `absolute top-3 left-3 ${isEnded ? 'bg-slate-700' : 'bg-red-600'} text-white font-bold text-xs px-2.5 py-1 rounded shadow pointer-events-none`; }
+
+      if (isEnded) {
         timerEl.innerHTML = "CLOSED";
         timerEl.className = "text-xl font-mono font-bold text-slate-500 tracking-wider";
         const bidBtn = document.getElementById('sa-bid-btn');
@@ -2304,26 +2341,26 @@
       if (mainTimerInterval) clearInterval(mainTimerInterval);
       mainTimerInterval = setInterval(() => {
         globalAuctions.forEach(auc => {
-          const subTimerEl = document.getElementById(`sub-timer-${auc.id}`);
-          if (!subTimerEl) return;
-          const now = new Date().getTime();
+          const timerEls = document.querySelectorAll(`[data-auction-timer="${auc.id}"]`);
+          if (!timerEls.length) return;
+          const now = Date.now();
           const distance = new Date(auc.expires_at).getTime() - now;
+          const isEnded = distance <= 0 || auc.status === 'ended';
 
-          if (distance < 0) {
-            subTimerEl.innerHTML = "CLOSED";
-            subTimerEl.className = "text-sm font-mono font-bold text-slate-400 tracking-wider";
-          } else {
+          timerEls.forEach(el => {
+            if (isEnded) {
+              el.textContent = 'CLOSED';
+              el.className = 'text-sm font-mono font-bold text-slate-400 tracking-wider';
+              return;
+            }
             const days = Math.floor(distance / (1000 * 60 * 60 * 24));
             const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
             const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
             const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
-            if (days > 0) {
-              subTimerEl.innerHTML = `${days}D ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-            } else {
-              subTimerEl.innerHTML = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-            }
-          }
+            el.textContent = days > 0
+              ? `${days}D ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
+              : `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+          });
         });
       }, 1000);
     }
@@ -2410,8 +2447,7 @@
     window.confirmBidPrompt = function() {
       if (!currentUser) {
         alert('กรุณาเข้าสู่ระบบก่อนเสนอราคาครับ');
-        document.getElementById('auth-modal').classList.remove('hidden');
-        document.getElementById('auth-modal').classList.add('flex');
+        openAuthModal();
         return;
       }
 
@@ -2450,39 +2486,23 @@
     window.submitBid = async function() {
       closeConfirmModal();
       if (!currentUser || !activeAuction) return;
-
-      const newPrice = Number(activeAuction.current_price) + selectedIncrement;
-      const bidderName = currentUser.user_metadata?.full_name || currentUser.email.split('@')[0];
-
       try {
-        const { error: updateError } = await supabaseClient
-          .from('auctions')
-          .update({ 
-            current_price: newPrice,
-            last_bidder_id: currentUser.id,
-            last_bidder_name: bidderName
-          })
-          .eq('id', activeAuction.id);
-
-        if (updateError) throw updateError;
-
-        await supabaseClient.from('auction_bids').insert([{
-          auction_id: activeAuction.id,
-          bidder_id: currentUser.id,
-          bidder_name: bidderName,
-          bid_amount: newPrice
-        }]);
-
+        const { data, error } = await supabaseClient.rpc('place_auction_bid', {
+          p_auction_id: activeAuction.id,
+          p_increment: selectedIncrement
+        });
+        if (error) throw error;
         await refreshActiveAuctionData(activeAuction.id);
+        myParticipatingAuctionIds.add(activeAuction.id);
         document.getElementById('sa-current-price').innerText = `฿${Number(activeAuction.current_price).toLocaleString()}`;
         setupDynamicIncrements(Number(activeAuction.current_price));
         await loadBidHistory(activeAuction.id);
-
         updateBidButtonState();
         updateBuyoutButtonVisibility();
         fetchAuctions();
       } catch (err) {
         alert(`เสนอราคาไม่สำเร็จ: ${err.message}`);
+        await refreshActiveAuctionData(activeAuction.id);
         updateBidButtonState();
       }
     };
@@ -2495,7 +2515,7 @@
         const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
         if (error) throw error;
         updateAuthUI(data.user);
-        document.getElementById('auth-modal').classList.add('hidden');
+        closeAuthModal();
         if (activeAuction) updateBidButtonState();
       } catch (err) {
         alert(`เข้าสู่ระบบไม่สำเร็จ: ${err.message}`);
